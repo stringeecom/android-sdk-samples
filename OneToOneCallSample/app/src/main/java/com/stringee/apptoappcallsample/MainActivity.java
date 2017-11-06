@@ -1,10 +1,12 @@
 package com.stringee.apptoappcallsample;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -28,15 +30,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String from = "stringee1";
     private String to = "stringee2";
 
+    private ProgressDialog progressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        TextView tvUserId = (TextView) findViewById(R.id.tv_userid);
+        tvUserId.setText("Connected as: " + from);
+
         Button btnVoiceCall = (Button) findViewById(R.id.btn_voice_call);
         btnVoiceCall.setOnClickListener(this);
         Button btnVideoCall = (Button) findViewById(R.id.btn_video_call);
         btnVideoCall.setOnClickListener(this);
+
+        progressDialog = ProgressDialog.show(this, "", "Connecting...");
+        progressDialog.setCancelable(true);
+        progressDialog.show();
 
         initStringee();
         getTokenAndConnect(from);
@@ -50,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        progressDialog.dismiss();
                         Utils.reportMessage(MainActivity.this, "Stringee session connected.");
                     }
                 });
@@ -60,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        progressDialog.dismiss();
                         Utils.reportMessage(MainActivity.this, "Stringee session disconnected.");
                     }
                 });

@@ -16,7 +16,6 @@ import android.widget.TextView;
 import com.stringee.conference.StringeeRoom;
 import com.stringee.conference.StringeeStream;
 import com.stringee.conferencecallsample.R;
-import com.stringee.conferencecallsample.utils.StringeeAudioManager;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeRoomListener;
 
@@ -45,34 +44,7 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
 
     public static final int REQUEST_PERMISSION_CALL = 1;
 
-    public StringeeAudioManager audioManager;
-    public AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
-        @Override
-        public void onAudioFocusChange(int focusChange) {
-            switch (focusChange) {
-                case AudioManager.AUDIOFOCUS_GAIN:
-                    audioManager.setAudioDeviceInternal(audioManager.getSelectedAudioDevice());
-                    break;
-                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
-                    audioManager.setAudioDeviceInternal(audioManager.getSelectedAudioDevice());
-                    break;
-                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE:
-                    audioManager.setAudioDeviceInternal(audioManager.getSelectedAudioDevice());
-                    break;
-                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
-                    audioManager.setAudioDeviceInternal(audioManager.getSelectedAudioDevice());
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS:
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
+    private AudioManager audioManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -98,15 +70,7 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
         ImageButton btnEnd = (ImageButton) findViewById(R.id.btn_end);
         btnEnd.setOnClickListener(this);
 
-        if (audioManager == null) {
-            audioManager = StringeeAudioManager.create(getApplicationContext(), true);
-            audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
-                @Override
-                public void onAudioDeviceChanged(
-                        StringeeAudioManager.AudioDevice audioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
-                }
-            }, mOnAudioFocusChangeListener);
-        }
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> lstPermissions = new ArrayList<>();

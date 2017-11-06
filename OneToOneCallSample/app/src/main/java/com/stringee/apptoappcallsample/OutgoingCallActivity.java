@@ -13,7 +13,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.stringee.apptoappcallsample.utils.StringeeAudioManager;
 import com.stringee.apptoappcallsample.utils.Utils;
 import com.stringee.call.StringeeCall;
 
@@ -43,35 +42,6 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
 
     public static final int REQUEST_PERMISSION_CALL = 1;
 
-    public StringeeAudioManager audioManager;
-    public AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
-        @Override
-        public void onAudioFocusChange(int focusChange) {
-            switch (focusChange) {
-                case AudioManager.AUDIOFOCUS_GAIN:
-                    audioManager.setAudioDeviceInternal(audioManager.getSelectedAudioDevice());
-                    break;
-                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
-                    audioManager.setAudioDeviceInternal(audioManager.getSelectedAudioDevice());
-                    break;
-                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE:
-                    audioManager.setAudioDeviceInternal(audioManager.getSelectedAudioDevice());
-                    break;
-                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
-                    audioManager.setAudioDeviceInternal(audioManager.getSelectedAudioDevice());
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS:
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
-
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_outgoing_call);
@@ -94,18 +64,15 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
         btnSpeaker = (ImageButton) findViewById(R.id.btn_speaker);
         btnSpeaker.setOnClickListener(this);
 
+        isSpeaker = isVideoCall;
+        if (isSpeaker) {
+            btnSpeaker.setImageResource(R.drawable.ic_speaker_on);
+        } else {
+            btnSpeaker.setImageResource(R.drawable.ic_speaker_off);
+        }
+
         ImageButton btnEnd = (ImageButton) findViewById(R.id.btn_end);
         btnEnd.setOnClickListener(this);
-
-        if (audioManager == null) {
-            audioManager = StringeeAudioManager.create(getApplicationContext(), isVideoCall);
-            audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
-                @Override
-                public void onAudioDeviceChanged(
-                        StringeeAudioManager.AudioDevice audioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
-                }
-            }, mOnAudioFocusChangeListener);
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> lstPermissions = new ArrayList<>();
@@ -259,8 +226,8 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                 } else {
                     btnSpeaker.setImageResource(R.drawable.ic_speaker_off);
                 }
-                if (audioManager != null) {
-                    audioManager.setSpeakerphoneOn(isSpeaker);
+                if (mStringeeCall != null) {
+                    mStringeeCall.setSpeakerphoneOn(isSpeaker);
                 }
                 break;
             case R.id.btn_end:
