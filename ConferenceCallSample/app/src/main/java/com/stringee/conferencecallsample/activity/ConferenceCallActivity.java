@@ -270,7 +270,7 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
                 break;
             case R.id.btn_end:
                 if (mStringeeRoom != null) {
-                    mStringeeRoom.leaveRoomAndReleaseResource();
+                    mStringeeRoom.leaveRoom();
                 }
                 finish();
                 break;

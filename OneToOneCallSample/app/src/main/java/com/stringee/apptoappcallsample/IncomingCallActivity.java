@@ -155,7 +155,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                         } else if (state == StringeeCall.CallState.END) {
                             tvState.setText("Ended");
                             if (mStringeeCall != null) {
-                                mStringeeCall.endCallAndReleaseResource();
+                                mStringeeCall.hangup();
                             }
                             finish();
                         }
@@ -244,7 +244,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 break;
             case R.id.btn_end:
                 if (mStringeeCall != null) {
-                    mStringeeCall.endCallAndReleaseResource();
+                    mStringeeCall.hangup();
                 }
                 finish();
                 break;

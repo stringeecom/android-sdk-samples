@@ -147,11 +147,11 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                             tvState.setText("Started");
                         } else if (state == StringeeCall.CallState.BUSY) {
                             tvState.setText("Busy");
-                            mStringeeCall.endCallAndReleaseResource();
+                            mStringeeCall.hangup();
                             finish();
                         } else if (state == StringeeCall.CallState.END) {
                             tvState.setText("Ended");
-                            mStringeeCall.endCallAndReleaseResource();
+                            mStringeeCall.hangup();
                             finish();
                         }
                     }
@@ -232,7 +232,7 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                 break;
             case R.id.btn_end:
                 if (mStringeeCall != null) {
-                    mStringeeCall.endCallAndReleaseResource();
+                    mStringeeCall.hangup();
                 }
                 finish();
                 break;
