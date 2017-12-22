@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -27,9 +28,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private String token;
     public static StringeeClient client;
-    private String from = "stringee1";
-    private String to = "stringee2";
+    private String myUserId = "stringee2";
+    private String to;
 
+    private EditText etTo;
     private ProgressDialog progressDialog;
 
     @Override
@@ -38,19 +40,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         TextView tvUserId = (TextView) findViewById(R.id.tv_userid);
-        tvUserId.setText("Connected as: " + from);
+        tvUserId.setText("Connected as: " + myUserId);
 
         Button btnVoiceCall = (Button) findViewById(R.id.btn_voice_call);
         btnVoiceCall.setOnClickListener(this);
         Button btnVideoCall = (Button) findViewById(R.id.btn_video_call);
         btnVideoCall.setOnClickListener(this);
+        etTo = (EditText) findViewById(R.id.et_to);
 
         progressDialog = ProgressDialog.show(this, "", "Connecting...");
         progressDialog.setCancelable(true);
         progressDialog.show();
 
         initStringee();
-        getTokenAndConnect(from);
+        getTokenAndConnect(myUserId);
     }
 
     private void initStringee() {
@@ -100,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onRefreshToken(StringeeClient stringeeClient) {
-                getTokenAndConnect(from);
+                getTokenAndConnect(myUserId);
             }
         });
     }
@@ -137,27 +140,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_voice_call:
-                if (client.isConnected()) {
-                    Intent intent = new Intent(this, OutgoingCallActivity.class);
-                    intent.putExtra("from", from);
-                    intent.putExtra("to", to);
-                    intent.putExtra("is_video_call", false);
-                    startActivity(intent);
-                } else {
-                    Utils.reportMessage(this, "Stringee session not connected");
+                to = etTo.getText().toString();
+                if (to.trim().length() > 0) {
+                    if (client.isConnected()) {
+                        Intent intent = new Intent(this, OutgoingCallActivity.class);
+                        intent.putExtra("from", myUserId);
+                        intent.putExtra("to", to);
+                        intent.putExtra("is_video_call", false);
+                        startActivity(intent);
+                    } else {
+                        Utils.reportMessage(this, "Stringee session not connected");
+                    }
                 }
                 break;
             case R.id.btn_video_call:
-                if (client.isConnected()) {
-                    Intent intent = new Intent(this, OutgoingCallActivity.class);
-                    intent.putExtra("from", from);
-                    intent.putExtra("to", to);
-                    intent.putExtra("is_video_call", true);
-                    startActivity(intent);
-                } else {
-                    Utils.reportMessage(this, "Stringee session not connected");
+                to = etTo.getText().toString();
+                if (to.trim().length() > 0) {
+                    if (client.isConnected()) {
+                        Intent intent = new Intent(this, OutgoingCallActivity.class);
+                        intent.putExtra("from", myUserId);
+                        intent.putExtra("to", to);
+                        intent.putExtra("is_video_call", true);
+                        startActivity(intent);
+                    } else {
+                        Utils.reportMessage(this, "Stringee session not connected");
+                    }
                 }
                 break;
         }
     }
+
+
 }
