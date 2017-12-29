@@ -17,6 +17,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.stringee.StringeeClient;
 import com.stringee.apptoappcallsample.utils.Utils;
+import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCallParam;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeConnectionListener;
@@ -28,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private String token;
     public static StringeeClient client;
-    private String myUserId = "stringee2";
+    private String myUserId = "stringee1";
     private String to;
 
     private EditText etTo;
@@ -82,12 +83,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
-            public void onIncomingCall(StringeeClient stringeeClient, StringeeCallParam stringeeCallParam) {
+            public void onIncomingCall(StringeeCall stringeeCall) {
                 Intent intent = new Intent(MainActivity.this, IncomingCallActivity.class);
-                intent.putExtra("call_id", stringeeCallParam.getCallId());
-                intent.putExtra("from", stringeeCallParam.getFrom());
-                intent.putExtra("to", stringeeCallParam.getTo());
-                intent.putExtra("is_video_call", stringeeCallParam.isVideoCall());
+                intent.putExtra("stringeecall", stringeeCall);
                 startActivity(intent);
             }
 

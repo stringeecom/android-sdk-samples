@@ -35,10 +35,6 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     private View vControl;
 
     private StringeeCall mStringeeCall;
-    private String callId;
-    private String from;
-    private String to;
-    private boolean isVideoCall;
     private boolean isMute = false;
     private boolean isSpeaker = false;
 
@@ -49,17 +45,13 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_incoming_call);
 
-        callId = getIntent().getStringExtra("call_id");
-        from = getIntent().getStringExtra("from");
-        to = getIntent().getStringExtra("to");
-        isVideoCall = getIntent().getBooleanExtra("is_video_call", false);
-
+        mStringeeCall = getIntent().getParcelableExtra("stringeecall");
 
         mLocalViewContainer = (FrameLayout) findViewById(R.id.v_local);
         mRemoteViewContainer = (FrameLayout) findViewById(R.id.v_remote);
 
         tvFrom = (TextView) findViewById(R.id.tv_from);
-        tvFrom.setText(from);
+        tvFrom.setText(mStringeeCall.getFrom());
 
         tvState = (TextView) findViewById(R.id.tv_state);
 
@@ -74,7 +66,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         btnSpeaker = (ImageButton) findViewById(R.id.btn_speaker);
         btnSpeaker.setOnClickListener(this);
 
-        isSpeaker = isVideoCall;
+        isSpeaker = mStringeeCall.isVideoCall();
         if (isSpeaker) {
             btnSpeaker.setImageResource(R.drawable.ic_speaker_on);
         } else {
@@ -92,7 +84,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 lstPermissions.add(Manifest.permission.RECORD_AUDIO);
             }
 
-            if (isVideoCall) {
+            if (mStringeeCall.isVideoCall()) {
                 if (ContextCompat.checkSelfPermission(this,
                         Manifest.permission.CAMERA)
                         != PackageManager.PERMISSION_GRANTED) {
@@ -139,9 +131,6 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void initAnswer() {
-        mStringeeCall = new StringeeCall(this, MainActivity.client, callId, from, to);
-        mStringeeCall.setVideoCall(isVideoCall);
-
         mStringeeCall.setStateListener(new StringeeCall.StringeeCallStateListener() {
             @Override
             public void onStateChange(final StringeeCall call, final StringeeCall.CallState state, String description) {
@@ -207,7 +196,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             }
         });
 
-        mStringeeCall.initAnswer();
+        mStringeeCall.initAnswer(this, MainActivity.client);
     }
 
     @Override
