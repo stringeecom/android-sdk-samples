@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static StringeeClient client;
     private String myUserId = "stringee1";
     private String to;
+    public static int callNum = 0;
 
     private EditText etTo;
     private ProgressDialog progressDialog;

@@ -15,6 +15,8 @@ import android.widget.TextView;
 import com.stringee.apptoappcallsample.utils.Utils;
 import com.stringee.call.StringeeCall;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,11 +34,14 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     private ImageButton btnEnd;
     private ImageButton btnMute;
     private ImageButton btnSpeaker;
+    private ImageButton btnVideo;
+    private ImageButton btnSwitch;
     private View vControl;
 
     private StringeeCall mStringeeCall;
     private boolean isMute = false;
     private boolean isSpeaker = false;
+    private boolean isVideo = false;
 
     public static final int REQUEST_PERMISSION_CALL = 1;
 
@@ -46,6 +51,8 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         setContentView(R.layout.activity_incoming_call);
 
         mStringeeCall = getIntent().getParcelableExtra("stringeecall");
+
+        MainActivity.callNum++;
 
         mLocalViewContainer = (FrameLayout) findViewById(R.id.v_local);
         mRemoteViewContainer = (FrameLayout) findViewById(R.id.v_remote);
@@ -65,6 +72,10 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         btnMute.setOnClickListener(this);
         btnSpeaker = (ImageButton) findViewById(R.id.btn_speaker);
         btnSpeaker.setOnClickListener(this);
+        btnVideo = (ImageButton) findViewById(R.id.btn_video);
+        btnVideo.setOnClickListener(this);
+        btnSwitch = (ImageButton) findViewById(R.id.btn_switch);
+        btnSwitch.setOnClickListener(this);
 
         isSpeaker = mStringeeCall.isVideoCall();
         if (isSpeaker) {
@@ -74,6 +85,14 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         }
 
         vControl = findViewById(R.id.v_control);
+        isVideo = mStringeeCall.isVideoCall();
+        if (isVideo) {
+            btnVideo.setVisibility(View.VISIBLE);
+            btnVideo.setImageResource(R.drawable.ic_video);
+        } else {
+            btnVideo.setVisibility(View.INVISIBLE);
+            btnVideo.setImageResource(R.drawable.ic_video_off);
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> lstPermissions = new ArrayList<>();
@@ -144,7 +163,11 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                         } else if (state == StringeeCall.CallState.END) {
                             tvState.setText("Ended");
                             if (mStringeeCall != null) {
-                                mStringeeCall.hangup();
+                                if (MainActivity.callNum > 1) {
+                                    mStringeeCall.stopCall();
+                                } else {
+                                    mStringeeCall.hangup();
+                                }
                             }
                             finish();
                         }
@@ -176,7 +199,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         if (stringeeCall.isVideoCall()) {
                             mLocalViewContainer.addView(stringeeCall.getLocalView());
-                            stringeeCall.renderLocalView();
+                            stringeeCall.renderLocalView(true);
                         }
                     }
                 });
@@ -189,10 +212,15 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         if (stringeeCall.isVideoCall()) {
                             mRemoteViewContainer.addView(stringeeCall.getRemoteView());
-                            stringeeCall.renderRemoteView();
+                            stringeeCall.renderRemoteView(false);
                         }
                     }
                 });
+            }
+
+            @Override
+            public void onCallInfo(StringeeCall stringeeCall, JSONObject jsonObject) {
+
             }
         });
 
@@ -228,14 +256,38 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 vControl.setVisibility(View.VISIBLE);
                 if (mStringeeCall != null) {
                     btnAnswer.setVisibility(View.GONE);
+                    if (!mStringeeCall.isVideoCall()) {
+                        btnVideo.setVisibility(View.VISIBLE);
+                    }
                     mStringeeCall.answer();
                 }
                 break;
             case R.id.btn_end:
                 if (mStringeeCall != null) {
-                    mStringeeCall.hangup();
+                    if (MainActivity.callNum > 1) {
+                        mStringeeCall.stopCall();
+                    } else {
+                        mStringeeCall.hangup();
+                    }
                 }
                 finish();
+                MainActivity.callNum--;
+                break;
+            case R.id.btn_video:
+                isVideo = !isVideo;
+                if (isVideo) {
+                    btnVideo.setImageResource(R.drawable.ic_video);
+                } else {
+                    btnVideo.setImageResource(R.drawable.ic_video_off);
+                }
+                if (mStringeeCall != null) {
+                    mStringeeCall.enableVideo(isVideo);
+                }
+                break;
+            case R.id.btn_switch:
+                if (mStringeeCall != null) {
+                    mStringeeCall.switchCamera(null);
+                }
                 break;
         }
     }

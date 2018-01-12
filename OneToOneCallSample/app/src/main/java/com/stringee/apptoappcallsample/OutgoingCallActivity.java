@@ -2,14 +2,12 @@ package com.stringee.apptoappcallsample;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -17,9 +15,10 @@ import android.widget.TextView;
 import com.stringee.apptoappcallsample.utils.Utils;
 import com.stringee.call.StringeeCall;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by luannguyen on 10/26/2017.
@@ -33,6 +32,8 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
     private TextView tvState;
     private ImageButton btnMute;
     private ImageButton btnSpeaker;
+    private ImageButton btnVideo;
+    private ImageButton btnSwitch;
 
     private StringeeCall mStringeeCall;
     private String from;
@@ -40,12 +41,15 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
     private boolean isVideoCall;
     private boolean isMute = false;
     private boolean isSpeaker = false;
+    private boolean isVideo = false;
 
     public static final int REQUEST_PERMISSION_CALL = 1;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_outgoing_call);
+
+        MainActivity.callNum++;
 
         from = getIntent().getStringExtra("from");
         to = getIntent().getStringExtra("to");
@@ -64,12 +68,23 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
         btnMute.setOnClickListener(this);
         btnSpeaker = (ImageButton) findViewById(R.id.btn_speaker);
         btnSpeaker.setOnClickListener(this);
+        btnVideo = (ImageButton) findViewById(R.id.btn_video);
+        btnVideo.setOnClickListener(this);
+        btnSwitch = (ImageButton) findViewById(R.id.btn_switch);
+        btnSwitch.setOnClickListener(this);
 
         isSpeaker = isVideoCall;
         if (isSpeaker) {
             btnSpeaker.setImageResource(R.drawable.ic_speaker_on);
         } else {
             btnSpeaker.setImageResource(R.drawable.ic_speaker_off);
+        }
+
+        isVideo = isVideoCall;
+        if (isVideo) {
+            btnVideo.setImageResource(R.drawable.ic_video);
+        } else {
+            btnVideo.setImageResource(R.drawable.ic_video_off);
         }
 
         ImageButton btnEnd = (ImageButton) findViewById(R.id.btn_end);
@@ -148,12 +163,30 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                             tvState.setText("Started");
                         } else if (state == StringeeCall.CallState.BUSY) {
                             tvState.setText("Busy");
-                            mStringeeCall.hangup();
+
+                            // When the client has multiple concurrent calls, to stop the last call: call hangup method, otherwise call stopCall method
+                            // hangup: end call, close peerconnection, release resources, avoid memory leaks
+                            // stopCall: end call, close peerconnection
+                            if (MainActivity.callNum > 1) {
+                                mStringeeCall.stopCall();
+                            } else {
+                                mStringeeCall.hangup();
+                            }
                             finish();
+                            MainActivity.callNum--;
                         } else if (state == StringeeCall.CallState.END) {
                             tvState.setText("Ended");
-                            mStringeeCall.hangup();
+
+                            // When the client has multiple concurrent calls, to stop the last call: call hangup method, otherwise call stopCall method
+                            // hangup: end call, close peerconnection, release resources, avoid memory leaks
+                            // stopCall: end call, close peerconnection
+                            if (MainActivity.callNum > 1) {
+                                mStringeeCall.stopCall();
+                            } else {
+                                mStringeeCall.hangup();
+                            }
                             finish();
+                            MainActivity.callNum--;
                         }
                     }
                 });
@@ -183,7 +216,7 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         if (stringeeCall.isVideoCall()) {
                             mLocalViewContainer.addView(stringeeCall.getLocalView());
-                            stringeeCall.renderLocalView();
+                            stringeeCall.renderLocalView(true);
                         }
                     }
                 });
@@ -196,10 +229,15 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         if (stringeeCall.isVideoCall()) {
                             mRemoteViewContainer.addView(stringeeCall.getRemoteView());
-                            stringeeCall.renderRemoteView();
+                            stringeeCall.renderRemoteView(false);
                         }
                     }
                 });
+            }
+
+            @Override
+            public void onCallInfo(StringeeCall stringeeCall, JSONObject jsonObject) {
+
             }
         });
 
@@ -232,10 +270,32 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                 }
                 break;
             case R.id.btn_end:
-                if (mStringeeCall != null) {
+                // When the client has multiple concurrent calls, to stop the last call: call hangup method, otherwise call stopCall method
+                // hangup: end call, close peerconnection, release resources, avoid memory leaks
+                // stopCall: end call, close peerconnection
+                if (MainActivity.callNum > 1) {
+                    mStringeeCall.stopCall();
+                } else {
                     mStringeeCall.hangup();
                 }
                 finish();
+                MainActivity.callNum--;
+                break;
+            case R.id.btn_video:
+                isVideo = !isVideo;
+                if (isVideo) {
+                    btnVideo.setImageResource(R.drawable.ic_video);
+                } else {
+                    btnVideo.setImageResource(R.drawable.ic_video_off);
+                }
+                if (mStringeeCall != null) {
+                    mStringeeCall.enableVideo(isVideo);
+                }
+                break;
+            case R.id.btn_switch:
+                if (mStringeeCall != null) {
+                    mStringeeCall.switchCamera(null);
+                }
                 break;
         }
     }
