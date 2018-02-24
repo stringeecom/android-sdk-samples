@@ -1,12 +1,17 @@
 package com.stringee.conferencecallsample.activity;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -20,8 +25,9 @@ import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeRoomListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Created by luannguyen on 10/27/2017.
@@ -35,9 +41,11 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
     private int roomId;
     private boolean isMute = false;
     private boolean isSpeaker = true;
+    private Map<String, StringeeStream> streamMap = new HashMap<>();
 
     private FrameLayout mLocalViewContainer;
     private FrameLayout mRemoteViewContainer;
+    private FrameLayout mRemoteViewContainer2;
     private TextView tvRoomId;
     private ImageButton btnMute;
     private ImageButton btnSpeaker;
@@ -45,6 +53,7 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
     public static final int REQUEST_PERMISSION_CALL = 1;
 
     private AudioManager audioManager;
+    private BroadcastReceiver disconnectReceiver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,6 +70,7 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
 
         mLocalViewContainer = (FrameLayout) findViewById(R.id.v_local);
         mRemoteViewContainer = (FrameLayout) findViewById(R.id.v_remote);
+        mRemoteViewContainer2 = (FrameLayout) findViewById(R.id.v_remote2);
 
         btnMute = (ImageButton) findViewById(R.id.btn_mute);
         btnMute.setOnClickListener(this);
@@ -71,6 +81,16 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
         btnEnd.setOnClickListener(this);
 
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+
+        disconnectReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                streamMap.clear();
+                mRemoteViewContainer.removeAllViews();
+                mRemoteViewContainer2.removeAllViews();
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(disconnectReceiver, new IntentFilter("disconnect"));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> lstPermissions = new ArrayList<>();
@@ -177,9 +197,18 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mRemoteViewContainer.removeAllViews();
-                                mRemoteViewContainer.addView(stringeeStream.getView());
-                                stringeeStream.renderView();
+                                StringeeStream stream1 = streamMap.get("remote1");
+                                if (stream1 == null || stream1.getUserId().equals(stringeeStream.getUserId())) {
+                                    streamMap.put("remote1", stringeeStream);
+                                    mRemoteViewContainer.removeAllViews();
+                                    mRemoteViewContainer.addView(stringeeStream.getView());
+                                    stringeeStream.renderView();
+                                } else {
+                                    streamMap.put("remote2", stringeeStream);
+                                    mRemoteViewContainer2.removeAllViews();
+                                    mRemoteViewContainer2.addView(stringeeStream.getView());
+                                    stringeeStream.renderView();
+                                }
                             }
                         });
                     }
@@ -188,11 +217,21 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
             }
 
             @Override
-            public void onStreamRemoved(StringeeStream stringeeStream) {
+            public void onStreamRemoved(final StringeeStream stringeeStream) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mRemoteViewContainer.removeAllViews();
+                        StringeeStream stream = streamMap.get("remote1");
+                        if (stream != null && stream.getUserId().equals(stringeeStream.getUserId())) {
+                            streamMap.remove("remote1");
+                            mRemoteViewContainer.removeAllViews();
+                        } else {
+                            stream = streamMap.get("remote2");
+                            if (stream != null && stream.getUserId().equals(stringeeStream.getUserId())) {
+                                streamMap.remove("remote2");
+                                mRemoteViewContainer2.removeAllViews();
+                            }
+                        }
                     }
                 });
             }
