@@ -2,47 +2,49 @@ package com.stringee.apptoappcallsample;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.stringee.StringeeClient;
 import com.stringee.apptoappcallsample.utils.Utils;
 import com.stringee.call.StringeeCall;
-import com.stringee.call.StringeeCallParam;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeConnectionListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private String token;
     public static StringeeClient client;
-    private String myUserId = "stringee1";
     private String to;
-    public static int callNum = 0;
+    public static Map<String, StringeeCall> callsMap = new HashMap<>();
+    private String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0NsejhzQ2tKeDNzdU13SmdCdDJ6bUc2T01JbVRYb2Y1LTE1MTk0NTA1ODQiLCJpc3MiOiJTS0NsejhzQ2tKeDNzdU13SmdCdDJ6bUc2T01JbVRYb2Y1IiwiZXhwIjoxNTE5NTM2OTg0LCJ1c2VySWQiOiJzdHJpbmdlZTEifQ.HHIVCXWqUvbqlwSeSc0Et9cUgHGMioa-EOCo7QIu7T0"; // replace your access token here.
 
     private EditText etTo;
+    private TextView tvUserId;
     private ProgressDialog progressDialog;
+
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+
+    private final String PREF_NAME = "com.stringee.onetoonecallsample";
+    private final String IS_TOKEN_REGISTERED = "is_token_registered";
+    private final String TOKEN = "token";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TextView tvUserId = (TextView) findViewById(R.id.tv_userid);
-        tvUserId.setText("Connected as: " + myUserId);
+        tvUserId = (TextView) findViewById(R.id.tv_userid);
 
         Button btnVoiceCall = (Button) findViewById(R.id.btn_voice_call);
         btnVoiceCall.setOnClickListener(this);
@@ -50,24 +52,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnVideoCall.setOnClickListener(this);
         etTo = (EditText) findViewById(R.id.et_to);
 
+        Button btnUnregister = (Button) findViewById(R.id.btn_unregister);
+        btnUnregister.setOnClickListener(this);
+
         progressDialog = ProgressDialog.show(this, "", "Connecting...");
         progressDialog.setCancelable(true);
         progressDialog.show();
 
-        initStringee();
-        getTokenAndConnect(myUserId);
+        sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+
+        initAndConnectStringee();
     }
 
-    private void initStringee() {
+    public void initAndConnectStringee() {
         client = new StringeeClient(this);
         client.setConnectionListener(new StringeeConnectionListener() {
             @Override
-            public void onConnectionConnected(StringeeClient stringeeClient, boolean isReconnecting) {
+            public void onConnectionConnected(final StringeeClient stringeeClient, boolean isReconnecting) {
+                boolean isTokenRegistered = sharedPreferences.getBoolean(IS_TOKEN_REGISTERED, false);
+                if (!isTokenRegistered) {
+                    final String token = FirebaseInstanceId.getInstance().getToken();
+                    client.registerPushToken(token, new StringeeClient.RegisterPushTokenListener() {
+                        @Override
+                        public void onPushTokenRegistered(boolean success, String desc) {
+                            Log.d("Stringee", "Register push token: " + desc);
+                            if (success) {
+                                editor.putBoolean(IS_TOKEN_REGISTERED, true);
+                                editor.putString(TOKEN, token);
+                                editor.commit();
+                            }
+                        }
+
+                        @Override
+                        public void onPushTokenUnRegistered(boolean success, String desc) {
+                            Log.d("Stringee", "Unregister push token: " + desc);
+                        }
+                    });
+                }
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         progressDialog.dismiss();
-                        Utils.reportMessage(MainActivity.this, "Stringee session connected.");
+                        tvUserId.setText("Connected as: " + stringeeClient.getUserId());
+                        Utils.reportMessage(MainActivity.this, "StringeeClient is connected.");
                     }
                 });
             }
@@ -78,61 +107,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void run() {
                         progressDialog.dismiss();
-                        Utils.reportMessage(MainActivity.this, "Stringee session disconnected.");
+                        Utils.reportMessage(MainActivity.this, "StringeeClient disconnected.");
                     }
                 });
             }
 
             @Override
             public void onIncomingCall(StringeeCall stringeeCall) {
+                callsMap.put(stringeeCall.getCallId(), stringeeCall);
                 Intent intent = new Intent(MainActivity.this, IncomingCallActivity.class);
-                intent.putExtra("stringeecall", stringeeCall);
+                intent.putExtra("call_id", stringeeCall.getCallId());
                 startActivity(intent);
             }
 
             @Override
-            public void onConnectionError(StringeeClient stringeeClient, StringeeError stringeeError) {
+            public void onConnectionError(StringeeClient stringeeClient, final StringeeError stringeeError) {
+                Log.d("Stringee", "StringeeClient fails to connect: " + stringeeError.getMessage());
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Utils.reportMessage(MainActivity.this, "Stringee session fails to connect.");
+                        Utils.reportMessage(MainActivity.this, "StringeeClient fails to connect: " + stringeeError.getMessage());
                     }
                 });
             }
 
             @Override
-            public void onRefreshToken(StringeeClient stringeeClient) {
-                getTokenAndConnect(myUserId);
+            public void onRequestNewToken(StringeeClient stringeeClient) {
+                // Get new token here and connect to Stringe server
             }
         });
-    }
-
-    private void getTokenAndConnect(final String userId) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String url = "https://v1.stringee.com/samples/your_server/access_token/access_token-test.php?u=" + userId;
-                RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-                StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            token = jsonObject.getString("access_token");
-                            client.connect(token);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                    }
-                });
-                queue.add(request);
-            }
-        });
-        thread.start();
+        client.connect(accessToken);
     }
 
     @Override
@@ -143,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (to.trim().length() > 0) {
                     if (client.isConnected()) {
                         Intent intent = new Intent(this, OutgoingCallActivity.class);
-                        intent.putExtra("from", myUserId);
+                        intent.putExtra("from", client.getUserId());
                         intent.putExtra("to", to);
                         intent.putExtra("is_video_call", false);
                         startActivity(intent);
@@ -157,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (to.trim().length() > 0) {
                     if (client.isConnected()) {
                         Intent intent = new Intent(this, OutgoingCallActivity.class);
-                        intent.putExtra("from", myUserId);
+                        intent.putExtra("from", client.getUserId());
                         intent.putExtra("to", to);
                         intent.putExtra("is_video_call", true);
                         startActivity(intent);
@@ -166,8 +170,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
                 break;
+            case R.id.btn_unregister:
+                client.unregisterPushToken(sharedPreferences.getString(TOKEN, ""), new StringeeClient.RegisterPushTokenListener() {
+                    @Override
+                    public void onPushTokenRegistered(boolean success, String desc) {
+
+                    }
+
+                    @Override
+                    public void onPushTokenUnRegistered(boolean success, String desc) {
+                        Log.d("Stringee", "Unregister push token: " + desc);
+                        editor.remove(IS_TOKEN_REGISTERED);
+                        editor.remove(TOKEN);
+                        editor.commit();
+                    }
+                });
+                break;
         }
     }
-
-
 }

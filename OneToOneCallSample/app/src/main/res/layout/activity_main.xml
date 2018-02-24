@@ -42,6 +42,13 @@
                 android:text="Video Call" />
         </LinearLayout>
 
+        <Button
+            android:id="@+id/btn_unregister"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:text="Unregister push notification" />
+
     </LinearLayout>
 
 </RelativeLayout>

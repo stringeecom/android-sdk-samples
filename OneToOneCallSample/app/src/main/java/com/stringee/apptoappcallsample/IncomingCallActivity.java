@@ -1,11 +1,13 @@
 package com.stringee.apptoappcallsample;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -15,6 +17,7 @@ import android.widget.TextView;
 import com.stringee.apptoappcallsample.utils.Utils;
 import com.stringee.call.StringeeCall;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -44,15 +47,16 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     private boolean isVideo = false;
 
     public static final int REQUEST_PERMISSION_CALL = 1;
+    public static final int REQUEST_PERMISSION_CAMERA = 2;
+    public static final int REQUEST_PERMISSION_CAMERA_WHEN_ANSWER = 3;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_incoming_call);
 
-        mStringeeCall = getIntent().getParcelableExtra("stringeecall");
-
-        MainActivity.callNum++;
+        String callId = getIntent().getStringExtra("call_id");
+        mStringeeCall = MainActivity.callsMap.get(callId);
 
         mLocalViewContainer = (FrameLayout) findViewById(R.id.v_local);
         mRemoteViewContainer = (FrameLayout) findViewById(R.id.v_remote);
@@ -146,6 +150,16 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     initAnswer();
                 }
                 break;
+            case REQUEST_PERMISSION_CAMERA:
+                if (isGranted) {
+                    enableOrDisableVideo();
+                }
+                break;
+            case REQUEST_PERMISSION_CAMERA_WHEN_ANSWER:
+                if (isGranted) {
+                    acceptCameraRequest();
+                }
+                break;
         }
     }
 
@@ -163,11 +177,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                         } else if (state == StringeeCall.CallState.END) {
                             tvState.setText("Ended");
                             if (mStringeeCall != null) {
-                                if (MainActivity.callNum > 1) {
-                                    mStringeeCall.stopCall();
-                                } else {
-                                    mStringeeCall.hangup();
-                                }
+                                mStringeeCall.hangup();
                             }
                             finish();
                         }
@@ -187,6 +197,11 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
 
             @Override
             public void onDTMFComplete(String callId, int requestId, int result) {
+
+            }
+
+            @Override
+            public void onAnsweredOnAnotherDevice(StringeeCall stringeeCall, StringeeCall.CallState callState, String s) {
 
             }
         });
@@ -219,8 +234,82 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             }
 
             @Override
-            public void onCallInfo(StringeeCall stringeeCall, JSONObject jsonObject) {
+            public void onCallInfo(StringeeCall stringeeCall, final JSONObject jsonObject) {
+                try {
+                    String type = jsonObject.getString("type");
+                    if (type.equals("cameraRequest")) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(IncomingCallActivity.this);
+                                builder.setMessage("You have a camera request. Do you want to accept?");
+                                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                        JSONObject answerObject = new JSONObject();
+                                        try {
+                                            answerObject.put("type", "answerCameraRequest");
+                                            answerObject.put("accept", false);
+                                            mStringeeCall.sendCallInfo(answerObject);
 
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        JSONObject answerObject = new JSONObject();
+                                        try {
+                                            answerObject.put("type", "answerCameraRequest");
+                                            answerObject.put("accept", true);
+                                            mStringeeCall.sendCallInfo(answerObject);
+
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                            if (ContextCompat.checkSelfPermission(IncomingCallActivity.this,
+                                                    Manifest.permission.CAMERA)
+                                                    != PackageManager.PERMISSION_GRANTED) {
+                                                String[] permissions = {Manifest.permission.CAMERA};
+                                                ActivityCompat.requestPermissions(IncomingCallActivity.this, permissions, REQUEST_PERMISSION_CAMERA_WHEN_ANSWER);
+                                                return;
+                                            }
+                                        }
+
+                                        acceptCameraRequest();
+                                    }
+                                });
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+                            }
+                        });
+                    } else if (type.equals("answerCameraRequest")) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                boolean accept = false;
+                                try {
+                                    accept = jsonObject.getBoolean("accept");
+                                    if (accept) {
+                                        Utils.reportMessage(IncomingCallActivity.this, "Your camera request is accepted.");
+                                    } else {
+                                        Utils.reportMessage(IncomingCallActivity.this, "Your camera request is rejected.");
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -264,25 +353,21 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 break;
             case R.id.btn_end:
                 if (mStringeeCall != null) {
-                    if (MainActivity.callNum > 1) {
-                        mStringeeCall.stopCall();
-                    } else {
-                        mStringeeCall.hangup();
-                    }
+                    mStringeeCall.hangup();
                 }
                 finish();
-                MainActivity.callNum--;
                 break;
             case R.id.btn_video:
-                isVideo = !isVideo;
-                if (isVideo) {
-                    btnVideo.setImageResource(R.drawable.ic_video);
-                } else {
-                    btnVideo.setImageResource(R.drawable.ic_video_off);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.CAMERA)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        String[] permissions = {Manifest.permission.CAMERA};
+                        ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSION_CAMERA);
+                        return;
+                    }
                 }
-                if (mStringeeCall != null) {
-                    mStringeeCall.enableVideo(isVideo);
-                }
+                enableOrDisableVideo();
                 break;
             case R.id.btn_switch:
                 if (mStringeeCall != null) {
@@ -290,5 +375,32 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 }
                 break;
         }
+    }
+
+    private void enableOrDisableVideo() {
+        isVideo = !isVideo;
+        if (isVideo) {
+            btnVideo.setImageResource(R.drawable.ic_video);
+        } else {
+            btnVideo.setImageResource(R.drawable.ic_video_off);
+        }
+        if (mStringeeCall != null) {
+            if (!mStringeeCall.isVideoCall()) { // Send camera request
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("type", "cameraRequest");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                mStringeeCall.sendCallInfo(jsonObject);
+            }
+            mStringeeCall.enableVideo(isVideo);
+        }
+    }
+
+    private void acceptCameraRequest() {
+        isVideo = true;
+        btnVideo.setImageResource(R.drawable.ic_video);
+        mStringeeCall.enableVideo(true);
     }
 }

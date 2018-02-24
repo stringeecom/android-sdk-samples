@@ -3,17 +3,13 @@ package com.stringee.conferencecallsample.activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.stringee.StringeeClient;
 import com.stringee.call.StringeeCall;
 import com.stringee.conferencecallsample.R;
@@ -21,22 +17,21 @@ import com.stringee.conferencecallsample.utils.Utils;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeConnectionListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private String token;
     public static StringeeClient client;
-    private String myUserId = "stringee" + System.currentTimeMillis(); //
+    private String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0NsejhzQ2tKeDNzdU13SmdCdDJ6bUc2T01JbVRYb2Y1LTE1MTk0NTA1ODQiLCJpc3MiOiJTS0NsejhzQ2tKeDNzdU13SmdCdDJ6bUc2T01JbVRYb2Y1IiwiZXhwIjoxNTE5NTM2OTg0LCJ1c2VySWQiOiJzdHJpbmdlZTEifQ.HHIVCXWqUvbqlwSeSc0Et9cUgHGMioa-EOCo7QIu7T0"; // replace your access token here.
 
     private EditText etRoomId;
     private ProgressDialog progressDialog;
+    private TextView tvUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        tvUserId = (TextView) findViewById(R.id.tv_userid);
 
         Button btnMakeRoom = (Button) findViewById(R.id.btn_make_room);
         btnMakeRoom.setOnClickListener(this);
@@ -49,18 +44,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         progressDialog.setCancelable(true);
         progressDialog.show();
 
-        initStringee();
-        getTokenAndConnect(myUserId);
+        initAndConnectStringee();
     }
 
-    private void initStringee() {
+    private void initAndConnectStringee() {
         client = new StringeeClient(this);
         client.setConnectionListener(new StringeeConnectionListener() {
             @Override
-            public void onConnectionConnected(StringeeClient client, boolean isReconnecting) {
+            public void onConnectionConnected(final StringeeClient client, boolean isReconnecting) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        tvUserId.setText("Connected as: " + client.getUserId());
                         progressDialog.dismiss();
                         Utils.reportMessage(MainActivity.this, "Stringee session connected.");
                     }
@@ -73,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void run() {
                         Utils.reportMessage(MainActivity.this, "Stringee session disconnected.");
+                        LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(new Intent("disconnect"));
                     }
                 });
             }
@@ -94,38 +90,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
-            public void onRefreshToken(StringeeClient client) {
-                getTokenAndConnect(myUserId);
-            }
-        });
-    }
+            public void onRequestNewToken(StringeeClient stringeeClient) {
 
-    private void getTokenAndConnect(final String userId) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String url = "https://v1.stringee.com/samples/your_server/access_token/access_token-test.php?u=" + userId;
-                RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-                StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            token = jsonObject.getString("access_token");
-                            client.connect(token);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                    }
-                });
-                queue.add(request);
             }
         });
-        thread.start();
+        client.connect(accessToken);
     }
 
     @Override
