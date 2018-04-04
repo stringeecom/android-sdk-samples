@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static StringeeClient client;
     private String to;
     public static Map<String, StringeeCall> callsMap = new HashMap<>();
-    private String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0NsejhzQ2tKeDNzdU13SmdCdDJ6bUc2T01JbVRYb2Y1LTE1MTk0NTA1ODQiLCJpc3MiOiJTS0NsejhzQ2tKeDNzdU13SmdCdDJ6bUc2T01JbVRYb2Y1IiwiZXhwIjoxNTE5NTM2OTg0LCJ1c2VySWQiOiJzdHJpbmdlZTEifQ.HHIVCXWqUvbqlwSeSc0Et9cUgHGMioa-EOCo7QIu7T0"; // replace your access token here.
+    private String accessToken = "your_access_token"; // replace your access token here.
 
     private EditText etTo;
     private TextView tvUserId;
@@ -113,11 +113,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
-            public void onIncomingCall(StringeeCall stringeeCall) {
-                callsMap.put(stringeeCall.getCallId(), stringeeCall);
-                Intent intent = new Intent(MainActivity.this, IncomingCallActivity.class);
-                intent.putExtra("call_id", stringeeCall.getCallId());
-                startActivity(intent);
+            public void onIncomingCall(final StringeeCall stringeeCall) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        callsMap.put(stringeeCall.getCallId(), stringeeCall);
+                        Intent intent = new Intent(MainActivity.this, IncomingCallActivity.class);
+                        intent.putExtra("call_id", stringeeCall.getCallId());
+                        startActivity(intent);
+                    }
+                });
             }
 
             @Override
