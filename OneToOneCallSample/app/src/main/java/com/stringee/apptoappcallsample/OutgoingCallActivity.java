@@ -46,6 +46,9 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
     private boolean isSpeaker = false;
     private boolean isVideo = false;
 
+    private StringeeCall.MediaState mMediaState;
+    private StringeeCall.SignalingState mSignalingState;
+
     public static final int REQUEST_PERMISSION_CALL = 1;
     public static final int REQUEST_PERMISSION_CAMERA = 2;
     public static final int REQUEST_PERMISSION_CAMERA_WHEN_ANSWER = 3;
@@ -162,25 +165,28 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
         mStringeeCall = new StringeeCall(this, MainActivity.client, from, to);
         mStringeeCall.setVideoCall(isVideoCall);
 
-        mStringeeCall.setStateListener(new StringeeCall.StringeeCallStateListener() {
+        mStringeeCall.setCallListener(new StringeeCall.StringeeCallListener() {
             @Override
-            public void onStateChange(StringeeCall stringeeCall, final StringeeCall.CallState state, String description) {
+            public void onSignalingStateChange(StringeeCall stringeeCall, final StringeeCall.SignalingState signalingState, String s, int i, String s1) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (state == StringeeCall.CallState.CONNECTING) {
+                        mSignalingState = signalingState;
+                        if (signalingState == StringeeCall.SignalingState.CALLING) {
                             tvState.setText("Outgoing call");
-                        } else if (state == StringeeCall.CallState.RINGING) {
+                        } else if (signalingState == StringeeCall.SignalingState.RINGING) {
                             tvState.setText("Ringing");
-                        } else if (state == StringeeCall.CallState.STARTED) {
-                            tvState.setText("Started");
-                        } else if (state == StringeeCall.CallState.BUSY) {
+                        } else if (signalingState == StringeeCall.SignalingState.ANSWERED) {
+                            tvState.setText("Starting");
+                            if (mMediaState == StringeeCall.MediaState.CONNECTED) {
+                                tvState.setText("Started");
+                            }
+                        } else if (signalingState == StringeeCall.SignalingState.BUSY) {
                             tvState.setText("Busy");
                             mStringeeCall.hangup();
                             finish();
-                        } else if (state == StringeeCall.CallState.END) {
+                        } else if (signalingState == StringeeCall.SignalingState.ENDED) {
                             tvState.setText("Ended");
-
                             mStringeeCall.hangup();
                             finish();
                         }
@@ -189,7 +195,7 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
             }
 
             @Override
-            public void onError(StringeeCall stringeeCall, int code, String description) {
+            public void onError(StringeeCall stringeeCall, int i, String s) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -199,17 +205,25 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
             }
 
             @Override
-            public void onDTMFComplete(String s, int requestId, int result) {
+            public void onHandledOnAnotherDevice(StringeeCall stringeeCall, StringeeCall.SignalingState signalingState, String s) {
 
             }
 
             @Override
-            public void onAnsweredOnAnotherDevice(StringeeCall stringeeCall, StringeeCall.CallState callState, String s) {
-
+            public void onMediaStateChange(StringeeCall stringeeCall, final StringeeCall.MediaState mediaState) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMediaState = mediaState;
+                        if (mediaState == StringeeCall.MediaState.CONNECTED) {
+                            if (mSignalingState == StringeeCall.SignalingState.ANSWERED) {
+                                tvState.setText("Started");
+                            }
+                        }
+                    }
+                });
             }
-        });
 
-        mStringeeCall.setMediaListener(new StringeeCall.StringeeCallMediaListener() {
             @Override
             public void onLocalStream(final StringeeCall stringeeCall) {
                 runOnUiThread(new Runnable() {
