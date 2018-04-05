@@ -25,8 +25,7 @@ public class NotifyUtils {
 
     public static void showNotification(Context context, Message imMessage) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(Common.context);
-        builder.setSmallIcon(R.mipmap.icon);
-//        builder.setLargeIcon(BitmapFactory.decodeResource(Common.context.getResources(), R.mipmap.icon));
+        builder.setSmallIcon(R.mipmap.notify_icon);
         builder.setContentTitle(context.getString(R.string.missed_call));
         if (imMessage.getFullname() != null) {
             builder.setContentText(imMessage.getFullname());
@@ -55,7 +54,7 @@ public class NotifyUtils {
 
     public static void showCallNotify(Context context, String name, Intent intent, int id) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(Common.context);
-        builder.setSmallIcon(R.mipmap.icon);
+        builder.setSmallIcon(R.mipmap.notify_icon);
         builder.setContentTitle(context.getString(R.string.ongoing_call));
         builder.setContentText(name);
 
