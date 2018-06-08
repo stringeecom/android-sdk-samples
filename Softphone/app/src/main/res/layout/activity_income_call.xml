@@ -85,7 +85,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="10dp">
+        android:layout_marginBottom="50dp">
 
         <ImageButton
             android:id="@+id/btn_end_call"
@@ -126,7 +126,8 @@
         android:layout_height="wrap_content"
         android:layout_above="@id/v_bottom"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20dp">
+        android:layout_marginBottom="20dp"
+        android:visibility="invisible">
 
         <LinearLayout
             android:layout_width="wrap_content"

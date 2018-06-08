@@ -55,6 +55,7 @@ import com.stringee.softphone.service.CheckAppInBackgroundThread;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.webrtc.CameraEnumerator;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -281,7 +282,7 @@ public class MainActivity extends MActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d("Stringee", "================= onConnectionConnected " + stringeeClient.getUserId());
+                        Log.e("Stringee", "================= onConnectionConnected " + stringeeClient.getUserId());
                         Common.alreadyConnected = true;
                         prLoading.setVisibility(View.GONE);
                         vConnect.setBackgroundColor(Color.parseColor("#4ccc1f"));
@@ -319,7 +320,7 @@ public class MainActivity extends MActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d("Stringee", "================= onConnectionDisconnected");
+                        Log.e("Stringee", "================= onConnectionDisconnected");
                         vConnect.setVisibility(View.VISIBLE);
                         prLoading.setVisibility(View.VISIBLE);
                         vConnect.setBackgroundColor(Color.parseColor("#ff9b31"));

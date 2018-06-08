@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/Softphone.iml" filepath="$PROJECT_DIR$/Softphone.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/pulltorefresh/pulltorefresh.iml" filepath="$PROJECT_DIR$/pulltorefresh/pulltorefresh.iml" />
+      <module fileurl="file://$PROJECT_DIR$/stringee-sdk-release/stringee-sdk-release.iml" filepath="$PROJECT_DIR$/stringee-sdk-release/stringee-sdk-release.iml" />
     </modules>
   </component>
 </project>
