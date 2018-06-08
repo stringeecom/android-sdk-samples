@@ -20,7 +20,7 @@ import com.stringee.listener.StringeeConnectionListener;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static StringeeClient client;
-    private String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0xIb2NCdDl6Qk5qc1pLeThZaUVkSzRsU3NBZjhCSHpyLTE1MjI4MzE1MjgiLCJpc3MiOiJTS0xIb2NCdDl6Qk5qc1pLeThZaUVkSzRsU3NBZjhCSHpyIiwiZXhwIjoxNTI1NDIzNTI4LCJ1c2VySWQiOiJzdHJpbmdlZTEifQ.ffiBjr4V0-IKbRSKwsF9_FvxKCOpfkYn9J4welmxGvo"; // replace your access token here.
+    private String accessToken = "your_access_token"; // replace your access token here.
 
     private EditText etRoomId;
     private ProgressDialog progressDialog;

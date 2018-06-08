@@ -17,6 +17,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        Log.e("Stringee", "Vao day ko");
         if (Common.client == null || !Common.client.isConnected()) {
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra(Constant.PARAM_FROM_PUSH, true);

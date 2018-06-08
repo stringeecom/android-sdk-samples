@@ -20,9 +20,8 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha9'
-    compile 'com.android.volley:volley:1.0.0'
-    compile 'com.stringee.sdk.android:stringee-android-sdk:1.2.5'
+    implementation 'com.android.support:appcompat-v7:25.3.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.0-alpha9'
+    implementation 'com.android.volley:volley:1.0.0'
+    implementation 'com.stringee.sdk.android:stringee-android-sdk:1.2.7'
 }

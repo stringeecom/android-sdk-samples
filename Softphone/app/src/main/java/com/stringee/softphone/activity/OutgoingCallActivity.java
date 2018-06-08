@@ -48,12 +48,14 @@ import com.stringee.softphone.common.DateTimeUtils;
 import com.stringee.softphone.common.Notify;
 import com.stringee.softphone.common.NotifyUtils;
 import com.stringee.softphone.common.PrefUtils;
+import com.stringee.softphone.common.StringeeBluetoothManager;
 import com.stringee.softphone.common.Utils;
 import com.stringee.softphone.fragment.DialFragment;
 import com.stringee.softphone.model.Message;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.webrtc.SurfaceViewRenderer;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -134,6 +136,8 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
     private StringeeCall.SignalingState mSignalingState;
     private StringeeCall.MediaState mMediaState;
 
+    private StringeeBluetoothManager bluetoothManager;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -156,6 +160,8 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
         mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        bluetoothManager = StringeeBluetoothManager.create(this);
+        bluetoothManager.start();
 
         name = getIntent().getStringExtra(Constant.PARAM_NAME);
         phone = getIntent().getStringExtra(Constant.PARAM_PHONE);
@@ -394,16 +400,18 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
             ft1.setCustomAnimations(R.anim.slide_in_up, R.anim.slide_out_up);
             ft1.add(R.id.v_dialing, fragment, "DIAL_IN_CALL").commit();
         } else if (v.getId() == R.id.btn_video) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (ContextCompat.checkSelfPermission(this,
-                        Manifest.permission.CAMERA)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    String[] permissions = {Manifest.permission.CAMERA};
-                    ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSION_CAMERA);
-                    return;
+            if (mMediaState == StringeeCall.MediaState.CONNECTED && mSignalingState == StringeeCall.SignalingState.ANSWERED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.CAMERA)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        String[] permissions = {Manifest.permission.CAMERA};
+                        ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSION_CAMERA);
+                        return;
+                    }
                 }
+                enableOrDisableVideo();
             }
-            enableOrDisableVideo();
         } else if (v.getId() == R.id.btn_switch) {
             if (outgoingCall != null) {
                 outgoingCall.switchCamera(null);
@@ -543,22 +551,45 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
             }
 
             @Override
-            public void onError(StringeeCall stringeeCall, int i, String s) {
+            public void onError(StringeeCall stringeeCall, int i, final String s) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Utils.reportMessage(OutgoingCallActivity.this, s);
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                finish();
+                            }
+                        }, 1000);
 
+                    }
+                });
             }
 
             @Override
-            public void onHandledOnAnotherDevice(StringeeCall stringeeCall, StringeeCall.SignalingState signalingState, String desc) {
-                switch (signalingState) {
-                    case RINGING:
-                        break;
-                    case ANSWERED:
-                        break;
-                    case BUSY:
-                        break;
-                    case ENDED:
-                        break;
-                }
+            public void onHandledOnAnotherDevice(StringeeCall stringeeCall, final StringeeCall.SignalingState signalingState, String desc) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        switch (signalingState) {
+                            case RINGING:
+                                break;
+                            case ANSWERED:
+                                Utils.reportMessage(OutgoingCallActivity.this, "This call is answered from another device.");
+                                finish();
+                                break;
+                            case BUSY:
+                                Utils.reportMessage(OutgoingCallActivity.this, "This call is rejected from another device.");
+                                finish();
+                                break;
+                            case ENDED:
+                                Utils.reportMessage(OutgoingCallActivity.this, "This call is ended from another device.");
+                                finish();
+                                break;
+                        }
+                    }
+                });
             }
 
             @Override
@@ -645,7 +676,8 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            vLocal.addView(stringeeCall.getLocalView());
+                            SurfaceViewRenderer view = stringeeCall.getLocalView();
+                            vLocal.addView(view);
                             stringeeCall.renderLocalView(true);
                         }
                     });
@@ -911,6 +943,10 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
         }
         if (statsTimer != null) {
             statsTimer.cancel();
+        }
+
+        if (bluetoothManager != null) {
+            bluetoothManager.stop();
         }
 
         updateCall(mMessage, duration, Constant.MESSAGE_DELIVERED);

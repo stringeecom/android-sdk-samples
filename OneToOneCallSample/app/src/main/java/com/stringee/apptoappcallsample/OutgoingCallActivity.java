@@ -9,6 +9,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -168,6 +169,7 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
         mStringeeCall.setCallListener(new StringeeCall.StringeeCallListener() {
             @Override
             public void onSignalingStateChange(StringeeCall stringeeCall, final StringeeCall.SignalingState signalingState, String s, int i, String s1) {
+                Log.e("Stringee", "======== Custom data: " + stringeeCall.getCustomDataFromYourServer());
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

@@ -179,6 +179,7 @@ public class DialFragment extends Fragment implements View.OnClickListener, Call
                         if (Utils.isNetworkAvailable(getActivity())) {
                             Intent intent = new Intent(getActivity(), OutgoingCallActivity.class);
                             intent.putExtra(Constant.PARAM_PHONE, phone);
+                            intent.putExtra(Constant.PARAM_PHONE_NO, phone);
                             intent.putExtra(Constant.PARAM_CALLOUT, true);
                             startActivity(intent);
                         } else {

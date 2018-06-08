@@ -47,6 +47,7 @@ import com.stringee.softphone.common.DataHandler;
 import com.stringee.softphone.common.DateTimeUtils;
 import com.stringee.softphone.common.Notify;
 import com.stringee.softphone.common.NotifyUtils;
+import com.stringee.softphone.common.StringeeBluetoothManager;
 import com.stringee.softphone.common.Utils;
 import com.stringee.softphone.model.Contact;
 import com.stringee.softphone.model.Message;
@@ -131,7 +132,8 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
 
     private boolean isShowControl = true;
     private boolean isCanHide = false;
-    private boolean isCallAnswered;
+
+    private StringeeBluetoothManager bluetoothManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -166,6 +168,8 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        bluetoothManager = StringeeBluetoothManager.create(this);
+        bluetoothManager.start();
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -625,7 +629,6 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         if (v.getId() == R.id.btn_answer) {
             if (incomingCall != null) {
                 mState = StringeeCall.SignalingState.ANSWERED;
-                isCallAnswered = true;
                 if (ringtone != null && ringtone.isPlaying()) {
                     ringtone.stop();
                     ringtone = null;
@@ -755,6 +758,11 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         if (statsTimer != null) {
             statsTimer.cancel();
         }
+
+        if (bluetoothManager != null) {
+            bluetoothManager.stop();
+        }
+
         if (incomingCall != null) {
             incomingCall.hangup();
             incomingCall = null;
