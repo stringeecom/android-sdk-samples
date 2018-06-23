@@ -107,6 +107,7 @@ public class EnterCodeActivity extends MActivity {
                         String token = dataObject.getString("token");
                         String accessToken = dataObject.getString("access_token");
                         long expiredTime = dataObject.getLong("expire_time");
+                        String phone = dataObject.getString("phone");
                         JSONArray numbers = dataObject.getJSONArray("callOutNumber");
                         if (numbers != null && numbers.length() > 0) {
                             PrefUtils.getInstance(EnterCodeActivity.this).putString(Constant.PREF_SELECTED_NUMBER, numbers.getString(0));
@@ -115,6 +116,7 @@ public class EnterCodeActivity extends MActivity {
                         PrefUtils.getInstance(EnterCodeActivity.this).putString(Constant.PREF_ACCESS_TOKEN, accessToken);
                         PrefUtils.getInstance(EnterCodeActivity.this).putLong(Constant.PREF_EXPIRED_TIME, expiredTime);
                         PrefUtils.getInstance(EnterCodeActivity.this).putString(Constant.PREF_SIP_NUMBERS, numbers.toString());
+                        PrefUtils.getInstance(EnterCodeActivity.this).putString(Constant.PREF_PHONE_NUMBER, phone);
                         Intent intent = new Intent(EnterCodeActivity.this, MainActivity.class);
                         startActivity(intent);
                         finish();

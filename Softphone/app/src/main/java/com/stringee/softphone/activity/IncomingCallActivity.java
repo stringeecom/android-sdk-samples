@@ -107,7 +107,6 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
     private MediaPlayer endPlayer;
     private Handler handler = new Handler();
     private AudioManager audioManager;
-    private boolean isSpeakerPhone;
     private Ringtone ringtone;
 
     public static final int REQUEST_PERMISSION_CALLIN = 1;
@@ -168,6 +167,10 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        audioManager.setSpeakerphoneOn(true);
+
         bluetoothManager = StringeeBluetoothManager.create(this);
         bluetoothManager.start();
 
@@ -256,12 +259,11 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
 
         btnSwitch = (ImageButton) findViewById(R.id.btn_switch);
         btnSwitch.setOnClickListener(this);
+        if (isVideoOn) {
+            btnSwitch.setVisibility(View.VISIBLE);
+        }
 
         registerReceiver();
-
-        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        isSpeakerPhone = audioManager.isSpeakerphoneOn();
-        audioManager.setSpeakerphoneOn(true);
 
         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
@@ -358,7 +360,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                                 NotifyUtils.notifyEndCall();
                             }
                             Common.isInCall = false;
-                            finish();
+                            endCall(0);
                         }
                     }, 1000);
                     return;
@@ -404,6 +406,15 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
             @Override
             public void onError(StringeeCall stringeeCall, int i, String s) {
                 Log.e("Stringee", s);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (incomingCall != null) {
+                            Log.e("Stringee", "==== Loi thi end thoi");
+                            endCall(0);
+                        }
+                    }
+                });
             }
 
             @Override
@@ -415,7 +426,6 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                             case ANSWERED:
                             case BUSY:
                             case ENDED:
-                                incomingCall.hangup();
                                 Utils.reportMessage(IncomingCallActivity.this, R.string.msg_handled_on_another_device);
                                 endCall(0);
                                 break;
@@ -633,7 +643,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                     ringtone.stop();
                     ringtone = null;
                 }
-                audioManager.setSpeakerphoneOn(isSpeakerPhone);
+                audioManager.setSpeakerphoneOn(false);
                 tvState.setText(R.string.call_starting);
                 vSpeaker.setVisibility(View.VISIBLE);
                 vEnd.setVisibility(View.GONE);
@@ -726,6 +736,9 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
 
 
     private void endCall(long duration) {
+        if (incomingCall == null) {
+            return;
+        }
         btnEndCall.setVisibility(View.GONE);
         vSpeaker.setVisibility(View.GONE);
         if (!incomingCall.isVideoCall()) {
@@ -767,7 +780,10 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
             incomingCall.hangup();
             incomingCall = null;
         }
-        updateCall(mMessage, duration, Constant.MESSAGE_DELIVERED);
+
+        if (mMessage != null) {
+            updateCall(mMessage, duration, Constant.MESSAGE_DELIVERED);
+        }
 
         handler.postDelayed(new Runnable() {
             @Override
@@ -793,7 +809,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         Date date = new Date();
         String strTime = format.format(date);
         int type = Constant.TYPE_INCOMING_CALL;
-        if (incomingCall.isPhoneToAppCall()) {
+        if (incomingCall != null && incomingCall.isPhoneToAppCall()) {
             type = Constant.TYPE_CALL_PHONE_TO_APP;
         }
         mMessage = new Message(Common.userId, 0, "00:00", strTime, type,

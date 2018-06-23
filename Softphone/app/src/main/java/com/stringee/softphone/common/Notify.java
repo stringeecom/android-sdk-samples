@@ -7,7 +7,8 @@ package com.stringee.softphone.common;
 public enum Notify {
     UPDATE_RECENTS("com.stringee.softphone.recents.update"),
     END_CALL("com.stringee.softphone.call.end"),
-    END_CALL_FROM_DIAL("com.stringee.softphone.call.end_dial");
+    END_CALL_FROM_DIAL("com.stringee.softphone.call.end_dial"),
+    CHECK_BALANCE("com.stringee.softphone.balance.check"),;
 
     private String value;
 

@@ -236,7 +236,6 @@ public class ContactDetailActivity extends MActivity {
                 , jsonObject, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Log.e("Stringee", "========= response: " + response);
                 dismissProgressDialog();
                 try {
                     int status = response.getInt("status");

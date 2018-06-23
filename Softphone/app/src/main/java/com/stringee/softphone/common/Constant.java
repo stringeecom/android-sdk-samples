@@ -11,6 +11,7 @@ public class Constant {
     public static final String URL_CONFIRM = "/account/confirm";
     public static final String URL_GET_ACCESS_TOKEN = "/account/getaccesstoken";
     public static final String URL_CHECK_PHONEBOOK = "/account/checkphonebookexisted";
+    public static final String URL_CHECK_BALANCE = "/account/checkmoney";
 
     public static final String PREF_BASE = "com.stringee.softphone";
     public static final String PREF_LOGINED = PREF_BASE + ".logined";
@@ -24,6 +25,7 @@ public class Constant {
     public static final String PREF_SELECTED_NUMBER = PREF_BASE + ".number_selected";
     public static final String PREF_EXPIRED_TIME = PREF_BASE + ".expired_time";
     public static final String PREF_SIP_NUMBERS = PREF_BASE + ".sip_numbers";
+    public static final String PREF_PHONE_NUMBER = PREF_BASE + ".phone_number";
 
     public static final String PARAM_CONTACT = "contact";
     public static final String PARAM_PHONE = "phone";

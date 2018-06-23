@@ -1,1 +1,1 @@
-include ':app', ':pulltorefresh', ':stringee-sdk-release'
+include ':app', ':pulltorefresh'

@@ -55,7 +55,6 @@ import com.stringee.softphone.service.CheckAppInBackgroundThread;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.webrtc.CameraEnumerator;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -117,6 +116,7 @@ public class MainActivity extends MActivity {
         if (!Common.checkAppInBackgroundThread.isRunning()) {
             Common.checkAppInBackgroundThread.start();
         }
+
     }
 
     @Override
@@ -282,7 +282,6 @@ public class MainActivity extends MActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Log.e("Stringee", "================= onConnectionConnected " + stringeeClient.getUserId());
                         Common.alreadyConnected = true;
                         prLoading.setVisibility(View.GONE);
                         vConnect.setBackgroundColor(Color.parseColor("#4ccc1f"));
@@ -320,7 +319,6 @@ public class MainActivity extends MActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Log.e("Stringee", "================= onConnectionDisconnected");
                         vConnect.setVisibility(View.VISIBLE);
                         prLoading.setVisibility(View.VISIBLE);
                         vConnect.setBackgroundColor(Color.parseColor("#ff9b31"));
@@ -389,6 +387,8 @@ public class MainActivity extends MActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                Common.isConnecting = true;
+                Common.client.connect(PrefUtils.getInstance(context).getString(Constant.PREF_ACCESS_TOKEN, ""));
             }
         });
         RequestQueue queue = Volley.newRequestQueue(context);
