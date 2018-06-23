@@ -94,6 +94,7 @@ public class StringeeBluetoothManager {
             Log.e(TAG, "BluetoothServiceListener.onServiceConnected: BT state=" + bluetoothState);
             // Android only supports one connected Bluetooth Headset at a time.
             bluetoothHeadset = (BluetoothHeadset) proxy;
+            updateDevice();
             startScoAudio();
             Log.e(TAG, "onServiceConnected done: BT state=" + bluetoothState);
         }

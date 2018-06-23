@@ -81,4 +81,5 @@
     <string name="sip_trunk_number">Đầu số</string>
     <string name="video">Video</string>
     <string name="msg_handled_on_another_device">Cuộc gọi đã được trả lời trên một thiết bị khác.</string>
+    <string name="balance">Số dư tài khoản</string>
 </resources>

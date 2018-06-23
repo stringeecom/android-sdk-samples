@@ -256,7 +256,7 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                         @Override
                         public void run() {
                             Common.isInCall = false;
-                            finish();
+                            endCall(0);
                         }
                     }, 1000);
                     return;
@@ -551,15 +551,15 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
             }
 
             @Override
-            public void onError(StringeeCall stringeeCall, int i, final String s) {
+            public void onError(final StringeeCall stringeeCall, int i, final String s) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Utils.reportMessage(OutgoingCallActivity.this, s);
+                        Utils.reportMessage(OutgoingCallActivity.this, stringeeCall.getCustomDataFromYourServer());
                         handler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                finish();
+                                endCall(0);
                             }
                         }, 1000);
 
@@ -577,15 +577,15 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                                 break;
                             case ANSWERED:
                                 Utils.reportMessage(OutgoingCallActivity.this, "This call is answered from another device.");
-                                finish();
+                                endCall(0);
                                 break;
                             case BUSY:
                                 Utils.reportMessage(OutgoingCallActivity.this, "This call is rejected from another device.");
-                                finish();
+                                endCall(0);
                                 break;
                             case ENDED:
                                 Utils.reportMessage(OutgoingCallActivity.this, "This call is ended from another device.");
-                                finish();
+                                endCall(0);
                                 break;
                         }
                     }
@@ -802,8 +802,6 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
             e.printStackTrace();
         }
         outgoingCall.makeCall();
-
-        final long startCalltime = System.currentTimeMillis();
     }
 
     private void saveCall() {
@@ -912,6 +910,9 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
     }
 
     private void endCall(long duration) {
+        if (outgoingCall == null) {
+            return;
+        }
         if (ringtonePlayer != null && ringtonePlayer.isPlaying()) {
             ringtonePlayer.stop();
             ringtonePlayer.release();
@@ -949,7 +950,9 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
             bluetoothManager.stop();
         }
 
-        updateCall(mMessage, duration, Constant.MESSAGE_DELIVERED);
+        if (mMessage != null) {
+            updateCall(mMessage, duration, Constant.MESSAGE_DELIVERED);
+        }
         if (outgoingCall != null) {
             outgoingCall.hangup();
             outgoingCall = null;
@@ -959,6 +962,7 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
             @Override
             public void run() {
                 Common.isInCall = false;
+                LocalBroadcastManager.getInstance(OutgoingCallActivity.this).sendBroadcast(new Intent(Notify.CHECK_BALANCE.getValue()));
                 finish();
             }
         }, 2000);

@@ -1,11 +1,15 @@
 package com.stringee.softphone.fragment;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,23 +18,32 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.stringee.StringeeClient;
 import com.stringee.softphone.R;
 import com.stringee.softphone.activity.LoginActivity;
 import com.stringee.softphone.adapter.NumberAdapter;
 import com.stringee.softphone.common.Common;
 import com.stringee.softphone.common.Constant;
+import com.stringee.softphone.common.Notify;
 import com.stringee.softphone.common.PrefUtils;
 import com.stringee.softphone.common.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -40,9 +53,12 @@ import java.util.Random;
 public class SettingsFragment extends Fragment implements View.OnClickListener {
 
     private ListView lvNumber;
+    private TextView tvAmount;
 
     private NumberAdapter numberAdapter;
     private List<String> data = new ArrayList<>();
+
+    private BroadcastReceiver checkBalanceReceiver;
 
     public SettingsFragment() {
 
@@ -55,6 +71,8 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
 
         View vLogout = layout.findViewById(R.id.v_logout);
         vLogout.setOnClickListener(this);
+
+        tvAmount = (TextView) layout.findViewById(R.id.tv_balance);
 
         ImageView imAvatar = (ImageView) layout.findViewById(R.id.im_avatar);
         Random r = new Random();
@@ -101,7 +119,16 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
         });
         lvNumber.setAdapter(numberAdapter);
 
+        checkBalance();
+
+        registerReceivers();
         return layout;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceivers();
     }
 
     @Override
@@ -149,5 +176,55 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
                 dialog.show();
                 break;
         }
+    }
+
+    private void checkBalance() {
+        String url = Constant.URL_BASE + Constant.URL_CHECK_BALANCE;
+        RequestQueue queue = Volley.newRequestQueue(getActivity());
+        final String phone = Utils.formatPhone(PrefUtils.getInstance(getActivity()).getString(Constant.PREF_PHONE_NUMBER, ""));
+
+        Map<String, String> params = new HashMap();
+        params.put("phone", phone);
+        JSONObject jsonObject = new JSONObject(params);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url
+                , jsonObject, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    int status = response.getInt("status");
+                    if (status == 200) {
+                        JSONObject dataObject = response.getJSONObject("data");
+                        String amount = dataObject.getString("amount");
+                        tvAmount.setText("$ " + amount);
+                    } else {
+                        Utils.reportMessage(getActivity(), R.string.error_occured);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Utils.reportMessage(getActivity(), R.string.error_occured);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Utils.reportMessage(getActivity(), R.string.error_occured);
+            }
+        });
+        queue.add(request);
+    }
+
+    private void registerReceivers() {
+        IntentFilter filter = new IntentFilter(Notify.CHECK_BALANCE.getValue());
+        checkBalanceReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                checkBalance();
+            }
+        };
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(checkBalanceReceiver, filter);
+    }
+
+    private void unregisterReceivers() {
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(checkBalanceReceiver);
     }
 }
