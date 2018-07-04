@@ -16,7 +16,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -153,7 +152,6 @@ public class MainActivity extends MActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (Common.client != null) {
-                    Log.d("Softphone", "============ disconnect");
                     Common.client.disconnect();
                     Common.client = null;
                 }

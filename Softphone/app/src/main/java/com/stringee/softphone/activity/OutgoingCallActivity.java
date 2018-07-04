@@ -555,14 +555,13 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Utils.reportMessage(OutgoingCallActivity.this, stringeeCall.getCustomDataFromYourServer());
                         handler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
+                                Utils.reportMessage(OutgoingCallActivity.this, s);
                                 endCall(0);
                             }
                         }, 1000);
-
                     }
                 });
             }
@@ -935,6 +934,15 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
             window.setStatusBarColor(Color.parseColor("#ffffff")); // set dark color, the icon will auto change light
         }
 
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
+        }
+
         if (endPlayer != null && !endPlayer.isPlaying()) {
             endPlayer.start();
         }
@@ -980,8 +988,6 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
             mCallBw = (long) ((8 * (stats.callBytesReceived - mPrevCallBytes)) / (videoTimestamp - mPrevCallTimestamp));
             mPrevCallTimestamp = videoTimestamp;
             mPrevCallBytes = stats.callBytesReceived;
-
-            Log.e("Stringee", "Call bandwidth (bps): " + mCallBw);
 
             checkNetworkQuality();
         }
