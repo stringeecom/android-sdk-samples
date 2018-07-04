@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -178,21 +177,21 @@ public class ContactDetailActivity extends MActivity {
         if (phone != null && phone.length() > 0 && !phone.equalsIgnoreCase("null")) {
             phone = Utils.formatPhone(phone);
             if (Utils.isPhoneNumber(phone)) {
-                if (Utils.isNetworkAvailable(this)) {
-                    if (Common.client.isConnected()) {
-                        Intent intent = new Intent(this, OutgoingCallActivity.class);
-                        intent.putExtra(Constant.PARAM_NAME, contact.getName());
-                        intent.putExtra(Constant.PARAM_PHONE, phone);
-                        intent.putExtra(Constant.PARAM_CALLOUT, isAppToPhone);
-                        intent.putExtra(Constant.PARAM_VIDEO_CALL, isVideoCall);
-                        intent.putExtra(Constant.PARAM_PHONE_NO, contact.getPhoneNo());
-                        startActivity(intent);
-                    } else {
-                        Utils.reportMessage(this, R.string.stringee_not_connect);
-                    }
-                } else {
-                    Utils.reportMessage(this, R.string.network_required);
-                }
+//                if (Utils.isNetworkAvailable(this)) {
+//                    if (Common.client.isConnected()) {
+                Intent intent = new Intent(this, OutgoingCallActivity.class);
+                intent.putExtra(Constant.PARAM_NAME, contact.getName());
+                intent.putExtra(Constant.PARAM_PHONE, phone);
+                intent.putExtra(Constant.PARAM_CALLOUT, isAppToPhone);
+                intent.putExtra(Constant.PARAM_VIDEO_CALL, isVideoCall);
+                intent.putExtra(Constant.PARAM_PHONE_NO, contact.getPhoneNo());
+                startActivity(intent);
+//                    } else {
+//                        Utils.reportMessage(this, R.string.stringee_not_connect);
+//                    }
+//                } else {
+//                    Utils.reportMessage(this, R.string.network_required);
+//                }
             }
         }
     }
@@ -223,7 +222,7 @@ public class ContactDetailActivity extends MActivity {
         final String token = PrefUtils.getInstance(this).getString(Constant.PREF_TOKEN, "");
         JSONObject contactObject = new JSONObject();
         try {
-        contactObject.put(Utils.formatPhone(contact.getPhone()), contact.getName());
+            contactObject.put(Utils.formatPhone(contact.getPhone()), contact.getName());
         } catch (JSONException e) {
             e.printStackTrace();
         }

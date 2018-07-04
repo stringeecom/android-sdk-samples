@@ -410,7 +410,6 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                     @Override
                     public void run() {
                         if (incomingCall != null) {
-                            Log.e("Stringee", "==== Loi thi end thoi");
                             endCall(0);
                         }
                     }
@@ -710,7 +709,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                 window.setStatusBarColor(Color.parseColor("#000000")); // set dark color, the icon will auto change light
             }
 
-            if (!wakeLock.isHeld()) {
+            if (wakeLock != null && !wakeLock.isHeld()) {
                 wakeLock.acquire();
             }
         } else {
@@ -722,7 +721,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                 window.setStatusBarColor(Color.parseColor("#007ce2")); // set dark color, the icon will auto change light
             }
 
-            if (wakeLock.isHeld()) {
+            if (wakeLock != null && wakeLock.isHeld()) {
                 wakeLock.release();
             }
         }
@@ -754,6 +753,15 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
             window.setStatusBarColor(Color.parseColor("#ffffff")); // set dark color, the icon will auto change light
+        }
+
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
         }
 
         if (ringtone != null && ringtone.isPlaying()) {
@@ -884,7 +892,6 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
             mPrevCallTimestamp = videoTimestamp;
             mPrevCallBytes = stats.callBytesReceived;
 
-            Log.e("Stringee", "Call bandwidth (bps): " + mCallBw);
 
             checkNetworkQuality();
         }
