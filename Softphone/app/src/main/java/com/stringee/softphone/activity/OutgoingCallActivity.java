@@ -1,7 +1,6 @@
 package com.stringee.softphone.activity;
 
 import android.Manifest;
-import android.app.KeyguardManager;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -28,7 +27,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -103,6 +101,8 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
     private Handler handler = new Handler();
     private Timer statsTimer;
     private TimerTask statsTimerTask;
+    private TimerTask timeoutTimerTask;
+    private Timer timeoutTimer;
 
     private MediaPlayer endPlayer;
     private MediaPlayer ringtonePlayer;
@@ -133,7 +133,7 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
     private boolean isShowControl = true;
     private boolean isCanHide = false;
 
-    private StringeeCall.SignalingState mSignalingState;
+    private StringeeCall.SignalingState mSignalingState = StringeeCall.SignalingState.CALLING;
     private StringeeCall.MediaState mMediaState;
 
     private StringeeBluetoothManager bluetoothManager;
@@ -142,8 +142,6 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         setContentView(R.layout.outgoing_call);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -175,9 +173,6 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
         initViews();
 
         registerReceiver();
-
-        KeyguardManager.KeyguardLock lock = ((KeyguardManager) getSystemService(KEYGUARD_SERVICE)).newKeyguardLock(KEYGUARD_SERVICE);
-        lock.disableKeyguard();
 
         try {
             // Yeah, this is hidden field.
@@ -420,6 +415,26 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
     }
 
     private void startCall() {
+        final long callStartTime = System.currentTimeMillis();
+        timeoutTimer = new Timer();
+        timeoutTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                if (System.currentTimeMillis() - callStartTime > 60000) {
+                    if (mSignalingState == StringeeCall.SignalingState.CALLING || mSignalingState == StringeeCall.SignalingState.RINGING) {
+                        timeoutTimer.cancel();
+                        timeoutTimer = null;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                endCall(0);
+                            }
+                        });
+                    }
+                }
+            }
+        };
+        timeoutTimer.schedule(timeoutTimerTask, 0, 1000);
         endPlayer = MediaPlayer.create(this, R.raw.call_end);
         endPlayer.setVolume(1.0f, 1.0f);
         endPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -479,6 +494,10 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                                     ringtonePlayer.release();
                                     ringtonePlayer = null;
                                 }
+                                if (timeoutTimer != null) {
+                                    timeoutTimer.cancel();
+                                }
+
                                 startTime = System.currentTimeMillis();
                                 // Connected
                                 vibrator.vibrate(500);
@@ -608,6 +627,10 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                                     ringtonePlayer.release();
                                     ringtonePlayer = null;
                                 }
+                                if (timeoutTimer != null) {
+                                    timeoutTimer.cancel();
+                                }
+
                                 startTime = System.currentTimeMillis();
                                 // Connected
                                 vibrator.vibrate(500);
@@ -952,6 +975,10 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
         }
         if (statsTimer != null) {
             statsTimer.cancel();
+        }
+
+        if (timeoutTimer != null) {
+            timeoutTimer.cancel();
         }
 
         if (bluetoothManager != null) {

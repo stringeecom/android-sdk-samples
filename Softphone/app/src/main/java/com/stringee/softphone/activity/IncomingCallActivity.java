@@ -100,6 +100,8 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
     public static StringeeCall incomingCall;
     private Timer statsTimer;
     private TimerTask statsTimerTask;
+    private TimerTask timeoutTimerTask;
+    private Timer timeoutTimer;
 
     private Vibrator vibrator;
     private SensorManager mSensorManager;
@@ -124,9 +126,10 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
 
     private PowerManager powerManager;
     private PowerManager.WakeLock wakeLock;
+    private KeyguardManager.KeyguardLock lock;
     private int notificationId = 10021993;
 
-    private StringeeCall.SignalingState mState;
+    private StringeeCall.SignalingState mState = StringeeCall.SignalingState.RINGING;
     private BroadcastReceiver endCallReceiver;
 
     private boolean isShowControl = true;
@@ -150,7 +153,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
 
         Common.isInCall = true;
 
-        KeyguardManager.KeyguardLock lock = ((KeyguardManager) getSystemService(KEYGUARD_SERVICE)).newKeyguardLock(KEYGUARD_SERVICE);
+        lock = ((KeyguardManager) getSystemService(KEYGUARD_SERVICE)).newKeyguardLock(KEYGUARD_SERVICE);
         lock.disableKeyguard();
 
         powerManager = ((PowerManager) getSystemService(Context.POWER_SERVICE));
@@ -384,6 +387,26 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
     }
 
     private void makeCall() {
+        final long callStartTime = System.currentTimeMillis();
+        timeoutTimer = new Timer();
+        timeoutTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                if (System.currentTimeMillis() - callStartTime > 65000) {
+                    if (mState == StringeeCall.SignalingState.RINGING) {
+                        timeoutTimer.cancel();
+                        timeoutTimer = null;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                endCall(0);
+                            }
+                        });
+                    }
+                }
+            }
+        };
+        timeoutTimer.schedule(timeoutTimerTask, 0, 1000);
         incomingCall.setCallListener(new StringeeCall.StringeeCallListener() {
             @Override
             public void onSignalingStateChange(StringeeCall stringeeCall, final StringeeCall.SignalingState signalingState, String reason, int sipCode, String sipReason) {
@@ -636,6 +659,9 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btn_answer) {
+            if (timeoutTimer != null) {
+                timeoutTimer.cancel();
+            }
             if (incomingCall != null) {
                 mState = StringeeCall.SignalingState.ANSWERED;
                 if (ringtone != null && ringtone.isPlaying()) {
@@ -764,6 +790,10 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
             wakeLock.release();
         }
 
+        if (lock != null) {
+            lock.reenableKeyguard();
+        }
+
         if (ringtone != null && ringtone.isPlaying()) {
             ringtone.stop();
             ringtone = null;
@@ -778,6 +808,10 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         }
         if (statsTimer != null) {
             statsTimer.cancel();
+        }
+
+        if (timeoutTimer != null) {
+            timeoutTimer.cancel();
         }
 
         if (bluetoothManager != null) {
