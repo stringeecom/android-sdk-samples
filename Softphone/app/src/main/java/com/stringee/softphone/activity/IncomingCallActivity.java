@@ -157,7 +157,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         lock.disableKeyguard();
 
         powerManager = ((PowerManager) getSystemService(Context.POWER_SERVICE));
-        wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, getLocalClassName());
+        wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getLocalClassName());
 
         wakeLock.acquire();
 

@@ -115,7 +115,6 @@ public class MainActivity extends MActivity {
         if (!Common.checkAppInBackgroundThread.isRunning()) {
             Common.checkAppInBackgroundThread.start();
         }
-
     }
 
     @Override

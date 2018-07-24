@@ -9,7 +9,6 @@ import android.webkit.WebViewClient;
 
 import com.stringee.softphone.R;
 import com.stringee.softphone.common.Constant;
-import com.stringee.softphone.common.Utils;
 
 /**
  * Created by luannguyen on 8/5/2017.
@@ -29,6 +28,11 @@ public class CallUserInfoActivity extends MActivity {
 
         initActionBar();
         initViews();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(Constant.PARAM_URL, url);
     }
 
     @Override
