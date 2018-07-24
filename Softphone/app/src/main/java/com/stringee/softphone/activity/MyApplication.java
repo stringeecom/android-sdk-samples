@@ -1,6 +1,7 @@
 package com.stringee.softphone.activity;
 
 import android.app.Application;
+import android.app.NotificationManager;
 
 import com.crashlytics.android.Crashlytics;
 import com.stringee.softphone.common.Common;
@@ -20,5 +21,14 @@ public class MyApplication extends Application {
         Fabric.with(this, new Crashlytics());
         Common.messageDb = MessageHandler.getInstance(this);
         Common.context = this;
+    }
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        NotificationManager nm = (NotificationManager) getSystemService
+                (NOTIFICATION_SERVICE);
+        nm.cancel(25061987);
+        nm.cancel(10021993);
     }
 }

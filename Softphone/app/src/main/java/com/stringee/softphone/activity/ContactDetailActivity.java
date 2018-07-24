@@ -83,6 +83,11 @@ public class ContactDetailActivity extends MActivity {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable(Constant.PARAM_CONTACT, contact);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         switch (itemId) {
