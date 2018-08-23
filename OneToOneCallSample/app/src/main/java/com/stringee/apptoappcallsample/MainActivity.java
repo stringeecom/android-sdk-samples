@@ -18,6 +18,8 @@ import com.stringee.call.StringeeCall;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeConnectionListener;
 
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -140,6 +142,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onRequestNewToken(StringeeClient stringeeClient) {
                 // Get new token here and connect to Stringe server
+            }
+
+            @Override
+            public void onCustomMessage(String s, JSONObject jsonObject) {
+
             }
         });
         client.connect(accessToken);

@@ -171,7 +171,7 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
                             public void run() {
                                 mLocalViewContainer.removeAllViews();
                                 mLocalViewContainer.addView(stringeeStream.getView());
-                                stringeeStream.renderView();
+                                stringeeStream.renderView(true);
                             }
                         });
                     }
@@ -202,12 +202,12 @@ public class ConferenceCallActivity extends AppCompatActivity implements View.On
                                     streamMap.put("remote1", stringeeStream);
                                     mRemoteViewContainer.removeAllViews();
                                     mRemoteViewContainer.addView(stringeeStream.getView());
-                                    stringeeStream.renderView();
+                                    stringeeStream.renderView(false);
                                 } else {
                                     streamMap.put("remote2", stringeeStream);
                                     mRemoteViewContainer2.removeAllViews();
                                     mRemoteViewContainer2.addView(stringeeStream.getView());
-                                    stringeeStream.renderView();
+                                    stringeeStream.renderView(false);
                                 }
                             }
                         });
