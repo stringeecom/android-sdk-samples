@@ -9,6 +9,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
+import com.stringee.listener.StatusListener;
 import com.stringee.softphone.R;
 import com.stringee.softphone.activity.IncomingCallActivity;
 import com.stringee.softphone.activity.OutgoingCallActivity;
@@ -335,11 +337,21 @@ public class DialFragment extends Fragment implements View.OnClickListener, Call
     private void sendDTMF(String s) {
         if (outgoing) {
             if (OutgoingCallActivity.outgoingCall != null) {
-                OutgoingCallActivity.outgoingCall.sendDTMF(s);
+                OutgoingCallActivity.outgoingCall.sendDTMF(s, new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("Stringee", "sendDTMF onSuccess");
+                    }
+                });
             }
         } else {
             if (IncomingCallActivity.incomingCall != null) {
-                IncomingCallActivity.incomingCall.sendDTMF(s);
+                IncomingCallActivity.incomingCall.sendDTMF(s, new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("Stringee", "sendDTMF onSuccess");
+                    }
+                });
             }
         }
     }

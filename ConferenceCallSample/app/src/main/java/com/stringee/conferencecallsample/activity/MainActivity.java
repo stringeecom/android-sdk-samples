@@ -17,10 +17,12 @@ import com.stringee.conferencecallsample.utils.Utils;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeConnectionListener;
 
+import org.json.JSONObject;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static StringeeClient client;
-	private String accessToken = "your_access_token"; // replace your access token here.
+    private String accessToken = "your_access_token"; // replace your access token here.
 
     private EditText etRoomId;
     private ProgressDialog progressDialog;
@@ -91,6 +93,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onRequestNewToken(StringeeClient stringeeClient) {
+
+            }
+
+            @Override
+            public void onCustomMessage(String s, JSONObject jsonObject) {
 
             }
         });

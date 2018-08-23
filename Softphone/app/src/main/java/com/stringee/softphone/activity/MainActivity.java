@@ -354,6 +354,11 @@ public class MainActivity extends MActivity {
             public void onRequestNewToken(StringeeClient stringeeClient) {
                 getTokenAndConnect(MainActivity.this);
             }
+
+            @Override
+            public void onCustomMessage(String s, JSONObject jsonObject) {
+
+            }
         });
     }
 
