@@ -2,7 +2,7 @@ package com.stringee.softphone.service;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
-import com.stringee.StringeeClient;
+import com.stringee.listener.StatusListener;
 import com.stringee.softphone.common.Common;
 
 /**
@@ -15,14 +15,9 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
     public void onTokenRefresh() {
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
         if (Common.client != null) {
-            Common.client.registerPushToken(refreshedToken, new StringeeClient.RegisterPushTokenListener() {
+            Common.client.registerPushToken(refreshedToken, new StatusListener() {
                 @Override
-                public void onPushTokenRegistered(boolean success, String desc) {
-
-                }
-
-                @Override
-                public void onPushTokenUnRegistered(boolean success, String desc) {
+                public void onSuccess() {
 
                 }
             });

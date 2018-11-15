@@ -33,6 +33,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.stringee.StringeeClient;
 import com.stringee.call.StringeeCall;
 import com.stringee.exception.StringeeError;
+import com.stringee.listener.StatusListener;
 import com.stringee.listener.StringeeConnectionListener;
 import com.stringee.softphone.R;
 import com.stringee.softphone.common.Common;
@@ -294,17 +295,11 @@ public class MainActivity extends MActivity {
 
                 if (!PrefUtils.getInstance(MainActivity.this).getBoolean(Constant.PREF_TOKEN_REGISTERED, false)) {
                     final String refreshedToken = FirebaseInstanceId.getInstance().getToken();
-                    Common.client.registerPushToken(refreshedToken, new StringeeClient.RegisterPushTokenListener() {
+                    Common.client.registerPushToken(refreshedToken, new StatusListener() {
                         @Override
-                        public void onPushTokenRegistered(boolean success, String desc) {
-                            if (success) {
-                                PrefUtils.getInstance(MainActivity.this).putBoolean(Constant.PREF_TOKEN_REGISTERED, true);
-                                PrefUtils.getInstance(MainActivity.this).putString(Constant.PREF_FIREBASE_TOKEN, refreshedToken);
-                            }
-                        }
-
-                        @Override
-                        public void onPushTokenUnRegistered(boolean success, String desc) {
+                        public void onSuccess() {
+                            PrefUtils.getInstance(MainActivity.this).putBoolean(Constant.PREF_TOKEN_REGISTERED, true);
+                            PrefUtils.getInstance(MainActivity.this).putString(Constant.PREF_FIREBASE_TOKEN, refreshedToken);
                         }
                     });
                 }

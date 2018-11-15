@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +25,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.stringee.StringeeClient;
+import com.stringee.listener.StatusListener;
 import com.stringee.softphone.R;
 import com.stringee.softphone.activity.LoginActivity;
 import com.stringee.softphone.adapter.NumberAdapter;
@@ -141,15 +140,9 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         if (Common.client != null) {
-                            Common.client.unregisterPushToken(PrefUtils.getInstance(getActivity()).getString(Constant.PREF_FIREBASE_TOKEN, ""), new StringeeClient.RegisterPushTokenListener() {
+                            Common.client.unregisterPushToken(PrefUtils.getInstance(getActivity()).getString(Constant.PREF_FIREBASE_TOKEN, ""), new StatusListener() {
                                 @Override
-                                public void onPushTokenRegistered(boolean b, String s) {
-
-                                }
-
-                                @Override
-                                public void onPushTokenUnRegistered(boolean b, String s) {
-                                    Log.e("Stringee", "+++++++++++++ unregister token success");
+                                public void onSuccess() {
                                     PrefUtils.getInstance(getActivity()).clearData();
                                     Common.messageDb.clearData();
                                     Common.client.disconnect();
