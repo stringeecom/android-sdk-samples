@@ -16,6 +16,7 @@ import com.stringee.StringeeClient;
 import com.stringee.apptoappcallsample.utils.Utils;
 import com.stringee.call.StringeeCall;
 import com.stringee.exception.StringeeError;
+import com.stringee.listener.StatusListener;
 import com.stringee.listener.StringeeConnectionListener;
 
 import org.json.JSONObject;
@@ -75,20 +76,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 boolean isTokenRegistered = sharedPreferences.getBoolean(IS_TOKEN_REGISTERED, false);
                 if (!isTokenRegistered) {
                     final String token = FirebaseInstanceId.getInstance().getToken();
-                    client.registerPushToken(token, new StringeeClient.RegisterPushTokenListener() {
+                    client.registerPushToken(token, new StatusListener() {
                         @Override
-                        public void onPushTokenRegistered(boolean success, String desc) {
-                            Log.d("Stringee", "Register push token: " + desc);
-                            if (success) {
-                                editor.putBoolean(IS_TOKEN_REGISTERED, true);
-                                editor.putString(TOKEN, token);
-                                editor.commit();
-                            }
+                        public void onSuccess() {
+                            Log.d("Stringee", "Register push token successfully.");
+                            editor.putBoolean(IS_TOKEN_REGISTERED, true);
+                            editor.putString(TOKEN, token);
+                            editor.commit();
                         }
 
                         @Override
-                        public void onPushTokenUnRegistered(boolean success, String desc) {
-                            Log.d("Stringee", "Unregister push token: " + desc);
+                        public void onError(StringeeError error) {
+                            Log.d("Stringee", "Register push token unsuccessfully: " + error.getMessage());
                         }
                     });
                 }
@@ -184,18 +183,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.btn_unregister:
-                client.unregisterPushToken(sharedPreferences.getString(TOKEN, ""), new StringeeClient.RegisterPushTokenListener() {
+                client.unregisterPushToken(sharedPreferences.getString(TOKEN, ""), new StatusListener() {
                     @Override
-                    public void onPushTokenRegistered(boolean success, String desc) {
-
-                    }
-
-                    @Override
-                    public void onPushTokenUnRegistered(boolean success, String desc) {
-                        Log.d("Stringee", "Unregister push token: " + desc);
+                    public void onSuccess() {
+                        Log.d("Stringee", "Unregister push token successfully.");
                         editor.remove(IS_TOKEN_REGISTERED);
                         editor.remove(TOKEN);
                         editor.commit();
+                    }
+
+                    @Override
+                    public void onError(StringeeError error) {
+                        Log.d("Stringee", "Unregister push token unsuccessfully: " + error.getMessage());
                     }
                 });
                 break;
