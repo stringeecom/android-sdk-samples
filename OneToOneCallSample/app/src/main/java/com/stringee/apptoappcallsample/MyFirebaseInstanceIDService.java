@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 import com.stringee.StringeeClient;
+import com.stringee.listener.StatusListener;
 
 /**
  * Created by luannguyen on 2/7/2018.
@@ -19,14 +20,9 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
 
         // Register the token to Stringee Server
         if (MainActivity.client != null && MainActivity.client.isConnected()) {
-            MainActivity.client.registerPushToken(refreshedToken, new StringeeClient.RegisterPushTokenListener() {
+            MainActivity.client.registerPushToken(refreshedToken, new StatusListener() {
                 @Override
-                public void onPushTokenRegistered(boolean success, String desc) {
-
-                }
-
-                @Override
-                public void onPushTokenUnRegistered(boolean success, String desc) {
+                public void onSuccess() {
 
                 }
             });
