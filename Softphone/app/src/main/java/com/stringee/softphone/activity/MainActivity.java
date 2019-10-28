@@ -354,6 +354,11 @@ public class MainActivity extends MActivity {
             public void onCustomMessage(String s, JSONObject jsonObject) {
 
             }
+
+            @Override
+            public void onTopicMessage(String s, JSONObject jsonObject) {
+
+            }
         });
     }
 

@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static StringeeClient client;
     private String to;
     public static Map<String, StringeeCall> callsMap = new HashMap<>();
-    private String accessToken = "your_access_token"; // replace your access token here.
+    private String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0NsejhzQ2tKeDNzdU13SmdCdDJ6bUc2T01JbVRYb2Y1LTE1NzIyMzIxNDgiLCJpc3MiOiJTS0NsejhzQ2tKeDNzdU13SmdCdDJ6bUc2T01JbVRYb2Y1IiwiZXhwIjoxNTc0ODI0MTQ4LCJ1c2VySWQiOiJ0ZXN0In0.gvgXvmAaBMo7-9Jd_CvJI1ExqXGPFyxoRghMdDoQ_TQ"; // replace your access token here.
 
     private EditText etTo;
     private TextView tvUserId;
@@ -145,6 +145,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onCustomMessage(String s, JSONObject jsonObject) {
+
+            }
+
+            @Override
+            public void onTopicMessage(String s, JSONObject jsonObject) {
 
             }
         });
