@@ -23,3 +23,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-dontwarn org.webrtc.**
+-keep class org.webrtc.** { *; }
+-keep class com.stringee.** { *; }

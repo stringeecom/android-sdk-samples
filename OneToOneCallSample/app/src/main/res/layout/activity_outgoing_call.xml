@@ -20,11 +20,10 @@
 
     <ImageButton
         android:id="@+id/btn_switch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_margin="20dp"
-        android:background="@null"
-        android:src="@drawable/ic_video_switch_light_normal" />
+        android:background="@drawable/ic_switch" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -57,7 +56,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="10dp"
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
@@ -69,37 +67,30 @@
                 android:id="@+id/btn_speaker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@null"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_speaker_off" />
+                android:background="@drawable/btn_speaker_off" />
 
             <ImageButton
                 android:id="@+id/btn_video"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="40dp"
-                android:background="@null"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_video_off" />
+                android:background="@drawable/btn_video_off" />
 
             <ImageButton
                 android:id="@+id/btn_mute"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="40dp"
-                android:background="@null"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_mic" />
+                android:background="@drawable/btn_mic" />
 
         </LinearLayout>
 
         <ImageButton
             android:id="@+id/btn_end"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/end_call_selector"
-            android:scaleType="fitCenter" />
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginVertical="20dp"
+            android:background="@drawable/btn_end_call_selector" />
     </LinearLayout>
 
 </RelativeLayout>
