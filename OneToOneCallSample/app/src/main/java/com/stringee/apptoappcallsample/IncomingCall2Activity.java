@@ -122,6 +122,7 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
             }
         }
 
+        //create audio manager to control audio device
         if (Common.audioManager == null) {
             Common.audioManager = StringeeAudioManager.create(IncomingCall2Activity.this);
             Common.audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
@@ -133,6 +134,7 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
             });
         }
 
+        //play device ringtone
         if (Common.ringtone == null) {
             Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
             Common.ringtone = RingtoneManager.getRingtone(IncomingCall2Activity.this, ringtoneUri);

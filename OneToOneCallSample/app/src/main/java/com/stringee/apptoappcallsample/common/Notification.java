@@ -18,6 +18,7 @@ import com.stringee.apptoappcallsample.R;
 import java.util.Set;
 
 public class Notification {
+    //replace your channel id, channel name, channel desc here
     private static final String CALL_CHANNEL_ID = "com.stringee.sample.call.notification";
     private static final String CALL_CHANNEL_NAME = "Notification Call Channel Sample";
     private static final String CALL_CHANNEL_DESC = "Channel sample for call notification";

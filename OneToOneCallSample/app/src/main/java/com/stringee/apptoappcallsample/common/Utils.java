@@ -7,10 +7,6 @@ import android.view.Gravity;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/**
- * Created by luannguyen on 10/27/2017.
- */
-
 public class Utils {
 
     public static void reportMessage(Context context, String message) {

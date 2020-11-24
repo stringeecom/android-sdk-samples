@@ -116,6 +116,8 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                 return;
             }
         }
+
+        //create audio manager to control audio device
         Common.audioManager = StringeeAudioManager.create(OutgoingCall2Activity.this);
         Common.audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
             @Override
@@ -159,6 +161,7 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
     }
 
     private void makeCall() {
+        //make new call
         mStringeeCall2 = new StringeeCall2(MainActivity.client, from, to);
         mStringeeCall2.setVideoCall(isVideoCall);
 
