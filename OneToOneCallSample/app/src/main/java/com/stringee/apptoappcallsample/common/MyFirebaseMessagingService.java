@@ -44,9 +44,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         if (callId != null && callStatus != null) {
                             switch (callStatus) {
                                 case "started":
+                                    //make a notification when app in background or killed
                                     Notification.notifyIncomingCall(getApplicationContext(), from);
                                     break;
                                 case "ended":
+                                    //remove notification
                                     NotificationManager nm = (NotificationManager) getSystemService
                                             (NOTIFICATION_SERVICE);
                                     if (nm != null) {
