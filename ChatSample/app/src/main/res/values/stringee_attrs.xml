@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="Stringee_Keyboard">
+        <attr name="stringee_handle" format="reference" />
+        <attr name="stringee_content" format="reference" />
+        <attr name="stringee_direction" />
+        <attr name="stringee_bottomOffset" format="dimension" />
+        <attr name="stringee_topOffset" format="dimension" />
+        <attr name="stringee_allowSingleTap" format="boolean" />
+        <attr name="stringee_animateOnClick" format="boolean" />
+    </declare-styleable>
+
+    <attr name="stringee_direction">
+        <enum name="rightToLeft" value="0" />
+        <enum name="bottomToTop" value="1" />
+        <enum name="leftToRight" value="2" />
+        <enum name="topToBottom" value="3" />
+    </attr>
+</resources>

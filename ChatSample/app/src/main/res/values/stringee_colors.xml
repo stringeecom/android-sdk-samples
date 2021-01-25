@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="stringee_colorPrimary">#f7941d</color>
+    <color name="stringee_colorPrimaryDark">#f7941d</color>
+    <color name="stringee_colorAccent">#f7941d</color>
+    <color name="ab_bg_black">#99000000</color>
+    <color name="text_dark">#555555</color>
+    <color name="separator">#cecece</color>
+    <color name="btn_login_pressed">#bf1f2a</color>
+    <color name="btn_login_disable">#939393</color>
+    <color name="btn_login_enable">#ef2734</color>
+    <color name="abs_transparent">#55000000</color>
+    <color name="item_pressed">#10000000</color>
+    <color name="white">#ffffff</color>
+    <color name="white_dark">#f9f9f9</color>
+
+    <color name="edittext_hint_color">#bdbdbd</color>
+    <color name="black">#000000</color>
+    <color name="message_details_text_color">#838b83</color>
+    <color name="sent_message_text_color">#646464</color>
+    <color name="stringee_message_border_color">#ffffff</color>
+    <color name="message_text_color">#646464</color>
+    <color name="stringee_location_view_divider_color">#d2d2d2</color>
+    <color name="stringee_transparent_color">#00000000</color>
+    <color name="stringee_share_contact_divider">#FFB6B6B6</color>
+    <color name="stringee_lite_gray_color">#666666</color>
+    <color name="stringee_sent_msg_bg">#f0f0f0</color>
+    <color name="stringee_receive_msg_bg">#ffdeb7</color>
+    <color name="stringee_time_sent">#636363</color>
+    <color name="stringee_time_received">#636363</color>
+    <color name="stringee_conv_time">#646464</color>
+    <color name="stringee_receive_text">#f7941d</color>
+    <color name="stringee_text_hint">#767676</color>
+    <color name="stringee_text_normal">#333333</color>
+    <color name="stringee_text_subtitle">#646464</color>
+</resources>

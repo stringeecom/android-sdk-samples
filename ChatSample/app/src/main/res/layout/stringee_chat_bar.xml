@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/v_chat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#e6e6e6" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageButton
+                android:id="@+id/stickerButton"
+                android:layout_width="54dp"
+                android:layout_height="48dp"
+                android:background="@null"
+                android:src="@drawable/ic_sticker"
+                android:tint="#a6a6a6" />
+
+            <LinearLayout
+                android:id="@+id/sendLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true">
+
+                <ImageButton
+                    android:id="@+id/attachButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@null"
+                    android:gravity="center"
+                    android:src="@drawable/input_attach"
+                    android:tint="#a6a6a6" />
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toLeftOf="@id/recordButton">
+
+                    <ImageButton
+                        android:id="@+id/sendMessageButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@null"
+                        android:src="@drawable/ic_send"
+                        android:tint="@color/stringee_colorPrimary"
+                        android:visibility="gone" />
+
+                    <ImageButton
+                        android:id="@+id/recordButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@null"
+                        android:src="@drawable/input_mic"
+                        android:tint="#a6a6a6" />
+                </FrameLayout>
+
+            </LinearLayout>
+
+
+            <EditText
+                android:id="@+id/messageEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@id/sendLayout"
+                android:layout_toRightOf="@id/stickerButton"
+                android:background="@android:color/transparent"
+                android:hint="@string/message"
+                android:inputType="textCapSentences|textMultiLine"
+                android:maxLines="6"
+                android:minHeight="48dp"
+                android:textColor="@color/black"
+                android:textColorHint="@color/edittext_hint_color"
+                android:textSize="16sp" />
+        </RelativeLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
