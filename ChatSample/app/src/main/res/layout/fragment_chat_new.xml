@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <ProgressBar
+        android:id="@+id/prLoading"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="center_horizontal"
+        android:padding="0dp" />
+
+    <com.stringee.chat.ui.kit.view.CusRelativeLayout
+        android:id="@+id/rootView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/messagesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="top"
+            android:layout_marginBottom="50dp"
+            android:scrollbars="vertical" />
+
+        <com.stringee.chat.ui.kit.view.CusKeyboardWidget xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/drawer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            app:stringee_animateOnClick="true"
+            app:stringee_content="@+id/content"
+            app:stringee_direction="bottomToTop"
+            app:stringee_handle="@+id/handle">
+
+            <include
+                android:id="@id/content"
+                layout="@layout/stringee_chat_more"
+                android:background="#fff0f2f4" />
+
+            <include
+                android:id="@id/handle"
+                layout="@layout/stringee_chat_bar" />
+        </com.stringee.chat.ui.kit.view.CusKeyboardWidget>
+
+        <TextView
+            android:id="@+id/tv_no_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/no_message"
+            android:textColor="@color/stringee_text_hint"
+            android:textSize="@dimen/stringee_text_size_18"
+            android:visibility="gone" />
+    </com.stringee.chat.ui.kit.view.CusRelativeLayout>
+</LinearLayout>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:id="@+id/v_stickers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#f1f2f6"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_alignParentBottom="true"
+                android:background="#babfc3" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/stickersRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@color/stringee_transparent_color"
+                android:scrollbars="none" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <GridView
+                android:id="@+id/stickersGridView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:numColumns="5"
+                android:scrollbars="none"></GridView>
+
+            <ListView
+                android:id="@+id/stickersListView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@null"></ListView>
+        </RelativeLayout>
+    </LinearLayout>
+</RelativeLayout>

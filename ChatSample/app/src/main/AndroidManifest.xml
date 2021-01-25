@@ -1,0 +1,132 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.stringee.stringeechatuikit">
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+
+    <!-- Stringee permissions -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <permission
+        android:name="com.stringee.meetingsample.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.stringee.meetingsample.permission.MAPS_RECEIVE" />
+
+    <application
+        android:name=".MyApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/icon"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/StringeeAppTheme"
+        tools:replace="allowBackup">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/stringee_provider_paths" />
+        </provider>
+
+        <activity
+            android:name=".MainChatActivity"
+            android:label="@string/app_name"
+            android:theme="@style/StringeeAppBaseTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.stringee.chat.ui.kit.activity.ConversationActivity"
+            android:configChanges="keyboardHidden|screenSize|locale|smallestScreenSize|screenLayout|orientation"
+            android:launchMode="singleTask"
+            android:theme="@style/StringeeAppTheme"
+            android:windowSoftInputMode="adjustResize"></activity>
+
+        <activity
+            android:name="com.stringee.chat.ui.kit.activity.StringeeLocationActivity"
+            android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
+            android:parentActivityName="com.stringee.chat.ui.kit.activity.ConversationActivity"
+            android:theme="@style/StringeeAppTheme"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name="com.stringee.chat.ui.kit.activity.ImageFullScreenActivity"
+            android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
+            android:label="@string/view_photo"
+            android:theme="@style/Stringee_FullScreen_Theme"
+            android:windowSoftInputMode="adjustResize" />
+
+
+        <activity
+            android:name="com.stringee.chat.ui.kit.activity.SelectFileActivity"
+            android:configChanges="keyboardHidden|screenSize|locale|smallestScreenSize|screenLayout|orientation"
+            android:launchMode="singleTask"
+            android:theme="@style/StringeeAppBaseTheme"
+            android:windowSoftInputMode="adjustResize"></activity>
+
+        <activity
+            android:name="com.stringee.chat.ui.kit.activity.ConversationInfoActivity"
+            android:theme="@style/StringeeAppTheme"></activity>
+
+        <activity
+            android:name=".OutgoingCallActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+
+        <activity
+            android:name=".IncomingCallActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+
+        <activity
+            android:name="com.stringee.chat.ui.kit.activity.ChooseGalleryFolderActivity"
+            android:theme="@style/GalleryTheme"></activity>
+        <activity
+            android:name="com.stringee.chat.ui.kit.activity.ChooseGalleryFileActivity"
+            android:theme="@style/GalleryTheme"></activity>
+
+        <activity
+            android:name="com.stringee.chat.ui.kit.activity.ContactActivity"
+            android:theme="@style/StringeeAppTheme"></activity>
+
+
+        <service android:name=".MyFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAIfDW1KgmjAZ9Dx3kS2_gXZOH_mnLpKx8" />
+
+        <meta-data
+            android:name="main_folder_name"
+            android:value="@string/app_name" />
+
+        <meta-data
+            android:name="com.package.name"
+            android:value="${applicationId}" />
+
+    </application>
+</manifest>

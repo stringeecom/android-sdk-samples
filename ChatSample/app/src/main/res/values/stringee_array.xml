@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="multimediaOptions">
+        <item>Máy ảnh</item>
+        <item>Thư viện</item>
+        <item>Video</item>
+        <item>Audio</item>
+        <item>Tệp tin</item>
+        <item>Danh bạ</item>
+        <item>Vị trí</item>
+        <item></item>
+    </string-array>
+
+    <array name="multimediaOptionIcons">
+        <item>@drawable/attach_camera</item>
+        <item>@drawable/attach_gallery</item>
+        <item>@drawable/attach_video</item>
+        <item>@drawable/attach_audio</item>
+        <item>@drawable/attach_file</item>
+        <item>@drawable/attach_contact</item>
+        <item>@drawable/attach_location</item>
+        <item>@drawable/attach_close</item>
+    </array>
+
+
+    <string-array name="conversation_options_menu">
+        <item>Delete</item>
+    </string-array>
+
+    <string-array name="participants_options_menu">
+        <item>Remove</item>
+    </string-array>
+
+    <string-array name="messages_options_menu">
+        <item>Delete</item>
+    </string-array>
+</resources>

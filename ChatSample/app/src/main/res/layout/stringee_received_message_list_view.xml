@@ -1,0 +1,106 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:longClickable="true"
+    android:orientation="horizontal"
+    android:paddingTop="3dp"
+    android:paddingBottom="3dp">
+
+    <FrameLayout
+        android:id="@+id/v_select"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="15dp"
+        android:background="@drawable/list_check_bg"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/checkImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/list_check" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/v_avatar_received"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:minHeight="1dp">
+
+        <TextView
+            android:id="@+id/alphabeticImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:background="@drawable/circular_textview"
+            android:gravity="center"
+            android:text=""
+            android:textColor="#ffffff"
+            android:textSize="20dp"
+            android:visibility="gone" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/contactImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_toEndOf="@+id/alphabeticImage"
+            android:layout_toRightOf="@+id/alphabeticImage"
+            android:src="@drawable/stringee_ic_contact_picture"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp">
+
+        <RelativeLayout
+            android:id="@+id/mediaLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/stringee_received_message">
+
+            <include layout="@layout/stringee_attachment_preview_layout" />
+
+            <include layout="@layout/stringee_contact_share_layout" />
+
+            <include layout="@layout/stringee_chat_location_view" />
+
+            <include layout="@layout/stringee_attachment_layout" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/messageLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/stringee_received_message"
+            android:minWidth="80dp"
+            android:orientation="vertical"
+            android:padding="6dp">
+
+
+            <TextView
+                android:id="@+id/message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:autoLink="all"
+                android:textColor="@color/message_text_color"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/createdAtTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:textColor="@color/stringee_time_received"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+    </RelativeLayout>
+</LinearLayout>
