@@ -1,23 +1,20 @@
 package com.stringee.apptoappcallsample;
 
 import android.Manifest;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.stringee.apptoappcallsample.common.Common;
 import com.stringee.apptoappcallsample.common.StringeeAudioManager;
@@ -25,7 +22,6 @@ import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.call.StringeeCall;
 import com.stringee.listener.StatusListener;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -98,6 +94,25 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         btnVideo.setVisibility(isVideo ? View.VISIBLE : View.GONE);
         btnSwitch.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
+        //create audio manager to control audio device
+        if (Common.audioManager == null) {
+            Common.audioManager = StringeeAudioManager.create(IncomingCallActivity.this);
+            Common.audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
+                @Override
+                public void onAudioDeviceChanged(StringeeAudioManager.AudioDevice selectedAudioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
+                    Log.d("StringeeAudioManager", "onAudioManagerDevicesChanged: " + availableAudioDevices + ", "
+                            + "selected: " + selectedAudioDevice);
+                }
+            });
+        }
+
+        //play device ringtone
+        if (Common.ringtone == null) {
+            Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+            Common.ringtone = RingtoneManager.getRingtone(IncomingCallActivity.this, ringtoneUri);
+            Common.ringtone.play();
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> lstPermissions = new ArrayList<>();
 
@@ -125,25 +140,6 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             }
         }
 
-        //create audio manager to control audio device
-        if (Common.audioManager == null) {
-            Common.audioManager = StringeeAudioManager.create(IncomingCallActivity.this);
-            Common.audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
-                @Override
-                public void onAudioDeviceChanged(StringeeAudioManager.AudioDevice selectedAudioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
-                    Log.d("StringeeAudioManager", "onAudioManagerDevicesChanged: " + availableAudioDevices + ", "
-                            + "selected: " + selectedAudioDevice);
-                }
-            });
-        }
-
-        //play device ringtone
-        if (Common.ringtone == null) {
-            Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-            Common.ringtone = RingtoneManager.getRingtone(IncomingCallActivity.this, ringtoneUri);
-            Common.ringtone.play();
-        }
-
         initAnswer();
     }
 
@@ -163,7 +159,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         }
         if (requestCode == REQUEST_PERMISSION_CALL) {
             if (!isGranted) {
-                finish();
+                endCall(false, true);
             } else {
                 initAnswer();
             }
@@ -173,7 +169,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        endCall();
+        endCall(true, false);
     }
 
     private void initAnswer() {
@@ -194,7 +190,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                                 break;
                             case ENDED:
                                 tvState.setText("Ended");
-                                endCall();
+                                endCall(true, false);
                                 break;
                         }
                     }
@@ -218,7 +214,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         if (signalingState == StringeeCall.SignalingState.ANSWERED || signalingState == StringeeCall.SignalingState.BUSY) {
                             Utils.reportMessage(IncomingCallActivity.this, "This call is handled on another device.");
-                            finish();
+                            endCall(false, false);
                         }
                     }
                 });
@@ -311,7 +307,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 }
                 break;
             case R.id.btn_end:
-                endCall();
+                endCall(true, false);
                 break;
             case R.id.btn_video:
                 isVideo = !isVideo;
@@ -333,7 +329,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    private void endCall() {
+    private void endCall(boolean isHangup, boolean isReject) {
         if (Common.audioManager != null) {
             Common.audioManager.stop();
             Common.audioManager = null;
@@ -344,10 +340,18 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             Common.ringtone = null;
         }
 
-
-        if (mStringeeCall != null) {
-            mStringeeCall.hangup();
+        if (isHangup) {
+            if (mStringeeCall != null) {
+                mStringeeCall.hangup();
+            }
         }
+
+        if (isReject) {
+            if (mStringeeCall != null) {
+                mStringeeCall.reject();
+            }
+        }
+
         Utils.postDelay(new Runnable() {
             @Override
             public void run() {

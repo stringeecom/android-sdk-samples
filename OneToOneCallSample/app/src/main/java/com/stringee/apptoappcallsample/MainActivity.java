@@ -39,8 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static StringeeClient client;
     private String to;
     //put your token here
-    private String token1 = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2MDYxMjQwODgiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjA4NzE2MDg4LCJ1c2VySWQiOiJ1c2VyMSJ9.RkqiRpfvDoMU9rZORzJKHTmtN_w70Tr5rnp5IePOJFE";
-    private String token2 = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2MDYxMjI4OTkiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjA4NzE0ODk5LCJ1c2VySWQiOiJ1c2VyMiJ9.b_tG9wp0zharQV0EHVSGefXyCzUvmGjqTImEVNOg01o";
+    private String token = "PUT_YOUR_TOKEN_HERE";
 
     private EditText etTo;
     private TextView tvUserId;
@@ -220,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         });
-        client.connect(token2);
+        client.connect(token);
     }
 
     @Override
