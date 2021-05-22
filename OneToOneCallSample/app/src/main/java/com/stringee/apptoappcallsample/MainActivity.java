@@ -1,10 +1,21 @@
 package com.stringee.apptoappcallsample;
 
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.view.WindowManager.LayoutParams;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,16 +24,8 @@ import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ProcessLifecycleOwner;
 
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
 import com.stringee.StringeeClient;
 import com.stringee.apptoappcallsample.common.Common;
 import com.stringee.apptoappcallsample.common.Utils;
@@ -39,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static StringeeClient client;
     private String to;
     //put your token here
-    private String token = "PUT_YOUR_TOKEN_HERE";
+    private String token = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2MjE2Nzc2OTAiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjI0MjY5NjkwLCJ1c2VySWQiOiJ1c2VyMiJ9.TCCBOgi7Uctk8xNGSqyG8cUuz1P0OJjahY6JWfUoAR0";
 
     private EditText etTo;
     private TextView tvUserId;
@@ -47,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
+
+    private KeyguardLock lock;
 
     private final String PREF_NAME = "com.stringee.onetoonecallsample";
     private final String IS_TOKEN_REGISTERED = "is_token_registered";
@@ -67,7 +72,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //add Flag for show on lockScreen and disable keyguard
+        getWindow().addFlags(LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | LayoutParams.FLAG_DISMISS_KEYGUARD
+                | LayoutParams.FLAG_KEEP_SCREEN_ON
+                | LayoutParams.FLAG_TURN_SCREEN_ON);
+
         setContentView(R.layout.activity_main);
+
+        lock = ((KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE)).newKeyguardLock(Context.KEYGUARD_SERVICE);
+        lock.disableKeyguard();
+
+        if (VERSION.SDK_INT >= VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        }
 
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
 
@@ -109,15 +129,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onConnectionConnected(final StringeeClient stringeeClient, boolean isReconnecting) {
                 boolean isTokenRegistered = sharedPreferences.getBoolean(IS_TOKEN_REGISTERED, false);
                 if (!isTokenRegistered) {
-                    FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
                         @Override
-                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        public void onComplete(@NonNull Task<String> task) {
                             if (!task.isSuccessful()) {
                                 Log.d("Stringee", "getInstanceId failed", task.getException());
                                 return;
                             }
                             //register push notification
-                            String token = task.getResult().getToken();
+                            String token = task.getResult();
                             client.registerPushToken(token, new StatusListener() {
                                 @Override
                                 public void onSuccess() {

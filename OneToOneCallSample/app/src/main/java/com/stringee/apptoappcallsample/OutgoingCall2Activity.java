@@ -1,11 +1,17 @@
 package com.stringee.apptoappcallsample;
 
 import android.Manifest;
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -19,6 +25,7 @@ import com.stringee.apptoappcallsample.common.StringeeAudioManager;
 import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.call.StringeeCall2;
 import com.stringee.listener.StatusListener;
+import com.stringee.video.TextureViewRenderer;
 
 import org.json.JSONObject;
 
@@ -44,15 +51,33 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
     private boolean isMute = false;
     private boolean isSpeaker = false;
     private boolean isVideo = false;
+    private int cameraId = 1;
 
     private StringeeCall2.MediaState mMediaState;
     private StringeeCall2.SignalingState mSignalingState;
+
+    private KeyguardLock lock;
 
     public static final int REQUEST_PERMISSION_CALL = 1;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //add Flag for show on lockScreen and disable keyguard
+        getWindow().addFlags(LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | LayoutParams.FLAG_DISMISS_KEYGUARD
+                | LayoutParams.FLAG_KEEP_SCREEN_ON
+                | LayoutParams.FLAG_TURN_SCREEN_ON);
+
         setContentView(R.layout.activity_outgoing_call);
+
+        lock = ((KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE)).newKeyguardLock(Context.KEYGUARD_SERVICE);
+        lock.disableKeyguard();
+
+        if (VERSION.SDK_INT >= VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        }
 
         Common.isInCall = true;
 
@@ -134,6 +159,7 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        tvState.setText("Ended");
         endCall();
     }
 
@@ -236,8 +262,9 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                     public void run() {
                         if (stringeeCall2.isVideoCall()) {
                             mLocalViewContainer.removeAllViews();
-                            mLocalViewContainer.addView(stringeeCall2.getLocalView());
-                            stringeeCall2.renderLocalView(true);
+                            TextureViewRenderer localView = stringeeCall2.getLocalView2();
+                            mLocalViewContainer.addView(localView);
+                            stringeeCall2.renderLocalView2();
                         }
                     }
                 });
@@ -250,8 +277,9 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                     public void run() {
                         if (stringeeCall2.isVideoCall()) {
                             mRemoteViewContainer.removeAllViews();
-                            mRemoteViewContainer.addView(stringeeCall2.getRemoteView());
-                            stringeeCall2.renderRemoteView(false);
+                            TextureViewRenderer remoteView = stringeeCall2.getRemoteView2();
+                            mRemoteViewContainer.addView(remoteView);
+                            stringeeCall2.renderRemoteView2();
                         }
                     }
                 });
@@ -283,6 +311,7 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                 }
                 break;
             case R.id.btn_end:
+                tvState.setText("Ended");
                 endCall();
                 break;
             case R.id.btn_video:

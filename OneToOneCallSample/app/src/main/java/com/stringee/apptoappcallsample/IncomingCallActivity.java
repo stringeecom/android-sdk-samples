@@ -1,13 +1,21 @@
 package com.stringee.apptoappcallsample;
 
 import android.Manifest;
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -20,6 +28,8 @@ import com.stringee.apptoappcallsample.common.Common;
 import com.stringee.apptoappcallsample.common.StringeeAudioManager;
 import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.call.StringeeCall;
+import com.stringee.call.StringeeCall.MediaState;
+import com.stringee.call.StringeeCall.SignalingState;
 import com.stringee.listener.StatusListener;
 
 import org.json.JSONObject;
@@ -49,12 +59,29 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     private StringeeCall.MediaState mMediaState;
     private StringeeCall.SignalingState mSignalingState;
 
+    private KeyguardLock lock;
+
     public static final int REQUEST_PERMISSION_CALL = 1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //add Flag for show on lockScreen, disable keyguard, keep screen on
+        getWindow().addFlags(LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | LayoutParams.FLAG_DISMISS_KEYGUARD
+                | LayoutParams.FLAG_KEEP_SCREEN_ON
+                | LayoutParams.FLAG_TURN_SCREEN_ON);
+
         setContentView(R.layout.activity_incoming_call);
+
+        lock = ((KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE)).newKeyguardLock(Context.KEYGUARD_SERVICE);
+        lock.disableKeyguard();
+
+        if (VERSION.SDK_INT >= VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        }
 
         Common.isInCall = true;
 
@@ -104,7 +131,10 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                             + "selected: " + selectedAudioDevice);
                 }
             });
+            Common.audioManager.setMode(AudioManager.MODE_RINGTONE);
         }
+
+        Common.audioManager.setSpeakerphoneOn(true);
 
         //play device ringtone
         if (Common.ringtone == null) {
@@ -112,6 +142,8 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             Common.ringtone = RingtoneManager.getRingtone(IncomingCallActivity.this, ringtoneUri);
             Common.ringtone.play();
         }
+
+        Common.audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> lstPermissions = new ArrayList<>();
@@ -159,6 +191,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         }
         if (requestCode == REQUEST_PERMISSION_CALL) {
             if (!isGranted) {
+                tvState.setText("Ended");
                 endCall(false, true);
             } else {
                 initAnswer();
@@ -169,6 +202,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        tvState.setText("Ended");
         endCall(true, false);
     }
 
@@ -185,7 +219,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                             case ANSWERED:
                                 tvState.setText("Starting");
                                 if (mMediaState == StringeeCall.MediaState.CONNECTED) {
-                                    tvState.setText("Started");
+                                    startCall();
                                 }
                                 break;
                             case ENDED:
@@ -214,7 +248,8 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         if (signalingState == StringeeCall.SignalingState.ANSWERED || signalingState == StringeeCall.SignalingState.BUSY) {
                             Utils.reportMessage(IncomingCallActivity.this, "This call is handled on another device.");
-                            endCall(false, false);
+                            tvState.setText("Ended");
+                            endCall(true, false);
                         }
                     }
                 });
@@ -229,8 +264,10 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                         mMediaState = mediaState;
                         if (mediaState == StringeeCall.MediaState.CONNECTED) {
                             if (mSignalingState == StringeeCall.SignalingState.ANSWERED) {
-                                tvState.setText("Started");
+                                startCall();
                             }
+                        } else {
+                            tvState.setText("Reconnecting...");
                         }
                     }
                 });
@@ -243,7 +280,8 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         if (stringeeCall.isVideoCall()) {
                             mLocalViewContainer.removeAllViews();
-                            mLocalViewContainer.addView(stringeeCall.getLocalView());
+                            SurfaceView localView = stringeeCall.getLocalView();
+                            mLocalViewContainer.addView(localView);
                             stringeeCall.renderLocalView(true);
                         }
                     }
@@ -257,7 +295,8 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     public void run() {
                         if (stringeeCall.isVideoCall()) {
                             mRemoteViewContainer.removeAllViews();
-                            mRemoteViewContainer.addView(stringeeCall.getRemoteView());
+                            SurfaceView remoteView = stringeeCall.getRemoteView();
+                            mRemoteViewContainer.addView(remoteView);
                             stringeeCall.renderRemoteView(false);
                         }
                     }
@@ -290,8 +329,10 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             case R.id.btn_speaker:
                 isSpeaker = !isSpeaker;
                 btnSpeaker.setBackgroundResource(isSpeaker ? R.drawable.btn_speaker_on : R.drawable.btn_speaker_off);
-                if (Common.audioManager != null) {
-                    Common.audioManager.setSpeakerphoneOn(isSpeaker);
+                if (mSignalingState == SignalingState.ANSWERED || mMediaState == MediaState.CONNECTED) {
+                    if (Common.audioManager != null) {
+                        Common.audioManager.setSpeakerphoneOn(isSpeaker);
+                    }
                 }
                 break;
             case R.id.btn_answer:
@@ -307,6 +348,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 }
                 break;
             case R.id.btn_end:
+                tvState.setText("Ended");
                 endCall(true, false);
                 break;
             case R.id.btn_video:
@@ -329,15 +371,23 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    private void endCall(boolean isHangup, boolean isReject) {
+    private void startCall(){
+        tvState.setText("Started");
         if (Common.audioManager != null) {
-            Common.audioManager.stop();
-            Common.audioManager = null;
+            Common.audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            Common.audioManager.setSpeakerphoneOn(isSpeaker);
         }
+    }
 
+    private void endCall(boolean isHangup, boolean isReject) {
         if (Common.ringtone != null && Common.ringtone.isPlaying()) {
             Common.ringtone.stop();
             Common.ringtone = null;
+        }
+
+        if (Common.audioManager != null) {
+            Common.audioManager.stop();
+            Common.audioManager = null;
         }
 
         if (isHangup) {

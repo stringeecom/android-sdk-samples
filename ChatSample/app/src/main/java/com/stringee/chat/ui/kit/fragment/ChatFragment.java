@@ -985,7 +985,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             long lDateModified = dateModified != null ? Long.parseLong(dateModified) : 0;
 
             String dur = cursor.getString(column_index_duration);
-            long ldur = dateModified != null ? Long.parseLong(dur) : 0;
+            long ldur = (dateModified != null && dur != null) ? Long.parseLong(dur) : 0;
             @SuppressLint("DefaultLocale") String videoDuration = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(ldur),
                     TimeUnit.MILLISECONDS.toMinutes(ldur) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(ldur)),
                     TimeUnit.MILLISECONDS.toSeconds(ldur) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(ldur)));
