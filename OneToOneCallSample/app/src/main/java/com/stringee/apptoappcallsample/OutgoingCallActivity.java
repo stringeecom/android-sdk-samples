@@ -1,11 +1,17 @@
 package com.stringee.apptoappcallsample;
 
 import android.Manifest;
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -48,11 +54,28 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
     private StringeeCall.MediaState mMediaState;
     private StringeeCall.SignalingState mSignalingState;
 
+    private KeyguardLock lock;
+
     public static final int REQUEST_PERMISSION_CALL = 1;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //add Flag for show on lockScreen and disable keyguard
+        getWindow().addFlags(LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | LayoutParams.FLAG_DISMISS_KEYGUARD
+                | LayoutParams.FLAG_KEEP_SCREEN_ON
+                | LayoutParams.FLAG_TURN_SCREEN_ON);
+
         setContentView(R.layout.activity_outgoing_call);
+
+        lock = ((KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE)).newKeyguardLock(Context.KEYGUARD_SERVICE);
+        lock.disableKeyguard();
+
+        if (VERSION.SDK_INT >= VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        }
 
         Common.isInCall = true;
 
@@ -134,6 +157,7 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        tvState.setText("Ended");
         endCall();
     }
 
@@ -283,6 +307,7 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                 }
                 break;
             case R.id.btn_end:
+                tvState.setText("Ended");
                 endCall();
                 break;
             case R.id.btn_video:
