@@ -3,10 +3,7 @@
 buildscript {
     repositories {
         google()
-        jcenter()
-        maven {
-            url "https://dl.bintray.com/stringee/Stringee-Android-SDK"
-        }
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.1'
@@ -17,11 +14,7 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
-        maven { url 'https://maven.google.com' }
-        maven {
-            url "https://dl.bintray.com/stringee/Stringee-Android-SDK"
-        }
+        mavenCentral()
     }
 }
 

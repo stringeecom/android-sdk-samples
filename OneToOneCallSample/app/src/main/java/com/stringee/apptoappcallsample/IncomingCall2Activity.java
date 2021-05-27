@@ -5,9 +5,6 @@ import android.app.KeyguardManager;
 import android.app.KeyguardManager.KeyguardLock;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.media.AudioManager;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -20,16 +17,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import com.stringee.apptoappcallsample.common.Common;
-import com.stringee.apptoappcallsample.common.StringeeAudioManager;
-import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.call.StringeeCall2;
 import com.stringee.call.StringeeCall2.MediaState;
 import com.stringee.call.StringeeCall2.SignalingState;
+import com.stringee.common.StringeeAudioManager;
 import com.stringee.listener.StatusListener;
 
 import org.json.JSONObject;
@@ -37,6 +28,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class IncomingCall2Activity extends AppCompatActivity implements View.OnClickListener {
     private FrameLayout mLocalViewContainer;
@@ -52,6 +47,7 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
     private View vControl;
 
     private StringeeCall2 mStringeeCall2;
+    private StringeeAudioManager audioManager;
     private boolean isMute = false;
     private boolean isSpeaker = false;
     private boolean isVideo = false;
@@ -121,28 +117,6 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
         btnVideo.setVisibility(isVideo ? View.VISIBLE : View.GONE);
         btnSwitch.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
-        //create audio manager to control audio device
-        if (Common.audioManager == null) {
-            Common.audioManager = StringeeAudioManager.create(IncomingCall2Activity.this);
-            Common.audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
-                @Override
-                public void onAudioDeviceChanged(StringeeAudioManager.AudioDevice selectedAudioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
-                    Log.d("StringeeAudioManager", "onAudioManagerDevicesChanged: " + availableAudioDevices + ", "
-                            + "selected: " + selectedAudioDevice);
-                }
-            });
-            Common.audioManager.setMode(AudioManager.MODE_RINGTONE);
-        }
-
-        Common.audioManager.setSpeakerphoneOn(true);
-
-        //play device ringtone
-        if (Common.ringtone == null) {
-            Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-            Common.ringtone = RingtoneManager.getRingtone(IncomingCall2Activity.this, ringtoneUri);
-            Common.ringtone.play();
-        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> lstPermissions = new ArrayList<>();
 
@@ -170,7 +144,7 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
             }
         }
 
-        initAnswer();
+        startRinging();
     }
 
     @Override
@@ -192,7 +166,7 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
                 tvState.setText("Ended");
                 endCall(false, true);
             } else {
-                initAnswer();
+                startRinging();
             }
         }
     }
@@ -204,7 +178,18 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
         endCall(true, false);
     }
 
-    private void initAnswer() {
+    private void startRinging() {
+        //create audio manager to control audio device
+        if (audioManager == null) {
+            audioManager = StringeeAudioManager.create(IncomingCall2Activity.this);
+            audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
+                @Override
+                public void onAudioDeviceChanged(StringeeAudioManager.AudioDevice selectedAudioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
+                }
+            });
+        }
+        audioManager.setSpeakerphoneOn(isVideo);
+
         mStringeeCall2.setCallListener(new StringeeCall2.StringeeCallListener() {
             @Override
             public void onSignalingStateChange(StringeeCall2 stringeeCall2, final StringeeCall2.SignalingState signalingState, String s, int i, String s1) {
@@ -262,7 +247,7 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
                             if (mSignalingState == StringeeCall2.SignalingState.ANSWERED) {
                                 startCall();
                             }
-                        }else{
+                        } else {
                             tvState.setText("Reconnecting...");
                         }
                     }
@@ -327,18 +312,13 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
                 isSpeaker = !isSpeaker;
                 btnSpeaker.setBackgroundResource(isSpeaker ? R.drawable.btn_speaker_on : R.drawable.btn_speaker_off);
                 if (mSignalingState == SignalingState.ANSWERED || mMediaState == MediaState.CONNECTED) {
-                    if (Common.audioManager != null) {
-                        Common.audioManager.setSpeakerphoneOn(isSpeaker);
+                    if (audioManager != null) {
+                        audioManager.setSpeakerphoneOn(isSpeaker);
                     }
                 }
                 break;
             case R.id.btn_answer:
                 if (mStringeeCall2 != null) {
-                    Common.audioManager.setSpeakerphoneOn(isVideo);
-                    if (Common.ringtone != null && Common.ringtone.isPlaying()) {
-                        Common.ringtone.stop();
-                        Common.ringtone = null;
-                    }
                     vControl.setVisibility(View.VISIBLE);
                     btnAnswer.setVisibility(View.GONE);
                     mStringeeCall2.answer();
@@ -368,23 +348,14 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
         }
     }
 
-    private void startCall(){
+    private void startCall() {
         tvState.setText("Started");
-        if (Common.audioManager != null) {
-            Common.audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            Common.audioManager.setSpeakerphoneOn(isSpeaker);
-        }
     }
 
     private void endCall(boolean isHangup, boolean isReject) {
-        if (Common.ringtone != null && Common.ringtone.isPlaying()) {
-            Common.ringtone.stop();
-            Common.ringtone = null;
-        }
-
-        if (Common.audioManager != null) {
-            Common.audioManager.stop();
-            Common.audioManager = null;
+        if (audioManager != null) {
+            audioManager.stop();
+            audioManager = null;
         }
 
         if (isHangup) {
