@@ -16,14 +16,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import com.stringee.apptoappcallsample.common.Common;
-import com.stringee.apptoappcallsample.common.StringeeAudioManager;
-import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.call.StringeeCall;
+import com.stringee.common.StringeeAudioManager;
 import com.stringee.listener.StatusListener;
 
 import org.json.JSONObject;
@@ -31,6 +25,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class OutgoingCallActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -44,6 +42,7 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
     private ImageButton btnSwitch;
 
     private StringeeCall mStringeeCall;
+    private StringeeAudioManager audioManager;
     private String from;
     private String to;
     private boolean isVideoCall;
@@ -141,16 +140,13 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
         }
 
         //create audio manager to control audio device
-        Common.audioManager = StringeeAudioManager.create(OutgoingCallActivity.this);
-        Common.audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
+        audioManager = StringeeAudioManager.create(OutgoingCallActivity.this);
+        audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
             @Override
             public void onAudioDeviceChanged(StringeeAudioManager.AudioDevice selectedAudioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
-                Log.d("StringeeAudioManager", "onAudioManagerDevicesChanged: " + availableAudioDevices + ", "
-                        + "selected: " + selectedAudioDevice);
             }
         });
-        Common.audioManager.setSpeakerphoneOn(isVideoCall);
-
+        audioManager.setSpeakerphoneOn(isVideoCall);
         makeCall();
     }
 
@@ -208,7 +204,6 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                                 tvState.setText("Starting");
                                 if (mMediaState == StringeeCall.MediaState.CONNECTED) {
                                     tvState.setText("Started");
-                                    Common.audioManager.setSpeakerphoneOn(isVideoCall);
                                 }
                                 break;
                             case BUSY:
@@ -302,8 +297,8 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
             case R.id.btn_speaker:
                 isSpeaker = !isSpeaker;
                 btnSpeaker.setBackgroundResource(isSpeaker ? R.drawable.btn_speaker_on : R.drawable.btn_speaker_off);
-                if (Common.audioManager != null) {
-                    Common.audioManager.setSpeakerphoneOn(isSpeaker);
+                if (audioManager != null) {
+                    audioManager.setSpeakerphoneOn(isSpeaker);
                 }
                 break;
             case R.id.btn_end:
@@ -331,12 +326,11 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void endCall() {
-        if (Common.audioManager != null) {
-            Common.audioManager.stop();
-            Common.audioManager = null;
-        }
-
         mStringeeCall.hangup();
+        if (audioManager != null) {
+            audioManager.stop();
+            audioManager = null;
+        }
         Utils.postDelay(new Runnable() {
             @Override
             public void run() {

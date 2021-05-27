@@ -16,14 +16,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import com.stringee.apptoappcallsample.common.Common;
-import com.stringee.apptoappcallsample.common.StringeeAudioManager;
-import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.call.StringeeCall2;
+import com.stringee.common.StringeeAudioManager;
 import com.stringee.listener.StatusListener;
 import com.stringee.video.TextureViewRenderer;
 
@@ -32,6 +26,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class OutgoingCall2Activity extends AppCompatActivity implements View.OnClickListener {
 
@@ -45,13 +43,13 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
     private ImageButton btnSwitch;
 
     private StringeeCall2 mStringeeCall2;
+    private StringeeAudioManager audioManager;
     private String from;
     private String to;
     private boolean isVideoCall;
     private boolean isMute = false;
     private boolean isSpeaker = false;
     private boolean isVideo = false;
-    private int cameraId = 1;
 
     private StringeeCall2.MediaState mMediaState;
     private StringeeCall2.SignalingState mSignalingState;
@@ -143,15 +141,13 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
         }
 
         //create audio manager to control audio device
-        Common.audioManager = StringeeAudioManager.create(OutgoingCall2Activity.this);
-        Common.audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
+        audioManager = StringeeAudioManager.create(OutgoingCall2Activity.this);
+        audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
             @Override
             public void onAudioDeviceChanged(StringeeAudioManager.AudioDevice selectedAudioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
-                Log.d("StringeeAudioManager", "onAudioManagerDevicesChanged: " + availableAudioDevices + ", "
-                        + "selected: " + selectedAudioDevice);
             }
         });
-        Common.audioManager.setSpeakerphoneOn(isVideoCall);
+        audioManager.setSpeakerphoneOn(isVideoCall);
 
         makeCall();
     }
@@ -187,7 +183,7 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
     }
 
     private void makeCall() {
-        //make new call
+        //make a call
         mStringeeCall2 = new StringeeCall2(MainActivity.client, from, to);
         mStringeeCall2.setVideoCall(isVideoCall);
 
@@ -210,7 +206,6 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                                 tvState.setText("Starting");
                                 if (mMediaState == StringeeCall2.MediaState.CONNECTED) {
                                     tvState.setText("Started");
-                                    Common.audioManager.setSpeakerphoneOn(isVideoCall);
                                 }
                                 break;
                             case BUSY:
@@ -306,8 +301,8 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
             case R.id.btn_speaker:
                 isSpeaker = !isSpeaker;
                 btnSpeaker.setBackgroundResource(isSpeaker ? R.drawable.btn_speaker_on : R.drawable.btn_speaker_off);
-                if (Common.audioManager != null) {
-                    Common.audioManager.setSpeakerphoneOn(isSpeaker);
+                if (audioManager != null) {
+                    audioManager.setSpeakerphoneOn(isSpeaker);
                 }
                 break;
             case R.id.btn_end:
@@ -335,12 +330,11 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
     }
 
     private void endCall() {
-        if (Common.audioManager != null) {
-            Common.audioManager.stop();
-            Common.audioManager = null;
-        }
-
         mStringeeCall2.hangup();
+        if (audioManager != null) {
+            audioManager.stop();
+            audioManager = null;
+        }
         Utils.postDelay(new Runnable() {
             @Override
             public void run() {
