@@ -16,6 +16,11 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.stringee.apptoappcallsample.R.id;
 import com.stringee.call.StringeeCall;
 import com.stringee.common.StringeeAudioManager;
 import com.stringee.listener.StatusListener;
@@ -25,10 +30,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 public class OutgoingCallActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -83,21 +84,20 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
         isVideoCall = getIntent().getBooleanExtra("is_video_call", false);
 
 
-        mLocalViewContainer = (FrameLayout) findViewById(R.id.v_local);
-        mRemoteViewContainer = (FrameLayout) findViewById(R.id.v_remote);
+        mLocalViewContainer = findViewById(id.v_local);
+        mRemoteViewContainer = findViewById(id.v_remote);
 
-        tvTo = (TextView) findViewById(R.id.tv_to);
+        tvTo = findViewById(id.tv_to);
         tvTo.setText(to);
+        tvState = findViewById(id.tv_state);
 
-        tvState = (TextView) findViewById(R.id.tv_state);
-
-        btnMute = (ImageButton) findViewById(R.id.btn_mute);
+        btnMute = findViewById(id.btn_mute);
         btnMute.setOnClickListener(this);
-        btnSpeaker = (ImageButton) findViewById(R.id.btn_speaker);
+        btnSpeaker = findViewById(id.btn_speaker);
         btnSpeaker.setOnClickListener(this);
-        btnVideo = (ImageButton) findViewById(R.id.btn_video);
+        btnVideo = findViewById(id.btn_video);
         btnVideo.setOnClickListener(this);
-        btnSwitch = (ImageButton) findViewById(R.id.btn_switch);
+        btnSwitch = findViewById(id.btn_switch);
         btnSwitch.setOnClickListener(this);
 
         isSpeaker = isVideoCall;
@@ -109,7 +109,7 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
         btnVideo.setVisibility(isVideo ? View.VISIBLE : View.GONE);
         btnSwitch.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
-        ImageButton btnEnd = (ImageButton) findViewById(R.id.btn_end);
+        ImageButton btnEnd = findViewById(id.btn_end);
         btnEnd.setOnClickListener(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -158,12 +158,12 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         boolean isGranted = false;
         if (grantResults.length > 0) {
             for (int i = 0; i < grantResults.length; i++) {
-                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                if (grantResults[i] != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                     isGranted = false;
                     break;
                 } else {
