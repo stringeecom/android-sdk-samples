@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.stringee.StringeeClient;
+import com.stringee.apptoappcallsample.R.id;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
 import com.stringee.exception.StringeeError;
@@ -36,17 +37,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tvUserId = (TextView) findViewById(R.id.tv_userid);
+        tvUserId = findViewById(id.tv_userid);
 
-        Button btnVoiceCall = (Button) findViewById(R.id.btn_voice_call);
+        Button btnVoiceCall = findViewById(id.btn_voice_call);
         btnVoiceCall.setOnClickListener(this);
-        Button btnVideoCall = (Button) findViewById(R.id.btn_video_call);
+        Button btnVideoCall = findViewById(id.btn_video_call);
         btnVideoCall.setOnClickListener(this);
-        Button btnVoiceCall2 = (Button) findViewById(R.id.btn_voice_call2);
+        Button btnVoiceCall2 = findViewById(id.btn_voice_call2);
         btnVoiceCall2.setOnClickListener(this);
-        Button btnVideoCall2 = (Button) findViewById(R.id.btn_video_call2);
+        Button btnVideoCall2 = findViewById(id.btn_video_call2);
         btnVideoCall2.setOnClickListener(this);
-        etTo = (EditText) findViewById(R.id.et_to);
+        etTo = findViewById(id.et_to);
 
         progressDialog = ProgressDialog.show(this, "", "Connecting...");
         progressDialog.setCancelable(true);
