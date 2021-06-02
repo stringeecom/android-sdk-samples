@@ -45,7 +45,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     private ImageButton btnSpeaker;
     private ImageButton btnVideo;
     private ImageButton btnSwitch;
-    private View vControl = findViewById(id.v_control);
+    private View vControl;
 
     private StringeeCall mStringeeCall;
     private StringeeAudioManager audioManager;
@@ -87,6 +87,8 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
 
         mLocalViewContainer = findViewById(id.v_local);
         mRemoteViewContainer = findViewById(id.v_remote);
+
+        vControl = findViewById(id.v_control);
 
         tvFrom = findViewById(id.tv_from);
         tvFrom.setText(mStringeeCall.getFrom());

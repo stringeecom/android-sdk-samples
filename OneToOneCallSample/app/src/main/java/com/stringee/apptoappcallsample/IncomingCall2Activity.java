@@ -17,6 +17,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.stringee.apptoappcallsample.R.id;
 import com.stringee.call.StringeeCall2;
 import com.stringee.call.StringeeCall2.MediaState;
@@ -29,10 +33,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 public class IncomingCall2Activity extends AppCompatActivity implements View.OnClickListener {
     private FrameLayout mLocalViewContainer;
