@@ -10,26 +10,27 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.stringee.apptoappcallsample.R.id;
 import com.stringee.call.StringeeCall2;
 import com.stringee.common.StringeeAudioManager;
 import com.stringee.listener.StatusListener;
-import com.stringee.video.TextureViewRenderer;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 public class OutgoingCall2Activity extends AppCompatActivity implements View.OnClickListener {
 
@@ -84,21 +85,20 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
         isVideoCall = getIntent().getBooleanExtra("is_video_call", false);
 
 
-        mLocalViewContainer = (FrameLayout) findViewById(R.id.v_local);
-        mRemoteViewContainer = (FrameLayout) findViewById(R.id.v_remote);
+        mLocalViewContainer = findViewById(id.v_local);
+        mRemoteViewContainer = findViewById(id.v_remote);
 
-        tvTo = (TextView) findViewById(R.id.tv_to);
+        tvTo = findViewById(id.tv_to);
         tvTo.setText(to);
+        tvState = findViewById(id.tv_state);
 
-        tvState = (TextView) findViewById(R.id.tv_state);
-
-        btnMute = (ImageButton) findViewById(R.id.btn_mute);
+        btnMute = findViewById(id.btn_mute);
         btnMute.setOnClickListener(this);
-        btnSpeaker = (ImageButton) findViewById(R.id.btn_speaker);
+        btnSpeaker = findViewById(id.btn_speaker);
         btnSpeaker.setOnClickListener(this);
-        btnVideo = (ImageButton) findViewById(R.id.btn_video);
+        btnVideo = findViewById(id.btn_video);
         btnVideo.setOnClickListener(this);
-        btnSwitch = (ImageButton) findViewById(R.id.btn_switch);
+        btnSwitch = findViewById(id.btn_switch);
         btnSwitch.setOnClickListener(this);
 
         isSpeaker = isVideoCall;
@@ -110,7 +110,7 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
         btnVideo.setVisibility(isVideo ? View.VISIBLE : View.GONE);
         btnSwitch.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
-        ImageButton btnEnd = (ImageButton) findViewById(R.id.btn_end);
+        ImageButton btnEnd = findViewById(id.btn_end);
         btnEnd.setOnClickListener(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -160,8 +160,8 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         boolean isGranted = false;
         if (grantResults.length > 0) {
             for (int i = 0; i < grantResults.length; i++) {
@@ -257,9 +257,9 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                     public void run() {
                         if (stringeeCall2.isVideoCall()) {
                             mLocalViewContainer.removeAllViews();
-                            TextureViewRenderer localView = stringeeCall2.getLocalView2();
+                            SurfaceView localView = stringeeCall2.getLocalView();
                             mLocalViewContainer.addView(localView);
-                            stringeeCall2.renderLocalView2();
+                            stringeeCall2.renderLocalView(true);
                         }
                     }
                 });
@@ -272,9 +272,9 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                     public void run() {
                         if (stringeeCall2.isVideoCall()) {
                             mRemoteViewContainer.removeAllViews();
-                            TextureViewRenderer remoteView = stringeeCall2.getRemoteView2();
+                            SurfaceView remoteView = stringeeCall2.getRemoteView();
                             mRemoteViewContainer.addView(remoteView);
-                            stringeeCall2.renderRemoteView2();
+                            stringeeCall2.renderRemoteView(false);
                         }
                     }
                 });

@@ -17,6 +17,11 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.stringee.apptoappcallsample.R.id;
 import com.stringee.call.StringeeCall2;
 import com.stringee.call.StringeeCall2.MediaState;
 import com.stringee.call.StringeeCall2.SignalingState;
@@ -28,10 +33,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 public class IncomingCall2Activity extends AppCompatActivity implements View.OnClickListener {
     private FrameLayout mLocalViewContainer;
@@ -84,27 +85,24 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
         String callId = getIntent().getStringExtra("call_id");
         mStringeeCall2 = Common.calls2Map.get(callId);
 
-        mLocalViewContainer = (FrameLayout) findViewById(R.id.v_local);
-        mRemoteViewContainer = (FrameLayout) findViewById(R.id.v_remote);
+        mLocalViewContainer = findViewById(id.v_local);
+        mRemoteViewContainer = findViewById(id.v_remote);
 
-        tvFrom = (TextView) findViewById(R.id.tv_from);
+        tvFrom = findViewById(id.tv_from);
         tvFrom.setText(mStringeeCall2.getFrom());
+        tvState = findViewById(id.tv_state);
 
-        tvState = (TextView) findViewById(R.id.tv_state);
-
-        btnAnswer = (ImageButton) findViewById(R.id.btn_answer);
+        btnAnswer = findViewById(id.btn_answer);
         btnAnswer.setOnClickListener(this);
-
-        btnEnd = (ImageButton) findViewById(R.id.btn_end);
+        btnEnd = findViewById(id.btn_end);
         btnEnd.setOnClickListener(this);
-
-        btnMute = (ImageButton) findViewById(R.id.btn_mute);
+        btnMute = findViewById(id.btn_mute);
         btnMute.setOnClickListener(this);
-        btnSpeaker = (ImageButton) findViewById(R.id.btn_speaker);
+        btnSpeaker = findViewById(id.btn_speaker);
         btnSpeaker.setOnClickListener(this);
-        btnVideo = (ImageButton) findViewById(R.id.btn_video);
+        btnVideo = findViewById(id.btn_video);
         btnVideo.setOnClickListener(this);
-        btnSwitch = (ImageButton) findViewById(R.id.btn_switch);
+        btnSwitch = findViewById(id.btn_switch);
         btnSwitch.setOnClickListener(this);
 
         isSpeaker = mStringeeCall2.isVideoCall();
@@ -148,12 +146,12 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         boolean isGranted = false;
         if (grantResults.length > 0) {
             for (int i = 0; i < grantResults.length; i++) {
-                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                if (grantResults[i] != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                     isGranted = false;
                     break;
                 } else {
