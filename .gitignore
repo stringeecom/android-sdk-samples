@@ -1,2 +1,5 @@
 OneToOneCallSample/app/release/
 OneToOneCallSample/.idea/
+ConferenceCallSample/.gradle/
+ConferenceCallSample/.idea/
+ConferenceCallSample/local.properties
