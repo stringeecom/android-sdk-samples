@@ -10,6 +10,7 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
@@ -24,7 +25,6 @@ import com.stringee.apptoappcallsample.R.id;
 import com.stringee.call.StringeeCall2;
 import com.stringee.common.StringeeAudioManager;
 import com.stringee.listener.StatusListener;
-import com.stringee.video.TextureViewRenderer;
 
 import org.json.JSONObject;
 
@@ -257,9 +257,9 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                     public void run() {
                         if (stringeeCall2.isVideoCall()) {
                             mLocalViewContainer.removeAllViews();
-                            TextureViewRenderer localView = stringeeCall2.getLocalView2();
+                            SurfaceView localView = stringeeCall2.getLocalView();
                             mLocalViewContainer.addView(localView);
-                            stringeeCall2.renderLocalView2();
+                            stringeeCall2.renderLocalView(true);
                         }
                     }
                 });
@@ -272,9 +272,9 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                     public void run() {
                         if (stringeeCall2.isVideoCall()) {
                             mRemoteViewContainer.removeAllViews();
-                            TextureViewRenderer remoteView = stringeeCall2.getRemoteView2();
+                            SurfaceView remoteView = stringeeCall2.getRemoteView();
                             mRemoteViewContainer.addView(remoteView);
-                            stringeeCall2.renderRemoteView2();
+                            stringeeCall2.renderRemoteView(false);
                         }
                     }
                 });
