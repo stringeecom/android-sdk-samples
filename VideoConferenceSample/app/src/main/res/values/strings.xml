@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Video Sample</string>
+    <string name="enter_user_id">Enter user id</string>
+    <string name="connect">Connect</string>
+    <string name="join_room">Join room</string>
+    <string name="connecting">Connecting</string>
+    <string name="connected_as">Connected as: %1$s</string>
+</resources>
