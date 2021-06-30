@@ -22,7 +22,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LifecycleObserver;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, LifecycleObserver {
-
     public static StringeeClient client;
     private String to;
     //put your token here
@@ -66,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void run() {
                         progressDialog.dismiss();
                         tvUserId.setText("Connected as: " + stringeeClient.getUserId());
-                        Utils.reportMessage(MainActivity.this, "StringeeClient is connected.");
+                        Utils.reportMessage(MainActivity.this, "c");
                     }
                 });
             }
