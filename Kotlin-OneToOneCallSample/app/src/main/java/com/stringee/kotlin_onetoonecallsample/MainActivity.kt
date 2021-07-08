@@ -124,7 +124,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                         OutgoingCallActivity::class.java
                     ) else intent = Intent(
                     this@MainActivity,
-                    OutgoingCallActivity::class.java
+                    OutgoingCall2Activity::class.java
                 )
                 intent.putExtra("to", to)
                 intent.putExtra("is_video_call", isVideoCall)
