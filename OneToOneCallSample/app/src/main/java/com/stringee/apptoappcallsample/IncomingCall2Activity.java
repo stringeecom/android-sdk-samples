@@ -27,6 +27,7 @@ import com.stringee.call.StringeeCall2.MediaState;
 import com.stringee.call.StringeeCall2.SignalingState;
 import com.stringee.common.StringeeAudioManager;
 import com.stringee.listener.StatusListener;
+import com.stringee.video.StringeeVideoTrack;
 
 import org.json.JSONObject;
 
@@ -280,6 +281,16 @@ public class IncomingCall2Activity extends AppCompatActivity implements View.OnC
                         }
                     }
                 });
+            }
+
+            @Override
+            public void onVideoTrackAdded(StringeeVideoTrack stringeeVideoTrack) {
+
+            }
+
+            @Override
+            public void onVideoTrackRemoved(StringeeVideoTrack stringeeVideoTrack) {
+
             }
 
             @Override

@@ -9,17 +9,21 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LifecycleObserver;
+
 import com.stringee.StringeeClient;
 import com.stringee.apptoappcallsample.R.id;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
+import com.stringee.common.SocketAddress;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeConnectionListener;
 
 import org.json.JSONObject;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.LifecycleObserver;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, LifecycleObserver {
     public static StringeeClient client;
@@ -57,6 +61,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void initAndConnectStringee() {
         client = new StringeeClient(this);
+        // Set host
+//        List<SocketAddress> socketAddressList = new ArrayList<>();
+//        socketAddressList.add(new SocketAddress("YOUR_IP", YOUR_PORT));
+//        client.setHost(socketAddressList);
         client.setConnectionListener(new StringeeConnectionListener() {
             @Override
             public void onConnectionConnected(final StringeeClient stringeeClient, boolean isReconnecting) {
@@ -65,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void run() {
                         progressDialog.dismiss();
                         tvUserId.setText("Connected as: " + stringeeClient.getUserId());
-                        Utils.reportMessage(MainActivity.this, "c");
+                        Utils.reportMessage(MainActivity.this, "StringeeClient connected as " + stringeeClient.getUserId());
                     }
                 });
             }
