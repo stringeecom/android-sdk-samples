@@ -17,6 +17,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.stringee.apptoappcallsample.R.id;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall.MediaState;
@@ -29,10 +33,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 public class IncomingCallActivity extends AppCompatActivity implements View.OnClickListener {
     private FrameLayout mLocalViewContainer;
@@ -52,6 +52,9 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     private boolean isMute = false;
     private boolean isSpeaker = false;
     private boolean isVideo = false;
+    // 0: back camera, 1: front camera
+    // When call starts, automatically use the front camera
+    private int cameraId = 1;
 
     private StringeeCall.MediaState mMediaState;
     private StringeeCall.SignalingState mSignalingState;
@@ -338,9 +341,9 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     mStringeeCall.switchCamera(new StatusListener() {
                         @Override
                         public void onSuccess() {
-
+                            cameraId = cameraId == 0 ? 1 : 0;
                         }
-                    });
+                    }, cameraId == 0 ? 1 : 0);
                 }
                 break;
         }
