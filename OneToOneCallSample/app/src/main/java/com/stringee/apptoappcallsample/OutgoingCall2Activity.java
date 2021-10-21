@@ -52,6 +52,9 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
     private boolean isMute = false;
     private boolean isSpeaker = false;
     private boolean isVideo = false;
+    // 0: back camera, 1: front camera
+    // When call starts, automatically use the front camera
+    private int cameraId = 1;
 
     private StringeeCall2.MediaState mMediaState;
     private StringeeCall2.SignalingState mSignalingState;
@@ -332,9 +335,9 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                     mStringeeCall2.switchCamera(new StatusListener() {
                         @Override
                         public void onSuccess() {
-
+                            cameraId = cameraId == 0 ? 1 : 0;
                         }
-                    });
+                    }, cameraId == 0 ? 1 : 0);
                 }
                 break;
         }
