@@ -1,10 +1,17 @@
 package com.stringee.apptoappcallsample;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog.Builder;
+
+import com.stringee.apptoappcallsample.R.string;
 
 public class Utils {
 

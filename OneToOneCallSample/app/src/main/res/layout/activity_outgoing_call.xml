@@ -36,7 +36,6 @@
             android:id="@+id/tv_to"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
             android:textColor="#ffffff"
             android:textSize="30sp" />
 
@@ -44,8 +43,6 @@
             android:id="@+id/tv_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tv_to"
-            android:layout_centerHorizontal="true"
             android:layout_marginTop="5dp"
             android:text="Calling"
             android:textColor="#ffffff"
@@ -60,6 +57,7 @@
         android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/v_control"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 

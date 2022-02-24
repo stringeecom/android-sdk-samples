@@ -36,7 +36,6 @@
             android:id="@+id/tv_from"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
             android:textColor="#ffffff"
             android:textSize="24sp" />
 
@@ -44,8 +43,6 @@
             android:id="@+id/tv_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tv_from"
-            android:layout_centerHorizontal="true"
             android:layout_marginTop="5dp"
             android:text="Incoming call"
             android:textColor="#ffffff"
@@ -89,10 +86,9 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/v_incoming"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp">
 
@@ -104,11 +100,20 @@
                 android:background="@drawable/btn_answer_call_selector" />
 
             <ImageButton
-                android:id="@+id/btn_end"
+                android:id="@+id/btn_reject"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/btn_end_call_selector" />
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/btn_end_call_selector"
+            android:visibility="gone" />
     </LinearLayout>
 
 </RelativeLayout>

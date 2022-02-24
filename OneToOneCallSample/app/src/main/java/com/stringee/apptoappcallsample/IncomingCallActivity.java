@@ -1,67 +1,73 @@
 package com.stringee.apptoappcallsample;
 
-import android.Manifest;
-import android.app.KeyguardManager;
-import android.app.KeyguardManager.KeyguardLock;
-import android.content.Context;
+import android.Manifest.permission;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.stringee.apptoappcallsample.R.drawable;
 import com.stringee.apptoappcallsample.R.id;
+import com.stringee.apptoappcallsample.R.layout;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall.MediaState;
 import com.stringee.call.StringeeCall.SignalingState;
+import com.stringee.call.StringeeCall.StringeeCallListener;
 import com.stringee.common.StringeeAudioManager;
+import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class IncomingCallActivity extends AppCompatActivity implements View.OnClickListener {
-    private FrameLayout mLocalViewContainer;
-    private FrameLayout mRemoteViewContainer;
+    private FrameLayout vLocal;
+    private FrameLayout vRemote;
     private TextView tvFrom;
     private TextView tvState;
     private ImageButton btnAnswer;
     private ImageButton btnEnd;
+    private ImageButton btnReject;
     private ImageButton btnMute;
     private ImageButton btnSpeaker;
     private ImageButton btnVideo;
     private ImageButton btnSwitch;
     private View vControl;
+    private View vIncoming;
 
-    private StringeeCall mStringeeCall;
+    private StringeeCall stringeeCall;
+    private SensorManagerUtils sensorManagerUtils;
     private StringeeAudioManager audioManager;
     private boolean isMute = false;
     private boolean isSpeaker = false;
     private boolean isVideo = false;
-    // 0: back camera, 1: front camera
-    // When call starts, automatically use the front camera
+    // For normal device has more than 3 cameras, 0 is back camera, 1 is front camera.
+    // Some device is different, must check camera id before select.
+    // When call starts, automatically use the front camera.
     private int cameraId = 1;
 
-    private StringeeCall.MediaState mMediaState;
-    private StringeeCall.SignalingState mSignalingState;
+    private MediaState mMediaState;
+    private SignalingState mSignalingState;
 
-    private KeyguardLock lock;
+    private boolean isPermissionGranted = true;
 
-    public static final int REQUEST_PERMISSION_CALL = 1;
+    private static final int REQUEST_PERMISSION_CALL = 1;
+    private static final String TAG = "Stringee";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -73,66 +79,40 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 | LayoutParams.FLAG_KEEP_SCREEN_ON
                 | LayoutParams.FLAG_TURN_SCREEN_ON);
 
-        setContentView(R.layout.activity_incoming_call);
-
-        lock = ((KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE)).newKeyguardLock(Context.KEYGUARD_SERVICE);
-        lock.disableKeyguard();
-
         if (VERSION.SDK_INT >= VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
         }
 
+        setContentView(layout.activity_incoming_call);
+
+        sensorManagerUtils = SensorManagerUtils.getInstance(this);
+        sensorManagerUtils.acquireProximitySensor(getLocalClassName());
+        sensorManagerUtils.disableKeyguard();
+
         Common.isInCall = true;
 
         String callId = getIntent().getStringExtra("call_id");
-        mStringeeCall = Common.callsMap.get(callId);
+        stringeeCall = Common.callsMap.get(callId);
 
-        mLocalViewContainer = findViewById(id.v_local);
-        mRemoteViewContainer = findViewById(id.v_remote);
-
-        vControl = findViewById(id.v_control);
-
-        tvFrom = findViewById(id.tv_from);
-        tvFrom.setText(mStringeeCall.getFrom());
-        tvState = findViewById(id.tv_state);
-
-        btnAnswer = findViewById(id.btn_answer);
-        btnAnswer.setOnClickListener(this);
-        btnEnd = findViewById(id.btn_end);
-        btnEnd.setOnClickListener(this);
-        btnMute = findViewById(id.btn_mute);
-        btnMute.setOnClickListener(this);
-        btnSpeaker = findViewById(id.btn_speaker);
-        btnSpeaker.setOnClickListener(this);
-        btnVideo = findViewById(id.btn_video);
-        btnVideo.setOnClickListener(this);
-        btnSwitch = findViewById(id.btn_switch);
-        btnSwitch.setOnClickListener(this);
-
-        isSpeaker = mStringeeCall.isVideoCall();
-        btnSpeaker.setBackgroundResource(isSpeaker ? R.drawable.btn_speaker_on : R.drawable.btn_speaker_off);
-
-        isVideo = mStringeeCall.isVideoCall();
-        btnVideo.setImageResource(isVideo ? R.drawable.btn_video : R.drawable.btn_video_off);
-
-        btnVideo.setVisibility(isVideo ? View.VISIBLE : View.GONE);
-        btnSwitch.setVisibility(isVideo ? View.VISIBLE : View.GONE);
+        initView();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> lstPermissions = new ArrayList<>();
 
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.RECORD_AUDIO)
-                    != PackageManager.PERMISSION_GRANTED) {
-                lstPermissions.add(Manifest.permission.RECORD_AUDIO);
+            if (ContextCompat.checkSelfPermission(this, permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                lstPermissions.add(permission.RECORD_AUDIO);
             }
 
-            if (mStringeeCall.isVideoCall()) {
-                if (ContextCompat.checkSelfPermission(this,
-                        Manifest.permission.CAMERA)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    lstPermissions.add(Manifest.permission.CAMERA);
+            if (stringeeCall.isVideoCall()) {
+                if (ContextCompat.checkSelfPermission(this, permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    lstPermissions.add(permission.CAMERA);
+                }
+            }
+
+            if (VERSION.SDK_INT >= VERSION_CODES.S) {
+                if (ContextCompat.checkSelfPermission(this, permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                    lstPermissions.add(permission.BLUETOOTH_CONNECT);
                 }
             }
 
@@ -150,12 +130,12 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         boolean isGranted = false;
         if (grantResults.length > 0) {
-            for (int i = 0; i < grantResults.length; i++) {
-                if (grantResults[i] != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            for (int grantResult : grantResults) {
+                if (grantResult != PackageManager.PERMISSION_GRANTED) {
                     isGranted = false;
                     break;
                 } else {
@@ -165,9 +145,10 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         }
         if (requestCode == REQUEST_PERMISSION_CALL) {
             if (!isGranted) {
-                tvState.setText("Ended");
-                endCall(false, true);
+                isPermissionGranted = false;
+                endCall(false);
             } else {
+                isPermissionGranted = true;
                 startRinging();
             }
         }
@@ -175,126 +156,151 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        tvState.setText("Ended");
-        endCall(true, false);
+    }
+
+    private void initView() {
+        vLocal = findViewById(id.v_local);
+        vRemote = findViewById(id.v_remote);
+
+        vControl = findViewById(id.v_control);
+        vIncoming = findViewById(id.v_incoming);
+
+        tvFrom = findViewById(id.tv_from);
+        tvFrom.setText(stringeeCall.getFrom());
+        tvState = findViewById(id.tv_state);
+
+        btnAnswer = findViewById(id.btn_answer);
+        btnAnswer.setOnClickListener(this);
+        btnEnd = findViewById(id.btn_end);
+        btnEnd.setOnClickListener(this);
+        btnReject = findViewById(id.btn_reject);
+        btnReject.setOnClickListener(this);
+        btnMute = findViewById(id.btn_mute);
+        btnMute.setOnClickListener(this);
+        btnSpeaker = findViewById(id.btn_speaker);
+        btnSpeaker.setOnClickListener(this);
+        btnVideo = findViewById(id.btn_video);
+        btnVideo.setOnClickListener(this);
+        btnSwitch = findViewById(id.btn_switch);
+        btnSwitch.setOnClickListener(this);
+
+        isSpeaker = stringeeCall.isVideoCall();
+        btnSpeaker.setBackgroundResource(isSpeaker ? drawable.btn_speaker_on : drawable.btn_speaker_off);
+
+        isVideo = stringeeCall.isVideoCall();
+        btnVideo.setImageResource(isVideo ? drawable.btn_video : drawable.btn_video_off);
+
+        btnVideo.setVisibility(isVideo ? View.VISIBLE : View.GONE);
+        btnSwitch.setVisibility(isVideo ? View.VISIBLE : View.GONE);
     }
 
     private void startRinging() {
         //create audio manager to control audio device
         audioManager = StringeeAudioManager.create(IncomingCallActivity.this);
-        audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
-            @Override
-            public void onAudioDeviceChanged(StringeeAudioManager.AudioDevice selectedAudioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
-            }
-        });
+        audioManager.start((selectedAudioDevice, availableAudioDevices) ->
+                Log.d(TAG, "selectedAudioDevice: " + selectedAudioDevice + " - availableAudioDevices: " + availableAudioDevices));
         audioManager.setSpeakerphoneOn(isVideo);
 
-        mStringeeCall.setCallListener(new StringeeCall.StringeeCallListener() {
+        stringeeCall.setCallListener(new StringeeCallListener() {
             @Override
-            public void onSignalingStateChange(StringeeCall stringeeCall, final StringeeCall.SignalingState signalingState, String s, int i, String s1) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d("Stringee", "signalingState: " + signalingState);
-                        mSignalingState = signalingState;
-                        switch (signalingState) {
-                            case ANSWERED:
-                                tvState.setText("Starting");
-                                if (mMediaState == StringeeCall.MediaState.CONNECTED) {
-                                    startCall();
-                                }
-                                break;
-                            case ENDED:
-                                tvState.setText("Ended");
-                                endCall(true, false);
-                                break;
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onError(StringeeCall stringeeCall, int i, String s) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Utils.reportMessage(IncomingCallActivity.this, s);
-                    }
-                });
-            }
-
-            @Override
-            public void onHandledOnAnotherDevice(StringeeCall stringeeCall, final StringeeCall.SignalingState signalingState, String s) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (signalingState == StringeeCall.SignalingState.ANSWERED || signalingState == StringeeCall.SignalingState.BUSY) {
-                            Utils.reportMessage(IncomingCallActivity.this, "This call is handled on another device.");
-                            tvState.setText("Ended");
-                            endCall(true, false);
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onMediaStateChange(StringeeCall stringeeCall, final StringeeCall.MediaState mediaState) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d("Stringee", "mediaState: " + mediaState);
-                        mMediaState = mediaState;
-                        if (mediaState == StringeeCall.MediaState.CONNECTED) {
-                            if (mSignalingState == StringeeCall.SignalingState.ANSWERED) {
-                                startCall();
+            public void onSignalingStateChange(StringeeCall stringeeCall, final SignalingState signalingState, String reason, int sipCode, String sipReason) {
+                runOnUiThread(() -> {
+                    Log.d(TAG, "onSignalingStateChange: " + signalingState);
+                    mSignalingState = signalingState;
+                    switch (signalingState) {
+                        case ANSWERED:
+                            tvState.setText("Starting");
+                            if (mMediaState == MediaState.CONNECTED) {
+                                tvState.setText("Started");
                             }
-                        } else {
-                            tvState.setText("Reconnecting...");
+                            break;
+                        case ENDED:
+                            endCall(true);
+                            break;
+                    }
+                });
+            }
+
+            @Override
+            public void onError(StringeeCall stringeeCall, int code, String desc) {
+                runOnUiThread(() -> {
+                    Log.d(TAG, "onError: " + desc);
+                    Utils.reportMessage(IncomingCallActivity.this, desc);
+                    tvState.setText("Ended");
+                    dismissLayout();
+                });
+            }
+
+            @Override
+            public void onHandledOnAnotherDevice(StringeeCall stringeeCall, final SignalingState signalingState, String desc) {
+                runOnUiThread(() -> {
+                    Log.d(TAG, "onHandledOnAnotherDevice: " + desc);
+                    if (signalingState != SignalingState.RINGING) {
+                        Utils.reportMessage(IncomingCallActivity.this, desc);
+                        tvState.setText("Ended");
+                        dismissLayout();
+                    }
+                });
+            }
+
+            @Override
+            public void onMediaStateChange(StringeeCall stringeeCall, final MediaState mediaState) {
+                runOnUiThread(() -> {
+                    Log.d(TAG, "onMediaStateChange: " + mediaState);
+                    mMediaState = mediaState;
+                    if (mediaState == MediaState.CONNECTED) {
+                        if (mSignalingState == SignalingState.ANSWERED) {
+                            tvState.setText("Started");
                         }
+                    } else {
+                        tvState.setText("Reconnecting...");
                     }
                 });
             }
 
             @Override
             public void onLocalStream(final StringeeCall stringeeCall) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (stringeeCall.isVideoCall()) {
-                            mLocalViewContainer.removeAllViews();
-                            SurfaceView localView = stringeeCall.getLocalView();
-                            mLocalViewContainer.addView(localView);
-                            stringeeCall.renderLocalView(true);
-                        }
+                runOnUiThread(() -> {
+                    Log.d(TAG, "onLocalStream");
+                    if (stringeeCall.isVideoCall()) {
+                        vLocal.removeAllViews();
+                        vLocal.addView(stringeeCall.getLocalView());
+                        stringeeCall.renderLocalView(true);
                     }
                 });
             }
 
             @Override
             public void onRemoteStream(final StringeeCall stringeeCall) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (stringeeCall.isVideoCall()) {
-                            mRemoteViewContainer.removeAllViews();
-                            SurfaceView remoteView = stringeeCall.getRemoteView();
-                            mRemoteViewContainer.addView(remoteView);
-                            stringeeCall.renderRemoteView(false);
-                        }
+                runOnUiThread(() -> {
+                    Log.d(TAG, "onRemoteStream");
+                    if (stringeeCall.isVideoCall()) {
+                        vRemote.removeAllViews();
+                        vRemote.addView(stringeeCall.getRemoteView());
+                        stringeeCall.renderRemoteView(false);
                     }
                 });
             }
 
             @Override
             public void onCallInfo(StringeeCall stringeeCall, final JSONObject jsonObject) {
-
+                runOnUiThread(() -> Log.d(TAG, "onCallInfo: " + jsonObject.toString()));
             }
         });
-        mStringeeCall.ringing(new StatusListener() {
+        stringeeCall.ringing(new StatusListener() {
             @Override
             public void onSuccess() {
-                Log.d("Stringee", "send ringing success");
+                Log.d("Stringee", "ringing success");
+            }
+
+            @Override
+            public void onError(StringeeError stringeeError) {
+                super.onError(stringeeError);
+                runOnUiThread(() -> {
+                    Log.d(TAG, "ringing error: " + stringeeError.getMessage());
+                    Utils.reportMessage(IncomingCallActivity.this, stringeeError.getMessage());
+                    endCall(false);
+                });
             }
         });
     }
@@ -302,46 +308,58 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.btn_mute:
+            case id.btn_mute:
                 isMute = !isMute;
-                btnMute.setBackgroundResource(isMute ? R.drawable.btn_mute : R.drawable.btn_mic);
-                if (mStringeeCall != null) {
-                    mStringeeCall.mute(isMute);
+                btnMute.setBackgroundResource(isMute ? drawable.btn_mute : drawable.btn_mic);
+                if (stringeeCall != null) {
+                    stringeeCall.mute(isMute);
                 }
                 break;
-            case R.id.btn_speaker:
+            case id.btn_speaker:
                 isSpeaker = !isSpeaker;
-                btnSpeaker.setBackgroundResource(isSpeaker ? R.drawable.btn_speaker_on : R.drawable.btn_speaker_off);
+                btnSpeaker.setBackgroundResource(isSpeaker ? drawable.btn_speaker_on : drawable.btn_speaker_off);
                 if (mSignalingState == SignalingState.ANSWERED || mMediaState == MediaState.CONNECTED) {
                     if (audioManager != null) {
                         audioManager.setSpeakerphoneOn(isSpeaker);
                     }
                 }
                 break;
-            case R.id.btn_answer:
-                if (mStringeeCall != null) {
+            case id.btn_answer:
+                if (stringeeCall != null) {
                     vControl.setVisibility(View.VISIBLE);
-                    btnAnswer.setVisibility(View.GONE);
-                    mStringeeCall.answer();
+                    vIncoming.setVisibility(View.GONE);
+                    btnEnd.setVisibility(View.VISIBLE);
+                    stringeeCall.answer();
                 }
                 break;
-            case R.id.btn_end:
-                tvState.setText("Ended");
-                endCall(true, false);
+            case id.btn_end:
+                endCall(true);
                 break;
-            case R.id.btn_video:
+            case id.btn_reject:
+                endCall(false);
+                break;
+            case id.btn_video:
                 isVideo = !isVideo;
-                btnVideo.setImageResource(isVideo ? R.drawable.btn_video : R.drawable.btn_video_off);
-                if (mStringeeCall != null) {
-                    mStringeeCall.enableVideo(isVideo);
+                btnVideo.setImageResource(isVideo ? drawable.btn_video : drawable.btn_video_off);
+                if (stringeeCall != null) {
+                    stringeeCall.enableVideo(isVideo);
                 }
                 break;
-            case R.id.btn_switch:
-                if (mStringeeCall != null) {
-                    mStringeeCall.switchCamera(new StatusListener() {
+            case id.btn_switch:
+                if (stringeeCall != null) {
+                    stringeeCall.switchCamera(new StatusListener() {
                         @Override
                         public void onSuccess() {
                             cameraId = cameraId == 0 ? 1 : 0;
+                        }
+
+                        @Override
+                        public void onError(StringeeError stringeeError) {
+                            super.onError(stringeeError);
+                            runOnUiThread(() -> {
+                                Log.d(TAG, "switchCamera error: " + stringeeError.getMessage());
+                                Utils.reportMessage(IncomingCallActivity.this, stringeeError.getMessage());
+                            });
                         }
                     }, cameraId == 0 ? 1 : 0);
                 }
@@ -349,34 +367,37 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    private void startCall() {
-        tvState.setText("Started");
+    private void endCall(boolean isHangup) {
+        tvState.setText("Ended");
+        if (stringeeCall != null) {
+            if (isHangup) {
+                stringeeCall.hangup();
+            } else {
+                stringeeCall.reject();
+            }
+        }
+
+        dismissLayout();
     }
 
-    private void endCall(boolean isHangup, boolean isReject) {
-        if (isHangup) {
-            if (mStringeeCall != null) {
-                mStringeeCall.hangup();
-            }
-        }
-
-        if (isReject) {
-            if (mStringeeCall != null) {
-                mStringeeCall.reject();
-            }
-        }
-
+    private void dismissLayout() {
         if (audioManager != null) {
             audioManager.stop();
             audioManager = null;
         }
-
-        Utils.postDelay(new Runnable() {
-            @Override
-            public void run() {
-                Common.isInCall = false;
-                finish();
+        sensorManagerUtils.releaseSensor();
+        vControl.setVisibility(View.GONE);
+        vIncoming.setVisibility(View.GONE);
+        btnEnd.setVisibility(View.GONE);
+        sensorManagerUtils.releaseSensor();
+        Utils.postDelay(() -> {
+            Common.isInCall = false;
+            if (!isPermissionGranted) {
+                Intent intent = new Intent();
+                intent.setAction("open_app_setting");
+                setResult(RESULT_CANCELED, intent);
             }
+            finish();
         }, 1000);
     }
 }
