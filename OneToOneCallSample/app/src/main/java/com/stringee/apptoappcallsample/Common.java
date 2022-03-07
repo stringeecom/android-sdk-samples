@@ -1,7 +1,5 @@
 package com.stringee.apptoappcallsample;
 
-import androidx.lifecycle.MutableLiveData;
-
 import com.stringee.StringeeClient;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
@@ -14,4 +12,6 @@ public class Common {
     public static Map<String, StringeeCall> callsMap = new HashMap<>();
     public static Map<String, StringeeCall2> calls2Map = new HashMap<>();
     public static boolean isInCall = false;
+    public static int REQUEST_PERMISSION_CALL = 1;
+    public static String TAG = "Stringee";
 }
