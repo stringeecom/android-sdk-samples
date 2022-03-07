@@ -9,24 +9,21 @@ import com.stringee.StringeeClient
 import com.stringee.call.StringeeCall
 import com.stringee.call.StringeeCall2
 
-class Common {
-    companion object {
-        var isInCall: Boolean = false
-        var callsMap: HashMap<String, StringeeCall> = HashMap()
-        var call2sMap: HashMap<String, StringeeCall2> = HashMap()
-        lateinit var client: StringeeClient
-        const val REQUEST_PERMISSION_CALL = 1
-        const val TAG = "Stringee"
+object Common {
+    lateinit var client: StringeeClient
+    var isInCall: Boolean = false
+    var callsMap: HashMap<String, StringeeCall> = HashMap()
+    var call2sMap: HashMap<String, StringeeCall2> = HashMap()
+    const val TAG: String = "Stringee"
+    const val REQUEST_PERMISSION_CALL = 1
 
-        @JvmStatic
-        fun reportMessage(context: Context, msg: String) {
-            var toast = Toast.makeText(context, msg, Toast.LENGTH_SHORT)
-            toast.setGravity(Gravity.CENTER, 0, 0)
-            toast.show()
-        }
+    fun reportMessage(context: Context, msg: String) {
+        val toast = Toast.makeText(context, msg, Toast.LENGTH_SHORT)
+        toast.setGravity(Gravity.CENTER, 0, 0)
+        toast.show()
+    }
 
-        fun postDelay(runnable: Runnable, delayMillis: Long) {
-            Handler(Looper.getMainLooper()).postDelayed(runnable, delayMillis)
-        }
+    fun postDelay(runnable: Runnable, delayMillis: Long) {
+        Handler(Looper.getMainLooper()).postDelayed(runnable, delayMillis)
     }
 }

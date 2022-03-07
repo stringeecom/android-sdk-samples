@@ -1,20 +1,34 @@
 package com.stringee.kotlin_onetoonecallsample
 
+import android.app.ProgressDialog
+import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.View
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.stringee.StringeeClient
 import com.stringee.call.StringeeCall
 import com.stringee.call.StringeeCall2
 import com.stringee.exception.StringeeError
+import com.stringee.kotlin_onetoonecallsample.R.id.*
+import com.stringee.kotlin_onetoonecallsample.R.string
 import com.stringee.kotlin_onetoonecallsample.databinding.ActivityMainBinding
 import com.stringee.listener.StringeeConnectionListener
 import org.json.JSONObject
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var binding: ActivityMainBinding
-    private var token = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2MjUwMjUxMjYiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjI3NjE3MTI2LCJ1c2VySWQiOiJ1c2VyMSJ9.ht9SLUGRMLcZyK22zvP78_XsqQICAAfsAVI-IMsvdj0"
+    private var token =
+        "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2NDY1Mzk3NjIiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjQ5MTMxNzYyLCJ1c2VySWQiOiJ1c2VyMSJ9.Y5PSagkEA9EBUGCL_G0TIVkW7fwfc521LMIHDBGjksU"
+    private lateinit var launcher: ActivityResultLauncher<Intent>
+    private var progressDialog: ProgressDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,71 +40,132 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         binding.btnVoiceCall.setOnClickListener(this)
         binding.btnVoiceCall2.setOnClickListener(this)
 
+        progressDialog = ProgressDialog.show(this, "", "Connecting...")
+        progressDialog?.setCancelable(true)
+        progressDialog?.show()
+
+        // register data call back
+        launcher = registerForActivityResult(
+            StartActivityForResult()
+        ) { result: ActivityResult ->
+            if (result.resultCode == RESULT_CANCELED) if (result.data != null) {
+                if (result.data!!.action != null && result.data!!
+                        .action == "open_app_setting"
+                ) {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle(string.app_name)
+                    builder.setMessage("Permissions must be granted for the call")
+                    builder.setPositiveButton(
+                        "Ok"
+                    ) { dialogInterface: DialogInterface, _: Int -> dialogInterface.cancel() }
+                    builder.setNegativeButton(
+                        "Settings"
+                    ) { dialogInterface: DialogInterface, _: Int ->
+                        dialogInterface.cancel()
+                        // open app setting
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        val uri = Uri.fromParts("package", packageName, null)
+                        intent.data = uri
+                        startActivity(intent)
+                    }
+                    builder.create().show()
+                }
+            }
+        }
+
         initStringee()
     }
 
     private fun initStringee() {
         Common.client = StringeeClient(this)
         Common.client.setConnectionListener(object : StringeeConnectionListener {
-            override fun onConnectionConnected(p0: StringeeClient, p1: Boolean) {
+            override fun onConnectionConnected(
+                stringeeClient: StringeeClient,
+                isReconnecting: Boolean
+            ) {
                 runOnUiThread {
-                    binding.tvUserid.text = "Connected as: ${p0.userId}"
+                    Log.d(Common.TAG, "onConnectionConnected")
+                    progressDialog!!.dismiss()
+                    binding.tvUserid.text = "Connected as: ${stringeeClient.userId}"
                     Common.reportMessage(this@MainActivity, "StringeeClient is connected.")
                 }
             }
 
-            override fun onConnectionDisconnected(p0: StringeeClient, p1: Boolean) {
+            override fun onConnectionDisconnected(
+                stringeeClient: StringeeClient,
+                isReconnecting: Boolean
+            ) {
                 runOnUiThread {
-                    binding.tvUserid.text = "dissconnected"
+                    Log.d(Common.TAG, "onConnectionDisconnected")
+                    progressDialog!!.dismiss()
+                    binding.tvUserid.text = "Disconnected"
                     Common.reportMessage(this@MainActivity, "StringeeClient is disconnected.")
                 }
             }
 
-            override fun onIncomingCall(p0: StringeeCall) {
+            override fun onIncomingCall(stringeeCall: StringeeCall) {
                 runOnUiThread {
-                    if (Common.isInCall) p0.reject() else {
-                        Common.callsMap[p0.callId] = p0
+                    Log.d(Common.TAG, "onIncomingCall: callId - ${stringeeCall.callId}")
+                    if (Common.isInCall) stringeeCall.reject() else {
+                        Common.callsMap[stringeeCall.callId] = stringeeCall
                         val intent = Intent(
                             this@MainActivity,
                             IncomingCallActivity::class.java
-                        ).apply { putExtra("call_id", p0.callId) }
+                        ).apply { putExtra("call_id", stringeeCall.callId) }
                         startActivity(intent)
                     }
                 }
             }
 
-            override fun onIncomingCall2(p0: StringeeCall2) {
+            override fun onIncomingCall2(stringeeCall2: StringeeCall2) {
                 runOnUiThread {
-                    if (Common.isInCall) p0.reject() else {
-                        Common.call2sMap[p0.callId] = p0
+                    Log.d(Common.TAG, "onIncomingCall2: callId - ${stringeeCall2.callId}")
+                    if (Common.isInCall) stringeeCall2.reject() else {
+                        Common.call2sMap[stringeeCall2.callId] = stringeeCall2
                         val intent = Intent(
                             this@MainActivity,
                             IncomingCall2Activity::class.java
-                        ).apply { putExtra("call_id", p0.callId) }
+                        ).apply { putExtra("call_id", stringeeCall2.callId) }
                         startActivity(intent)
                     }
                 }
             }
 
-            override fun onConnectionError(p0: StringeeClient?, p1: StringeeError) {
+            override fun onConnectionError(
+                stringeeClient: StringeeClient,
+                stringeeError: StringeeError
+            ) {
                 runOnUiThread {
+                    Log.d(Common.TAG, "onConnectionError: ${stringeeError.message}")
+                    progressDialog!!.dismiss()
                     Common.reportMessage(
                         this@MainActivity,
-                        "StringeeClient fails to connect: ${p1.getMessage()}"
+                        "StringeeClient fails to connect: ${stringeeError.message}"
                     )
                 }
             }
 
-            override fun onRequestNewToken(p0: StringeeClient?) {
-                TODO("Not yet implemented")
+            override fun onRequestNewToken(stringeeClient: StringeeClient) {
+                runOnUiThread {
+                    Log.d(
+                        Common.TAG,
+                        "onRequestNewToken"
+                    )
+                }
+                // Get new token here and connect to Stringe server
             }
 
-            override fun onCustomMessage(p0: String?, p1: JSONObject?) {
-                TODO("Not yet implemented")
+            override fun onCustomMessage(from: String, msg: JSONObject) {
+                runOnUiThread {
+                    Log.d(
+                        Common.TAG,
+                        "onCustomMessage: from - $from - msg - $msg"
+                    )
+                }
             }
 
-            override fun onTopicMessage(p0: String?, p1: JSONObject?) {
-                TODO("Not yet implemented")
+            override fun onTopicMessage(from: String, msg: JSONObject) {
             }
         })
         Common.client.connect(token)
@@ -98,37 +173,29 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         when (v?.id) {
-            R.id.btn_video_call -> {
-                makeCall(true, true)
-            }
-            R.id.btn_video_call2 -> {
-                makeCall(false, true)
-            }
-            R.id.btn_voice_call -> {
-                makeCall(true, false)
-            }
-            R.id.btn_voice_call2 -> {
-                makeCall(false, false)
-            }
+            btn_video_call -> makeCall(isStringeeCall = true, isVideoCall = true)
+            btn_video_call2 -> makeCall(isStringeeCall = false, isVideoCall = true)
+            btn_voice_call -> makeCall(isStringeeCall = true, isVideoCall = false)
+            btn_voice_call2 -> makeCall(isStringeeCall = false, isVideoCall = false)
         }
     }
 
-    fun makeCall(isStringeeCall: Boolean, isVideoCall: Boolean) {
+    private fun makeCall(isStringeeCall: Boolean, isVideoCall: Boolean) {
         val to: String = binding.etTo.text.toString().trim()
         if (to.isNotBlank()) {
             if (Common.client.isConnected) {
-                val intent: Intent
-                if (isStringeeCall)
-                    intent = Intent(
+                val intent: Intent = if (isStringeeCall)
+                    Intent(
                         this@MainActivity,
                         OutgoingCallActivity::class.java
-                    ) else intent = Intent(
+                    ) else Intent(
                     this@MainActivity,
                     OutgoingCall2Activity::class.java
                 )
+                intent.putExtra("from", Common.client.userId)
                 intent.putExtra("to", to)
                 intent.putExtra("is_video_call", isVideoCall)
-                startActivity(intent)
+                launcher.launch(intent)
             } else {
                 Common.reportMessage(this, "Stringee session not connected");
             }
