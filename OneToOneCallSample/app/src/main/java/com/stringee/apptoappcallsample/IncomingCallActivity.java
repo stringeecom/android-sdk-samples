@@ -38,11 +38,8 @@ import java.util.List;
 public class IncomingCallActivity extends AppCompatActivity implements View.OnClickListener {
     private FrameLayout vLocal;
     private FrameLayout vRemote;
-    private TextView tvFrom;
     private TextView tvState;
-    private ImageButton btnAnswer;
     private ImageButton btnEnd;
-    private ImageButton btnReject;
     private ImageButton btnMute;
     private ImageButton btnSpeaker;
     private ImageButton btnVideo;
@@ -56,6 +53,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     private boolean isMute = false;
     private boolean isSpeaker = false;
     private boolean isVideo = false;
+    private boolean isPermissionGranted = true;
     // For normal device has more than 3 cameras, 0 is back camera, 1 is front camera.
     // Some device is different, must check camera id before select.
     // When call starts, automatically use the front camera.
@@ -63,11 +61,6 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
 
     private MediaState mMediaState;
     private SignalingState mSignalingState;
-
-    private boolean isPermissionGranted = true;
-
-    private static final int REQUEST_PERMISSION_CALL = 1;
-    private static final String TAG = "Stringee";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -94,6 +87,14 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
 
         String callId = getIntent().getStringExtra("call_id");
         stringeeCall = Common.callsMap.get(callId);
+        if (stringeeCall == null) {
+            sensorManagerUtils.releaseSensor();
+            Utils.postDelay(() -> {
+                Common.isInCall = false;
+                finish();
+            }, 1000);
+            return;
+        }
 
         initView();
 
@@ -121,12 +122,16 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 for (int i = 0; i < lstPermissions.size(); i++) {
                     permissions[i] = lstPermissions.get(i);
                 }
-                ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSION_CALL);
+                ActivityCompat.requestPermissions(this, permissions, Common.REQUEST_PERMISSION_CALL);
                 return;
             }
         }
 
         startRinging();
+    }
+
+    @Override
+    public void onBackPressed() {
     }
 
     @Override
@@ -143,7 +148,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 }
             }
         }
-        if (requestCode == REQUEST_PERMISSION_CALL) {
+        if (requestCode == Common.REQUEST_PERMISSION_CALL) {
             if (!isGranted) {
                 isPermissionGranted = false;
                 endCall(false);
@@ -154,10 +159,6 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    @Override
-    public void onBackPressed() {
-    }
-
     private void initView() {
         vLocal = findViewById(id.v_local);
         vRemote = findViewById(id.v_remote);
@@ -165,15 +166,15 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         vControl = findViewById(id.v_control);
         vIncoming = findViewById(id.v_incoming);
 
-        tvFrom = findViewById(id.tv_from);
+        TextView tvFrom = findViewById(id.tv_from);
         tvFrom.setText(stringeeCall.getFrom());
         tvState = findViewById(id.tv_state);
 
-        btnAnswer = findViewById(id.btn_answer);
+        ImageButton btnAnswer = findViewById(id.btn_answer);
         btnAnswer.setOnClickListener(this);
         btnEnd = findViewById(id.btn_end);
         btnEnd.setOnClickListener(this);
-        btnReject = findViewById(id.btn_reject);
+        ImageButton btnReject = findViewById(id.btn_reject);
         btnReject.setOnClickListener(this);
         btnMute = findViewById(id.btn_mute);
         btnMute.setOnClickListener(this);
@@ -198,25 +199,22 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         //create audio manager to control audio device
         audioManager = StringeeAudioManager.create(IncomingCallActivity.this);
         audioManager.start((selectedAudioDevice, availableAudioDevices) ->
-                Log.d(TAG, "selectedAudioDevice: " + selectedAudioDevice + " - availableAudioDevices: " + availableAudioDevices));
+                Log.d(Common.TAG, "selectedAudioDevice: " + selectedAudioDevice + " - availableAudioDevices: " + availableAudioDevices));
         audioManager.setSpeakerphoneOn(isVideo);
 
         stringeeCall.setCallListener(new StringeeCallListener() {
             @Override
             public void onSignalingStateChange(StringeeCall stringeeCall, final SignalingState signalingState, String reason, int sipCode, String sipReason) {
                 runOnUiThread(() -> {
-                    Log.d(TAG, "onSignalingStateChange: " + signalingState);
+                    Log.d(Common.TAG, "onSignalingStateChange: " + signalingState);
                     mSignalingState = signalingState;
-                    switch (signalingState) {
-                        case ANSWERED:
-                            tvState.setText("Starting");
-                            if (mMediaState == MediaState.CONNECTED) {
-                                tvState.setText("Started");
-                            }
-                            break;
-                        case ENDED:
-                            endCall(true);
-                            break;
+                    if (signalingState == SignalingState.ANSWERED) {
+                        tvState.setText("Starting");
+                        if (mMediaState == MediaState.CONNECTED) {
+                            tvState.setText("Started");
+                        }
+                    } else if (signalingState == SignalingState.ENDED) {
+                        endCall(true);
                     }
                 });
             }
@@ -224,7 +222,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void onError(StringeeCall stringeeCall, int code, String desc) {
                 runOnUiThread(() -> {
-                    Log.d(TAG, "onError: " + desc);
+                    Log.d(Common.TAG, "onError: " + desc);
                     Utils.reportMessage(IncomingCallActivity.this, desc);
                     tvState.setText("Ended");
                     dismissLayout();
@@ -234,7 +232,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void onHandledOnAnotherDevice(StringeeCall stringeeCall, final SignalingState signalingState, String desc) {
                 runOnUiThread(() -> {
-                    Log.d(TAG, "onHandledOnAnotherDevice: " + desc);
+                    Log.d(Common.TAG, "onHandledOnAnotherDevice: " + desc);
                     if (signalingState != SignalingState.RINGING) {
                         Utils.reportMessage(IncomingCallActivity.this, desc);
                         tvState.setText("Ended");
@@ -246,7 +244,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void onMediaStateChange(StringeeCall stringeeCall, final MediaState mediaState) {
                 runOnUiThread(() -> {
-                    Log.d(TAG, "onMediaStateChange: " + mediaState);
+                    Log.d(Common.TAG, "onMediaStateChange: " + mediaState);
                     mMediaState = mediaState;
                     if (mediaState == MediaState.CONNECTED) {
                         if (mSignalingState == SignalingState.ANSWERED) {
@@ -261,7 +259,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void onLocalStream(final StringeeCall stringeeCall) {
                 runOnUiThread(() -> {
-                    Log.d(TAG, "onLocalStream");
+                    Log.d(Common.TAG, "onLocalStream");
                     if (stringeeCall.isVideoCall()) {
                         vLocal.removeAllViews();
                         vLocal.addView(stringeeCall.getLocalView());
@@ -273,7 +271,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void onRemoteStream(final StringeeCall stringeeCall) {
                 runOnUiThread(() -> {
-                    Log.d(TAG, "onRemoteStream");
+                    Log.d(Common.TAG, "onRemoteStream");
                     if (stringeeCall.isVideoCall()) {
                         vRemote.removeAllViews();
                         vRemote.addView(stringeeCall.getRemoteView());
@@ -284,9 +282,10 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
 
             @Override
             public void onCallInfo(StringeeCall stringeeCall, final JSONObject jsonObject) {
-                runOnUiThread(() -> Log.d(TAG, "onCallInfo: " + jsonObject.toString()));
+                runOnUiThread(() -> Log.d(Common.TAG, "onCallInfo: " + jsonObject.toString()));
             }
         });
+
         stringeeCall.ringing(new StatusListener() {
             @Override
             public void onSuccess() {
@@ -297,7 +296,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             public void onError(StringeeError stringeeError) {
                 super.onError(stringeeError);
                 runOnUiThread(() -> {
-                    Log.d(TAG, "ringing error: " + stringeeError.getMessage());
+                    Log.d(Common.TAG, "ringing error: " + stringeeError.getMessage());
                     Utils.reportMessage(IncomingCallActivity.this, stringeeError.getMessage());
                     endCall(false);
                 });
@@ -318,10 +317,8 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             case id.btn_speaker:
                 isSpeaker = !isSpeaker;
                 btnSpeaker.setBackgroundResource(isSpeaker ? drawable.btn_speaker_on : drawable.btn_speaker_off);
-                if (mSignalingState == SignalingState.ANSWERED || mMediaState == MediaState.CONNECTED) {
-                    if (audioManager != null) {
-                        audioManager.setSpeakerphoneOn(isSpeaker);
-                    }
+                if (audioManager != null) {
+                    audioManager.setSpeakerphoneOn(isSpeaker);
                 }
                 break;
             case id.btn_answer:
@@ -329,6 +326,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     vControl.setVisibility(View.VISIBLE);
                     vIncoming.setVisibility(View.GONE);
                     btnEnd.setVisibility(View.VISIBLE);
+                    btnSwitch.setVisibility(stringeeCall.isVideoCall()?View.VISIBLE: View.GONE);
                     stringeeCall.answer();
                 }
                 break;
@@ -357,7 +355,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                         public void onError(StringeeError stringeeError) {
                             super.onError(stringeeError);
                             runOnUiThread(() -> {
-                                Log.d(TAG, "switchCamera error: " + stringeeError.getMessage());
+                                Log.d(Common.TAG, "switchCamera error: " + stringeeError.getMessage());
                                 Utils.reportMessage(IncomingCallActivity.this, stringeeError.getMessage());
                             });
                         }
@@ -376,7 +374,6 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                 stringeeCall.reject();
             }
         }
-
         dismissLayout();
     }
 
@@ -385,10 +382,10 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             audioManager.stop();
             audioManager = null;
         }
-        sensorManagerUtils.releaseSensor();
         vControl.setVisibility(View.GONE);
         vIncoming.setVisibility(View.GONE);
         btnEnd.setVisibility(View.GONE);
+        btnSwitch.setVisibility(View.GONE);
         sensorManagerUtils.releaseSensor();
         Utils.postDelay(() -> {
             Common.isInCall = false;
