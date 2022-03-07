@@ -2,8 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
-    android:gravity="center_horizontal">
+    android:background="@android:color/black"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
 
     <FrameLayout
         android:id="@+id/v_remote"
@@ -14,14 +15,13 @@
         android:id="@+id/v_local"
         android:layout_width="80dp"
         android:layout_height="120dp"
-        android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_margin="20dp" />
 
     <ImageButton
         android:id="@+id/btn_switch"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_margin="20dp"
         android:background="@drawable/ic_switch" />
 
@@ -37,14 +37,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#ffffff"
-            android:textSize="30sp" />
+            android:textSize="24sp" />
 
         <TextView
             android:id="@+id/tv_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:text="Calling"
+            android:text="Incoming call"
             android:textColor="#ffffff"
             android:textSize="16sp" />
     </LinearLayout>
@@ -53,13 +53,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:gravity="center_horizontal"
+        android:layout_marginBottom="10dp"
+        android:gravity="center"
         android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/v_control"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:visibility="gone">
 
             <ImageButton
                 android:id="@+id/btn_speaker"
@@ -80,42 +82,37 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="40dp"
                 android:background="@drawable/btn_mic" />
+
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/v_incoming"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="20dp">
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp">
 
-            <LinearLayout
-                android:id="@+id/v_answer"
-                android:layout_width="match_parent"
+            <ImageButton
+                android:id="@+id/btn_answer"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:visibility="gone">
+                android:layout_marginRight="100dp"
+                android:background="@drawable/btn_answer_call_selector" />
 
-                <ImageButton
-                    android:id="@+id/btn_answer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/btn_answer_call_selector" />
-            </LinearLayout>
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <ImageButton
+                android:id="@+id/btn_reject"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center">
-
-                <ImageButton
-                    android:id="@+id/btn_end"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/btn_end_call_selector" />
-            </LinearLayout>
-
+                android:background="@drawable/btn_end_call_selector" />
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/btn_end_call_selector"
+            android:visibility="gone" />
     </LinearLayout>
 </RelativeLayout>

@@ -1,32 +1,26 @@
 package com.stringee.kotlin_onetoonecallsample
 
-import android.Manifest
-import android.Manifest.*
 import android.Manifest.permission.*
-import android.app.KeyguardManager
-import android.app.KeyguardManager.*
-import android.content.pm.PackageManager
-import android.content.pm.PackageManager.*
-import android.os.Build
-import android.os.Build.*
+import android.content.Intent
+import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.util.Log
-import android.view.SurfaceView
 import android.view.View
 import android.view.View.*
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.*
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.*
+import androidx.core.app.ActivityCompat.checkSelfPermission
 import com.stringee.call.StringeeCall2
 import com.stringee.call.StringeeCall2.*
 import com.stringee.common.StringeeAudioManager
-import com.stringee.kotlin_onetoonecallsample.R.drawable
+import com.stringee.exception.StringeeError
 import com.stringee.kotlin_onetoonecallsample.R.drawable.*
 import com.stringee.kotlin_onetoonecallsample.databinding.ActivityCallBinding
 import com.stringee.listener.StatusListener
+import com.stringee.video.StringeeVideoTrack
 import org.json.JSONObject
 
 class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
@@ -35,218 +29,88 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
     private var isMute = false
     private var isSpeaker = false
     private var isVideo = false
-    private var isAnswerd = false
+    private var isPermissionGranted = true
+
+    // For normal device has more than 3 cameras, 0 is back camera, 1 is front camera.
+    // Some device is different, must check camera id before select.
+    // When call starts, automatically use the front camera.
+    private var cameraId = 1
 
     private var mMediaState: MediaState = MediaState.DISCONNECTED
     private lateinit var mSignalingState: SignalingState
 
-    private var call: StringeeCall2? = null
+    private lateinit var stringeeCall2: StringeeCall2
+    private lateinit var sensorManagerUtils: SensorManagerUtils
     private var audioManager: StringeeAudioManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        //add Flag for show on lockScreen and disable keyguard
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                    or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                    or WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                    or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        )
 
-        binding = ActivityCallBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        if (VERSION.SDK_INT >= VERSION_CODES.O) {
-            val lock: KeyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-            lock.requestDismissKeyguard(this, object : KeyguardDismissCallback() {
-            })
-        }
         if (VERSION.SDK_INT >= VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
         }
+
+        binding = ActivityCallBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        sensorManagerUtils = SensorManagerUtils.getInstance(this)!!
+        sensorManagerUtils.acquireProximitySensor(localClassName)
+        sensorManagerUtils.disableKeyguard()
+
         Common.isInCall = true
 
         val callId = intent.getStringExtra("call_id")
-        call = Common.call2sMap[callId]!!
-        isVideoCall = call!!.isVideoCall
-        isSpeaker = isVideoCall
-        isVideo = isVideoCall
+        if (Common.call2sMap[callId] != null) {
+            stringeeCall2 = Common.call2sMap[callId]!!
+        } else {
+            sensorManagerUtils.releaseSensor()
+            Common.postDelay({
+                Common.isInCall = false
+                finish()
+            }, 1000)
+            return
+        }
 
         initView()
-        if (isPermissionGranted())
-            prepareCall()
-    }
 
-    private fun initView() {
-        binding.tvName.text = call?.from
-        binding.btnMute.setOnClickListener(this)
-        binding.btnSpeaker.setOnClickListener(this)
-        binding.btnSwitch.setOnClickListener(this)
-        binding.btnVideo.setOnClickListener(this)
-        binding.btnEnd.setOnClickListener(this)
-        binding.btnAnswer.setOnClickListener(this)
-
-        binding.btnSpeaker.setBackgroundResource(if (isSpeaker) btn_speaker_on else btn_speaker_off)
-        binding.btnVideo.setBackgroundResource(if (isVideo) btn_video else btn_video_off)
-        binding.btnVideo.visibility = if (isVideo) VISIBLE else GONE
-        binding.btnSwitch.visibility = if (isVideo) VISIBLE else GONE
-
-        binding.vAnswer.visibility = VISIBLE
-        binding.vControl.visibility = GONE
-        binding.btnSwitch.visibility = GONE
-    }
-
-    private fun isPermissionGranted(): Boolean {
         if (VERSION.SDK_INT >= VERSION_CODES.M) {
             val lstPermissions: MutableList<String> = ArrayList()
-            if (checkSelfPermission(
-                    this,
-                    RECORD_AUDIO
-                ) != PERMISSION_GRANTED
-            )
+            if (checkSelfPermission(this, RECORD_AUDIO) != PERMISSION_GRANTED) {
                 lstPermissions.add(RECORD_AUDIO)
-
-            if (isVideoCall) {
-                if (checkSelfPermission(
-                        this,
-                        CAMERA
-                    )
-                    != PERMISSION_GRANTED
-                )
-                    lstPermissions.add(CAMERA)
             }
-            if (lstPermissions.size > 0) {
+            if (isVideoCall) {
+                if (checkSelfPermission(this, CAMERA) != PERMISSION_GRANTED) {
+                    lstPermissions.add(CAMERA)
+                }
+            }
+            if (VERSION.SDK_INT >= VERSION_CODES.S) {
+                if (checkSelfPermission(this, BLUETOOTH_CONNECT) != PERMISSION_GRANTED) {
+                    lstPermissions.add(BLUETOOTH_CONNECT)
+                }
+            }
+            if (lstPermissions.isNotEmpty()) {
                 val permissions = arrayOfNulls<String>(lstPermissions.size)
                 for (i in lstPermissions.indices) {
                     permissions[i] = lstPermissions[i]
                 }
-                requestPermissions(
-                    this,
-                    permissions,
-                    Common.REQUEST_PERMISSION_CALL
-                )
-            } else {
-                return true
+                ActivityCompat.requestPermissions(this, permissions, Common.REQUEST_PERMISSION_CALL)
+                return
             }
         }
-        return false
-    }
 
-    private fun prepareCall() {
-        audioManager = StringeeAudioManager.create(this)
-        audioManager?.start { selectedAudioDevice, availableAudioDevices ->
-            Log.d(
-                Common.TAG,
-                "onAudioDeviceChanged: selectedAudioDevice $selectedAudioDevice - availableAudioDevices $availableAudioDevices"
-            )
-        }
-
-        call?.setCallListener(object : StringeeCallListener {
-            override fun onSignalingStateChange(
-                p0: StringeeCall2?,
-                p1: SignalingState?,
-                p2: String?,
-                p3: Int,
-                p4: String?
-            ) {
-                runOnUiThread {
-                    Log.d(Common.TAG, "onSignalingStateChange: signalingState - $p1")
-                    mSignalingState = p1!!
-                    when (mSignalingState) {
-                        SignalingState.ANSWERED -> {
-                            binding.tvState.text = "Starting"
-                            if (mMediaState == MediaState.CONNECTED) {
-                                binding.tvState.text = "Started"
-                            }
-                        }
-                        SignalingState.ENDED -> {
-                            binding.tvState.text = "Ended"
-                            endCall()
-                        }
-                    }
-                }
-            }
-
-            override fun onError(p0: StringeeCall2?, p1: Int, p2: String?) {
-                runOnUiThread {
-                    Log.d(Common.TAG, "onError: error - $p1")
-                    Common.reportMessage(this@IncomingCall2Activity, p2!!)
-                    binding.tvState.text = p2
-                    endCall()
-                }
-            }
-
-            override fun onHandledOnAnotherDevice(
-                p0: StringeeCall2?,
-                p1: SignalingState?,
-                p2: String?
-            ) {
-                runOnUiThread {
-                    Log.d(Common.TAG, "onHandledOnAnotherDevice: signalingState - $p1")
-                    Common.reportMessage(this@IncomingCall2Activity, p2!!)
-                    isAnswerd = true
-                    binding.tvState.text = p2
-                    when (p1) {
-                        SignalingState.ANSWERED -> {
-                            endCall()
-                        }
-                        SignalingState.BUSY -> {
-                            endCall()
-                        }
-                    }
-                }
-            }
-
-            override fun onMediaStateChange(p0: StringeeCall2?, p1: MediaState?) {
-                runOnUiThread {
-                    Log.d(Common.TAG, "onMediaStateChange: mediaState - $p1")
-                    mMediaState = p1!!
-                    if (mMediaState == MediaState.CONNECTED) {
-                        if (mSignalingState == SignalingState.ANSWERED) {
-                            binding.tvState.text = "Started"
-                        }
-                    } else {
-                        binding.tvState.text = "Reconnecting..."
-                    }
-                }
-            }
-
-            override fun onLocalStream(p0: StringeeCall2?) {
-                runOnUiThread {
-                    if (call!!.isVideoCall) {
-                        Log.d(Common.TAG, "onLocalStream")
-                        binding.vLocal.removeAllViews()
-                        val localView: SurfaceView = call!!.localView
-                        binding.vLocal.addView(localView)
-                        call?.renderLocalView(true)
-                    }
-                }
-            }
-
-            override fun onRemoteStream(p0: StringeeCall2?) {
-                runOnUiThread {
-                    if (call!!.isVideoCall) {
-                        Log.d(Common.TAG, "onRemoteStream")
-                        binding.vRemote.removeAllViews()
-                        val remoteView: SurfaceView = call!!.remoteView
-                        binding.vRemote.addView(remoteView)
-                        call?.renderRemoteView(false)
-                    }
-                }
-            }
-
-            override fun onCallInfo(p0: StringeeCall2?, p1: JSONObject?) {
-                TODO("Not yet implemented")
-            }
-        })
-
-        call?.ringing(object : StatusListener() {
-            override fun onSuccess() {
-                Log.d(Common.TAG, "ringing: success")
-            }
-        })
+        startRinging()
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
-        binding.tvState.text = "Ended"
-        endCall()
     }
 
     override fun onRequestPermissionsResult(
@@ -257,8 +121,8 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         var isGranted = false
         if (grantResults.isNotEmpty()) {
-            for (i in grantResults.indices) {
-                if (grantResults[i] != PERMISSION_GRANTED) {
+            for (grantResult in grantResults) {
+                if (grantResult != PERMISSION_GRANTED) {
                     isGranted = false
                     break
                 } else {
@@ -268,12 +132,159 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
         }
         if (requestCode == Common.REQUEST_PERMISSION_CALL) {
             if (!isGranted) {
-                binding.tvState.text = "Permissions not granted"
-                endCall()
+                isPermissionGranted = false
+                endCall(false)
             } else {
-                prepareCall()
+                isPermissionGranted = true
+                startRinging()
             }
         }
+    }
+
+    private fun initView() {
+        binding.tvName.text = stringeeCall2.from
+
+        binding.btnAnswer.setOnClickListener(this)
+        binding.btnEnd.setOnClickListener(this)
+        binding.btnReject.setOnClickListener(this)
+        binding.btnMute.setOnClickListener(this)
+        binding.btnSpeaker.setOnClickListener(this)
+        binding.btnVideo.setOnClickListener(this)
+        binding.btnSwitch.setOnClickListener(this)
+
+        isSpeaker = stringeeCall2.isVideoCall
+        binding.btnSpeaker.setBackgroundResource(if (isSpeaker) btn_speaker_on else btn_speaker_off)
+
+        isVideo = stringeeCall2.isVideoCall
+        binding.btnVideo.setBackgroundResource(if (isVideo) btn_video else btn_video_off)
+
+        binding.btnVideo.visibility = if (isVideo) VISIBLE else GONE
+        binding.btnSwitch.visibility = if (isVideo) VISIBLE else GONE
+
+        binding.vIncoming.visibility = VISIBLE
+        binding.vControl.visibility = GONE
+        binding.btnEnd.visibility = GONE
+    }
+
+    private fun startRinging() {
+        //create audio manager to control audio device
+        audioManager = StringeeAudioManager.create(this@IncomingCall2Activity)
+        audioManager?.start { selectedAudioDevice, availableAudioDevices ->
+            Log.d(
+                Common.TAG,
+                "selectedAudioDevice: $selectedAudioDevice - availableAudioDevices: $availableAudioDevices"
+            )
+        }
+        audioManager?.setSpeakerphoneOn(isVideoCall)
+
+        stringeeCall2.setCallListener(object : StringeeCallListener {
+            override fun onSignalingStateChange(
+                stringeeCall2: StringeeCall2,
+                signalingState: SignalingState,
+                reason: String,
+                sipCode: Int,
+                sipReason: String
+            ) {
+                runOnUiThread {
+                    Log.d(Common.TAG, "onSignalingStateChange: $signalingState")
+                    mSignalingState = signalingState
+                    if (signalingState == SignalingState.ANSWERED) {
+                        binding.tvState.text = "Starting"
+                        if (mMediaState == MediaState.CONNECTED) {
+                            binding.tvState.text = "Started"
+                        }
+                    } else if (signalingState == SignalingState.ENDED) {
+                        endCall(true)
+                    }
+                }
+            }
+
+            override fun onError(stringeeCall2: StringeeCall2, i: Int, desc: String) {
+                runOnUiThread {
+                    Log.d(Common.TAG, "onError: $desc")
+                    Common.reportMessage(this@IncomingCall2Activity, desc)
+                    binding.tvState.text = "Ended"
+                    dismissLayout()
+                }
+            }
+
+            override fun onHandledOnAnotherDevice(
+                stringeeCall2: StringeeCall2,
+                signalingState: SignalingState,
+                desc: String
+            ) {
+                runOnUiThread {
+                    Log.d(Common.TAG, "onHandledOnAnotherDevice: $desc")
+                    if (signalingState != SignalingState.RINGING) {
+                        Common.reportMessage(this@IncomingCall2Activity, desc)
+                        binding.tvState.text = "Ended"
+                        dismissLayout()
+                    }
+                }
+            }
+
+            override fun onMediaStateChange(stringeeCall2: StringeeCall2, mediaState: MediaState) {
+                runOnUiThread {
+                    Log.d(Common.TAG, "onMediaStateChange: $mediaState")
+                    mMediaState = mediaState
+                    if (mediaState == MediaState.CONNECTED) {
+                        if (mSignalingState == SignalingState.ANSWERED) {
+                            binding.tvState.text = "Started"
+                        }
+                    } else {
+                        binding.tvState.text = "Reconnecting..."
+                    }
+                }
+            }
+
+            override fun onLocalStream(stringeeCall2: StringeeCall2) {
+                runOnUiThread {
+                    Log.d(Common.TAG, "onLocalStream")
+                    if (stringeeCall2.isVideoCall) {
+                        binding.vLocal.removeAllViews()
+                        binding.vLocal.addView(stringeeCall2.localView)
+                        stringeeCall2.renderLocalView(true)
+                    }
+                }
+            }
+
+            override fun onRemoteStream(stringeeCall2: StringeeCall2) {
+                runOnUiThread {
+                    Log.d(Common.TAG, "onRemoteStream")
+                    if (stringeeCall2.isVideoCall) {
+                        binding.vRemote.removeAllViews()
+                        binding.vRemote.addView(stringeeCall2.remoteView)
+                        stringeeCall2.renderRemoteView(false)
+                    }
+                }
+            }
+
+            override fun onVideoTrackAdded(stringeeVideoTrack: StringeeVideoTrack) {}
+            override fun onVideoTrackRemoved(stringeeVideoTrack: StringeeVideoTrack) {}
+            override fun onCallInfo(stringeeCall2: StringeeCall2, jsonObject: JSONObject) {
+                runOnUiThread {
+                    Log.d(
+                        Common.TAG,
+                        "onCallInfo: $jsonObject"
+                    )
+                }
+            }
+        })
+
+        stringeeCall2.ringing(object : StatusListener() {
+            override fun onSuccess() {
+                Log.d("Stringee", "send ringing success")
+            }
+
+            override fun onError(stringeeError: StringeeError) {
+                super.onError(stringeeError)
+                runOnUiThread {
+                    Log.d(Common.TAG, "ringing error: ${stringeeError.message}")
+                    Common.reportMessage(this@IncomingCall2Activity, stringeeError.message)
+                    endCall(false)
+                }
+            }
+        })
     }
 
     override fun onClick(v: View?) {
@@ -281,7 +292,7 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
             R.id.btn_mute -> {
                 isMute = !isMute
                 binding.btnMute.setBackgroundResource(if (isMute) btn_mute else btn_mic)
-                call?.mute(isMute)
+                stringeeCall2.mute(isMute)
             }
             R.id.btn_speaker -> {
                 isSpeaker = !isSpeaker
@@ -289,43 +300,66 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
                 audioManager?.setSpeakerphoneOn(isSpeaker)
             }
             R.id.btn_answer -> {
-                isAnswerd = true
                 binding.vControl.visibility = VISIBLE
-                binding.vAnswer.visibility = GONE
+                binding.vIncoming.visibility = GONE
+                binding.btnEnd.visibility = VISIBLE
                 binding.btnSwitch.visibility = if (isVideoCall) VISIBLE else GONE
-                call?.answer()
+                stringeeCall2.answer()
             }
             R.id.btn_end -> {
-                binding.tvState.text = "Ended"
-                endCall()
+                endCall(true)
+            }
+            R.id.btn_reject -> {
+                endCall(false)
             }
             R.id.btn_video -> {
                 isVideo = !isVideo
                 binding.btnVideo.setImageResource(if (isVideo) btn_video else btn_video_off)
-                call?.enableVideo(isVideo)
+                stringeeCall2.enableVideo(isVideo)
             }
             R.id.btn_switch -> {
-                call?.switchCamera(object : StatusListener() {
+                stringeeCall2.switchCamera(object : StatusListener() {
                     override fun onSuccess() {
+                        cameraId = if (cameraId == 0) 1 else 0
                     }
-                })
+
+                    override fun onError(stringeeError: StringeeError) {
+                        super.onError(stringeeError)
+                        runOnUiThread {
+                            Log.d(Common.TAG, "switchCamera error: ${stringeeError.message}")
+                            Common.reportMessage(this@IncomingCall2Activity, stringeeError.message)
+                        }
+                    }
+                }, if (cameraId == 0) 1 else 0)
             }
         }
     }
 
-    private fun endCall() {
-        binding.vAnswer.visibility = GONE
-        binding.btnEnd.visibility = GONE
-        binding.vControl.visibility = GONE
-        binding.btnSwitch.visibility = GONE
+    private fun endCall(isHangup: Boolean) {
+        binding.tvState.text = "Ended"
+        if (isHangup) {
+            stringeeCall2.hangup()
+        } else {
+            stringeeCall2.reject()
+        }
+        dismissLayout()
+    }
 
-        if (isAnswerd) call?.hangup()
-        else call?.reject()
-
+    private fun dismissLayout() {
         audioManager?.stop()
-
+        audioManager = null
+        sensorManagerUtils.releaseSensor()
+        binding.vControl.visibility = GONE
+        binding.vIncoming.visibility = GONE
+        binding.btnEnd.visibility = GONE
+        binding.btnSwitch.visibility = GONE
         Common.postDelay({
             Common.isInCall = false
+            if (!isPermissionGranted) {
+                val intent = Intent()
+                intent.action = "open_app_setting"
+                setResult(RESULT_CANCELED, intent)
+            }
             finish()
         }, 1000)
     }
