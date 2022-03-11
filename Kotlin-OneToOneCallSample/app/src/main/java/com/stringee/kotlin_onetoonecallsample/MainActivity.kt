@@ -25,8 +25,7 @@ import org.json.JSONObject
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var binding: ActivityMainBinding
-    private var token =
-        "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2NDY1Mzk3NjIiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjQ5MTMxNzYyLCJ1c2VySWQiOiJ1c2VyMSJ9.Y5PSagkEA9EBUGCL_G0TIVkW7fwfc521LMIHDBGjksU"
+    private var token = "PUT_YOUR_TOKEN_HERE"
     private lateinit var launcher: ActivityResultLauncher<Intent>
     private var progressDialog: ProgressDialog? = null
 
