@@ -31,7 +31,7 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, LifecycleObserver {
     private String to;
     //put your token here
-    private String token = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2NDY1Mzk3NDUiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjQ5MTMxNzQ1LCJ1c2VySWQiOiJ1c2VyMiJ9.uJA8jJKtRgv_D2uOB6-qOTpLAe5LiZkJXowraVWMfOU";
+    private String token = "PUT_YOUR_TOKEN_HERE";
 
     private EditText etTo;
     private TextView tvUserId;

@@ -29,6 +29,7 @@ import com.stringee.common.StringeeAudioManager;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.video.StringeeVideoTrack;
+import com.stringee.video.StringeeVideoTrack.MediaType;
 
 import org.json.JSONObject;
 
@@ -56,10 +57,6 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
     private boolean isSpeaker = false;
     private boolean isVideo = false;
     private boolean isPermissionGranted = true;
-    // For normal device has more than 3 cameras, 0 is back camera, 1 is front camera.
-    // Some device is different, must check camera id before select.
-    // When call starts, automatically use the front camera.
-    private int cameraId = 1;
 
     private MediaState mMediaState;
     private SignalingState mSignalingState;
@@ -292,6 +289,11 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
             public void onCallInfo(StringeeCall2 stringeeCall2, final JSONObject jsonObject) {
                 runOnUiThread(() -> Log.d(Common.TAG, "onCallInfo: " + jsonObject.toString()));
             }
+
+            @Override
+            public void onTrackMediaStateChange(String from, MediaType mediaType, boolean enable) {
+
+            }
         });
 
         stringeeCall2.makeCall();
@@ -330,7 +332,7 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                     stringeeCall2.switchCamera(new StatusListener() {
                         @Override
                         public void onSuccess() {
-                            cameraId = cameraId == 0 ? 1 : 0;
+
                         }
 
                         @Override
@@ -341,7 +343,7 @@ public class OutgoingCall2Activity extends AppCompatActivity implements View.OnC
                                 Utils.reportMessage(OutgoingCall2Activity.this, stringeeError.getMessage());
                             });
                         }
-                    }, cameraId == 0 ? 1 : 0);
+                    });
                 }
                 break;
         }
