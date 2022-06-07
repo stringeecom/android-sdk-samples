@@ -54,10 +54,6 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     private boolean isSpeaker = false;
     private boolean isVideo = false;
     private boolean isPermissionGranted = true;
-    // For normal device has more than 3 cameras, 0 is back camera, 1 is front camera.
-    // Some device is different, must check camera id before select.
-    // When call starts, automatically use the front camera.
-    private int cameraId = 1;
 
     private MediaState mMediaState;
     private SignalingState mSignalingState;
@@ -326,7 +322,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     vControl.setVisibility(View.VISIBLE);
                     vIncoming.setVisibility(View.GONE);
                     btnEnd.setVisibility(View.VISIBLE);
-                    btnSwitch.setVisibility(stringeeCall.isVideoCall()?View.VISIBLE: View.GONE);
+                    btnSwitch.setVisibility(stringeeCall.isVideoCall() ? View.VISIBLE : View.GONE);
                     stringeeCall.answer();
                 }
                 break;
@@ -348,7 +344,6 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     stringeeCall.switchCamera(new StatusListener() {
                         @Override
                         public void onSuccess() {
-                            cameraId = cameraId == 0 ? 1 : 0;
                         }
 
                         @Override
@@ -359,7 +354,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                                 Utils.reportMessage(IncomingCallActivity.this, stringeeError.getMessage());
                             });
                         }
-                    }, cameraId == 0 ? 1 : 0);
+                    });
                 }
                 break;
         }
