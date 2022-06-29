@@ -21,6 +21,7 @@ import com.stringee.StringeeClient;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
 import com.stringee.exception.StringeeError;
+import com.stringee.listener.StatusListener;
 import com.stringee.listener.StringeeConnectionListener;
 
 import org.json.JSONObject;
@@ -118,7 +119,12 @@ public class MainActivity extends AppCompatActivity implements LifecycleObserver
                 public void onIncomingCall2(StringeeCall2 stringeeCall2) {
                     runOnUiThread(() -> {
                         if (Common.isInCall) {
-                            stringeeCall2.reject();
+                            stringeeCall2.reject(new StatusListener() {
+                                @Override
+                                public void onSuccess() {
+
+                                }
+                            });
                         } else {
                             Common.callMap.put(stringeeCall2.getCallId(), stringeeCall2);
                             Intent intent = new Intent(MainActivity.this, IncomingCallActivity.class);

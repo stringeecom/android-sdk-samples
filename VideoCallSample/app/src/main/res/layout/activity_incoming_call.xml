@@ -22,8 +22,14 @@
         android:id="@+id/btn_switch"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:layout_margin="20dp"
-        android:background="@drawable/ic_switch" />
+        android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/ic_switch"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -74,7 +80,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="40dp"
-                android:background="@drawable/btn_video_off" />
+                android:background="@drawable/btn_video" />
 
             <ImageButton
                 android:id="@+id/btn_mute"
