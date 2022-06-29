@@ -289,7 +289,12 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
             }
         });
 
-        stringeeCall.makeCall();
+        stringeeCall.makeCall(new StatusListener() {
+            @Override
+            public void onSuccess() {
+
+            }
+        });
     }
 
     @Override
@@ -338,7 +343,12 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void endCall() {
-        stringeeCall.hangup();
+        stringeeCall.hangup(new StatusListener() {
+            @Override
+            public void onSuccess() {
+
+            }
+        });
         dismissLayout();
     }
 

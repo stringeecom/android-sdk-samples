@@ -183,10 +183,7 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         btnSpeaker.setBackgroundResource(isSpeaker ? R.drawable.btn_speaker_on : R.drawable.btn_speaker_off);
 
         isVideo = stringeeCall.isVideoCall();
-        btnVideo.setImageResource(isVideo ? R.drawable.btn_video : R.drawable.btn_video_off);
-
-        btnVideo.setVisibility(isVideo ? View.VISIBLE : View.GONE);
-        btnSwitch.setVisibility(isVideo ? View.VISIBLE : View.GONE);
+        btnVideo.setVisibility(isVideo ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void startRinging() {
@@ -334,7 +331,12 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
                     vIncoming.setVisibility(View.GONE);
                     btnEnd.setVisibility(View.VISIBLE);
                     btnSwitch.setVisibility(stringeeCall.isVideoCall() ? View.VISIBLE : View.GONE);
-                    stringeeCall.answer();
+                    stringeeCall.answer(new StatusListener() {
+                        @Override
+                        public void onSuccess() {
+
+                        }
+                    });
                 }
                 break;
             case R.id.btn_end:
@@ -370,9 +372,19 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         tvState.setText("Ended");
         if (stringeeCall != null) {
             if (isHangup) {
-                stringeeCall.hangup();
+                stringeeCall.hangup(new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+                });
             } else {
-                stringeeCall.reject();
+                stringeeCall.reject(new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+                });
             }
         }
         dismissLayout();
