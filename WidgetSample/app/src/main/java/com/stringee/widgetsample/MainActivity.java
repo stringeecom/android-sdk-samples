@@ -20,7 +20,7 @@ import com.stringee.widget.StringeeWidget;
 public class MainActivity extends AppCompatActivity {
 
     //put your access token here
-    private String accessToken = "YOUR_ACCESS_TOKEN";
+    public static String accessToken = "YOUR_ACCESS_TOKEN";
     private StringeeWidget stringeeWidget;
     private String to;
 
