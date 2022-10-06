@@ -40,6 +40,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AlertDialog.Builder;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -73,12 +74,15 @@ import com.stringee.chat.ui.kit.view.CusRelativeLayout;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.messaging.Conversation;
+import com.stringee.messaging.Conversation.ChannelType;
 import com.stringee.messaging.Message;
+import com.stringee.messaging.Message.MsgType;
 import com.stringee.messaging.User;
 import com.stringee.messaging.listeners.CallbackListener;
 import com.stringee.stringeechatuikit.BaseActivity;
 import com.stringee.stringeechatuikit.OutgoingCallActivity;
 import com.stringee.stringeechatuikit.R;
+import com.stringee.stringeechatuikit.R.id;
 import com.stringee.stringeechatuikit.common.CallBack;
 import com.stringee.stringeechatuikit.common.Common;
 import com.stringee.stringeechatuikit.common.DataHandler;
@@ -152,14 +156,14 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
 
-        prLoading = view.findViewById(R.id.prLoading);
+        prLoading = view.findViewById(id.prLoading);
 
-        tvNoMessage = view.findViewById(R.id.tv_no_message);
+        tvNoMessage = view.findViewById(id.tv_no_message);
 
-        attachButton = view.findViewById(R.id.attachButton);
-        messageEditText = view.findViewById(R.id.messageEditText);
+        attachButton = view.findViewById(id.attachButton);
+        messageEditText = view.findViewById(id.messageEditText);
 
-        messagesRecyclerView = view.findViewById(R.id.messagesRecyclerView);
+        messagesRecyclerView = view.findViewById(id.messagesRecyclerView);
         linearLayoutManager = new androidx.recyclerview.widget.LinearLayoutManager(getActivity());
         messagesRecyclerView.setLayoutManager(linearLayoutManager);
         messagesRecyclerView.setHasFixedSize(true);
@@ -198,7 +202,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                     long seq = 0;
                     for (int i = 0; i < messages.size(); i++) {
                         Message message = messages.get(i);
-                        if (message.getType() == Message.TYPE_TEMP_DATE) {
+                        if (message.getType() == com.stringee.messaging.Message.Type.TEMP_DATE) {
                             continue;
                         } else {
                             seq = message.getSequence();
@@ -223,7 +227,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                                     if (lstMessages.size() > 0) {
                                         addTempDate(lstMessages, false);
                                         for (int i = 0; i < messages.size(); i++) {
-                                            if (messages.get(0).getType() == Message.TYPE_TEMP_DATE) {
+                                            if (messages.get(0).getType() == Message.Type.TEMP_DATE) {
                                                 messages.remove(0);
                                             } else {
                                                 break;
@@ -231,7 +235,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                                         }
                                         long dayDiff = Utils.daysBetween(new Date(lstMessages.get(lstMessages.size() - 1).getCreatedAt()), new Date(messages.get(0).getCreatedAt()));
                                         if (dayDiff >= 1) {
-                                            Message tempMessage = new Message(Message.TYPE_TEMP_DATE);
+                                            Message tempMessage = new Message(Message.Type.TEMP_DATE);
                                             tempMessage.setCreatedAt(messages.get(0).getCreatedAt());
                                             lstMessages.add(tempMessage);
                                         }
@@ -248,10 +252,10 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             }
         });
 
-        stickersRecyclerView = view.findViewById(R.id.stickersRecyclerView);
+        stickersRecyclerView = view.findViewById(id.stickersRecyclerView);
         androidx.recyclerview.widget.LinearLayoutManager layoutManager = new androidx.recyclerview.widget.LinearLayoutManager(getActivity(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false);
         stickersRecyclerView.setLayoutManager(layoutManager);
-        stickersGridView = view.findViewById(R.id.stickersGridView);
+        stickersGridView = view.findViewById(id.stickersGridView);
         stickersGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -260,10 +264,10 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             }
         });
 
-        stickersListView = view.findViewById(R.id.stickersListView);
+        stickersListView = view.findViewById(id.stickersListView);
 
-        rootView = view.findViewById(R.id.rootView);
-        keyboardWidget = view.findViewById(R.id.drawer);
+        rootView = view.findViewById(id.rootView);
+        keyboardWidget = view.findViewById(id.drawer);
         keyboardController = new CusKeyboardController((BaseActivity) getActivity(), rootView,
                 keyboardWidget, this, this);
 
@@ -328,7 +332,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
 
             if (messages.size() > 0) {
                 Message lstMessage = messages.get(messages.size() - 1);
-                if (lstMessage != null && lstMessage.getMsgType() == Message.MESSAGE_TYPE_RECEIVE && lstMessage.getState().getValue() < Message.State.READ.getValue()) {
+                if (lstMessage != null && lstMessage.getMsgType() == MsgType.RECEIVE && lstMessage.getState().getValue() < Message.State.READ.getValue()) {
                     lstMessage.markAsRead(Common.client, new StatusListener() {
                         @Override
                         public void onSuccess() {
@@ -344,49 +348,90 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         if (conversation.isGroup()) {
-            menu.findItem(R.id.menu_voice_call).setVisible(false);
-            menu.findItem(R.id.menu_video_call).setVisible(false);
+            menu.findItem(id.menu_voice_call).setVisible(false);
+            menu.findItem(id.menu_video_call).setVisible(false);
         } else {
-            menu.findItem(R.id.menu_voice_call).setVisible(true);
-            menu.findItem(R.id.menu_video_call).setVisible(true);
+            menu.findItem(id.menu_voice_call).setVisible(true);
+            menu.findItem(id.menu_video_call).setVisible(true);
         }
-        menu.findItem(R.id.menu_info).setVisible(true);
+        menu.findItem(id.menu_info).setVisible(conversation.getChannelType() == ChannelType.NORMAL);
+        menu.findItem(id.menu_end_chat).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
+//        menu.findItem(id.menu_rate).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
+        menu.findItem(id.menu_email_chat_transcript).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
+//        menu.findItem(id.menu_edit_info).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_voice_call:
-                if (!conversation.isGroup()) {
-                    String callee = getCallee();
-                    if (callee.length() > 0) {
-                        Intent intent = new Intent(getActivity(), OutgoingCallActivity.class);
-                        intent.putExtra("from", PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""));
-                        intent.putExtra("to", callee);
-                        intent.putExtra("is_video_call", false);
-                        startActivity(intent);
-                    }
+        int itemId = item.getItemId();
+        if (itemId == id.menu_voice_call) {
+            if (!conversation.isGroup()) {
+                String callee = getCallee();
+                if (callee.length() > 0) {
+                    Intent intent = new Intent(getActivity(), OutgoingCallActivity.class);
+                    intent.putExtra("from", PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""));
+                    intent.putExtra("to", callee);
+                    intent.putExtra("is_video_call", false);
+                    startActivity(intent);
                 }
-                break;
-            case R.id.menu_video_call:
-                if (!conversation.isGroup()) {
-                    String callee = getCallee();
-                    if (callee.length() > 0) {
-                        Intent intent = new Intent(getActivity(), OutgoingCallActivity.class);
-                        intent.putExtra("from", PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""));
-                        intent.putExtra("to", callee);
-                        intent.putExtra("is_video_call", true);
-                        startActivity(intent);
-                    }
+            }
+        } else if (itemId == id.menu_video_call) {
+            if (!conversation.isGroup()) {
+                String callee = getCallee();
+                if (callee.length() > 0) {
+                    Intent intent = new Intent(getActivity(), OutgoingCallActivity.class);
+                    intent.putExtra("from", PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""));
+                    intent.putExtra("to", callee);
+                    intent.putExtra("is_video_call", true);
+                    startActivity(intent);
                 }
-                break;
-            case R.id.menu_info:
-                Intent intent = new Intent(getActivity(), ConversationInfoActivity.class);
-                intent.putExtra("conversation", conversation);
-                startActivity(intent);
-                break;
+            }
+        } else if (itemId == id.menu_info) {
+            Intent intent = new Intent(getActivity(), ConversationInfoActivity.class);
+            intent.putExtra("conversation", conversation);
+            startActivity(intent);
+        } else if (itemId == id.menu_end_chat) {
+            endChat();
+        } else if (itemId == id.menu_rate) {
+            RateChatFragment fragment = new RateChatFragment(conversation);
+            FragmentTransaction fragmentTransaction = getParentFragmentManager().beginTransaction();
+            Fragment prev = getParentFragmentManager().findFragmentByTag("RateChatFragment");
+            if (prev != null) {
+                fragmentTransaction.remove(prev);
+            }
+            fragmentTransaction.addToBackStack(null);
+            fragment.show(fragmentTransaction, "RateChatFragment");
+        } else if (itemId == id.menu_email_chat_transcript) {
+            EmailChatTranscriptFragment fragment = new EmailChatTranscriptFragment(conversation);
+            FragmentTransaction fragmentTransaction = getParentFragmentManager().beginTransaction();
+            Fragment prev = getParentFragmentManager().findFragmentByTag("EmailChatTranscriptFragment");
+            if (prev != null) {
+                fragmentTransaction.remove(prev);
+            }
+            fragmentTransaction.addToBackStack(null);
+            fragment.show(fragmentTransaction, "EmailChatTranscriptFragment");
+        } else if (itemId == id.menu_edit_info) {
+            EditInfoFragment fragment = new EditInfoFragment();
+            FragmentTransaction fragmentTransaction = getParentFragmentManager().beginTransaction();
+            Fragment prev = getParentFragmentManager().findFragmentByTag("EditInfoFragment");
+            if (prev != null) {
+                fragmentTransaction.remove(prev);
+            }
+            fragmentTransaction.addToBackStack(null);
+            fragment.show(fragmentTransaction, "EditInfoFragment");
         }
         return false;
+    }
+
+    public void endChat() {
+        if (conversation.getChannelType() != ChannelType.NORMAL) {
+            conversation.endChat(Common.client, new StatusListener() {
+                @Override
+                public void onSuccess() {
+
+                }
+            });
+        }
     }
 
     private String getCallee() {
@@ -665,7 +710,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
 
     private void merge(List<Message> lstMessages) {
         for (int i = messages.size() - 1; i >= 0; i--) {
-            if (messages.get(i).getType() == Message.TYPE_TEMP_DATE) {
+            if (messages.get(i).getType() == Message.Type.TEMP_DATE) {
                 messages.remove(i);
             }
         }
@@ -725,21 +770,21 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         for (int i = messageList.size() - 1; i > 0; i--) {
             Message message1 = messageList.get(i);
             Message message2 = messageList.get(i - 1);
-            if (message1.getType() == Message.TYPE_TEMP_DATE || message2.getType() == Message.TYPE_TEMP_DATE) {
+            if (message1.getType() == Message.Type.TEMP_DATE || message2.getType() == Message.Type.TEMP_DATE) {
                 continue;
             }
 
             long dayDifference = Utils.daysBetween(new Date(message2.getCreatedAt()), new Date(message1.getCreatedAt()));
             if (dayDifference >= 1) {
-                Message tempMessage = new Message(Message.TYPE_TEMP_DATE);
+                Message tempMessage = new Message(Message.Type.TEMP_DATE);
                 tempMessage.setCreatedAt(message1.getCreatedAt());
                 messageList.add(i, tempMessage);
             }
         }
 
         if (isTop || isLocal) {
-            if (messageList.get(0).getType() != Message.TYPE_TEMP_DATE) {
-                Message firstTempMessage = new Message(Message.TYPE_TEMP_DATE);
+            if (messageList.get(0).getType() != Message.Type.TEMP_DATE) {
+                Message firstTempMessage = new Message(Message.Type.TEMP_DATE);
                 firstTempMessage.setCreatedAt(messageList.get(0).getCreatedAt());
                 messageList.add(0, firstTempMessage);
             }
@@ -757,7 +802,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         messages.add(message);
         adapter.notifyDataSetChanged();
         messagesRecyclerView.scrollToPosition(messages.size() - 1);
-        if (Common.isChatting && Common.currentConvId != null && Common.currentConvId.equals(message.getConversationId()) && message.getMsgType() == Message.MESSAGE_TYPE_RECEIVE) {
+        if (Common.isChatting && Common.currentConvId != null && Common.currentConvId.equals(message.getConversationId()) && message.getMsgType() == Message.MsgType.RECEIVE) {
             message.markAsRead(Common.client, new StatusListener() {
                 @Override
                 public void onSuccess() {
@@ -779,12 +824,12 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             public void run() {
                 for (int i = messages.size() - 1; i >= 0; i--) {
                     Message message1 = messages.get(i);
-                    if (message1.getLocalId() != null && message.getLocalId() != null && message.getMsgType() == Message.MESSAGE_TYPE_SEND && message1.getLocalId().equals(message.getLocalId())) {
+                    if (message1.getLocalId() != null && message.getLocalId() != null && message.getMsgType() == Message.MsgType.SEND && message1.getLocalId().equals(message.getLocalId())) {
                         messages.set(i, message);
                     }
 
                     // Update messages state
-                    if (message1.getMsgType() == Message.MESSAGE_TYPE_SEND && message.getSequence() >= message1.getSequence()) {
+                    if (message1.getMsgType() == Message.MsgType.SEND && message.getSequence() >= message1.getSequence()) {
                         // Not sent messages, skip
                         if (message1.getSequence() == 0) {
                             String localId1 = message1.getLocalId();
@@ -814,7 +859,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     }
 
     public void sendLocation(double latitude, double longitude) {
-        Message message = new Message(Message.TYPE_LOCATION);
+        Message message = new Message(Message.Type.LOCATION);
         message.setLatitude(latitude);
         message.setLongitude(longitude);
         conversation.sendMessage(Common.client, message, new StatusListener() {
@@ -827,7 +872,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
 
     public void sendContact(Contact contact) {
         String vCardStr = FileUtils.vCard(contact, getActivity());
-        Message message = new Message(Message.TYPE_CONTACT);
+        Message message = new Message(Message.Type.CONTACT);
         message.setContact(vCardStr);
         conversation.sendMessage(Common.client, message, new StatusListener() {
             @Override
@@ -838,7 +883,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     }
 
     public void sendPhoto(String filePath) {
-        Message message = new Message(Message.TYPE_PHOTO);
+        Message message = new Message(Message.Type.PHOTO);
         message.setFilePath(filePath);
         conversation.sendMessage(Common.client, message, new StatusListener() {
             @Override
@@ -854,7 +899,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         mmr.setDataSource(getActivity(), uri);
         String durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
         int millSecond = Integer.parseInt(durationStr);
-        Message message = new Message(Message.TYPE_AUDIO);
+        Message message = new Message(Message.Type.AUDIO);
         message.setFilePath(filePath);
         message.setDuration(millSecond);
         conversation.sendMessage(Common.client, message, new StatusListener() {
@@ -866,7 +911,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     }
 
     public void sendVideo(File mediaFile) {
-        Message message = new Message(Message.TYPE_VIDEO);
+        Message message = new Message(Message.Type.VIDEO);
         message.setFilePath(mediaFile.getAbsolutePath());
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(getActivity(), Uri.fromFile(mediaFile));
@@ -882,7 +927,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     }
 
     public void sendFile(String filePath) {
-        Message message = new Message(Message.TYPE_FILE);
+        Message message = new Message(Message.Type.FILE);
         message.setFilePath(filePath);
         conversation.sendMessage(Common.client, message, new StatusListener() {
             @Override
@@ -893,7 +938,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     }
 
     public void sendSticker(String category, String name) {
-        Message message = new Message(Message.TYPE_STICKER);
+        Message message = new Message(Message.Type.STICKER);
         message.setStickerCategory(category);
         message.setStickerName(name);
         conversation.sendMessage(Common.client, message, new StatusListener() {
@@ -911,7 +956,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         Message lastMsg = null;
         for (int i = lstMessages.size() - 1; i >= 0; i--) {
             Message message = messages.get(i);
-            if (message.getMsgType() == Message.MESSAGE_TYPE_RECEIVE) {
+            if (message.getMsgType() == Message.MsgType.RECEIVE) {
                 lastMsg = message;
                 break;
             }
@@ -935,7 +980,6 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         MediaAdapter adapter = new MediaAdapter(getActivity(), this, getAllItem());
         r.setAdapter(adapter);
     }
-
 
     private ArrayList<Image> getAllShownImages(Activity activity) {
         Uri uri;
@@ -1013,7 +1057,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
 
     private void revealShow(View dialogView, boolean b, final Dialog dialog) {
 
-        final View view = dialogView.findViewById(R.id.dialog);
+        final View view = dialogView.findViewById(id.dialog);
 
         int w = view.getWidth();
         int h = view.getHeight();
@@ -1091,99 +1135,99 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
 
     @Override
     public void onButtonVoiceClick() {
-        ((ConversationActivity) getActivity()).processAudioAction((ConversationActivity) getActivity());
+//        ((ConversationActivity) getActivity()).processAudioAction((ConversationActivity) getActivity());
     }
 
     @Override
     public void onButtonAttachClick() {
-        ((ConversationActivity) getActivity()).hideKeyboard(attachButton);
-        if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission(getActivity())) {
-            PermissionsUtils.requestPermissions(getActivity(), PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
-        } else {
-            final View dialogView = View.inflate(getContext(), R.layout.popup_window, null);
-
-            dialog = new Dialog(getContext());
-            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-            dialog.setContentView(dialogView);
-
-            GridView gridView = dialog.findViewById(R.id.attachGrid);
-
-            androidx.recyclerview.widget.RecyclerView listimage = dialog.findViewById(R.id.imageRecyclerView);
-            androidx.recyclerview.widget.LinearLayoutManager layoutManager = new androidx.recyclerview.widget.LinearLayoutManager(this.getContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false);
-            listimage.setLayoutManager(layoutManager);
-
-            prepareAttachmentData(gridView, listimage);
-            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
-                    ((ConversationActivity) getActivity()).setAttachType(i);
-                    switch (i) {
-                        case 0:
-                            ((ConversationActivity) getActivity()).processCameraAction(getActivity());
-                            dialog.dismiss();
-                            break;
-                        case 1:
-                            ((ConversationActivity) getActivity()).processGalleryAction(getActivity());
-                            dialog.dismiss();
-                            break;
-                        case 2:
-                            ((ConversationActivity) getActivity()).processVideoAction(getActivity());
-                            dialog.dismiss();
-                            break;
-                        case 3:
-                            ((ConversationActivity) getActivity()).processAudioAction((ConversationActivity) getActivity());
-                            dialog.dismiss();
-                            break;
-                        case 4:
-                            ((ConversationActivity) getActivity()).processFileAction(getActivity());
-                            dialog.dismiss();
-                            break;
-                        case 5:
-                            ((ConversationActivity) getActivity()).processContactAction(getActivity());
-                            dialog.dismiss();
-                            break;
-                        case 6:
-                            Intent intent = new Intent(getActivity(), StringeeLocationActivity.class);
-                            getActivity().startActivityForResult(intent, ConversationActivity.REQUEST_CODE_LOCATION);
-                            dialog.dismiss();
-                            break;
-                        case 7:
-                            revealShow(dialogView, false, dialog);
-                            break;
-                    }
-                }
-            });
-
-            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                @Override
-                public void onShow(DialogInterface dialog) {
-                    revealShow(dialogView, true, null);
-                }
-            });
-            dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-                @Override
-                public boolean onKey(DialogInterface d, int i, KeyEvent event) {
-                    if (i == KeyEvent.KEYCODE_BACK) {
-
-                        revealShow(dialogView, false, dialog);
-                        return true;
-                    }
-
-                    return false;
-                }
-            });
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
-            dialog.getWindow().setGravity(Gravity.BOTTOM);
-            dialog.show();
-        }
+//        ((ConversationActivity) getActivity()).hideKeyboard(attachButton);
+//        if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission(getActivity())) {
+//            PermissionsUtils.requestPermissions(getActivity(), PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
+//        } else {
+//            final View dialogView = View.inflate(getContext(), R.layout.popup_window, null);
+//
+//            dialog = new Dialog(getContext());
+//            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//            dialog.setContentView(dialogView);
+//
+//            GridView gridView = dialog.findViewById(id.attachGrid);
+//
+//            androidx.recyclerview.widget.RecyclerView listimage = dialog.findViewById(id.imageRecyclerView);
+//            androidx.recyclerview.widget.LinearLayoutManager layoutManager = new androidx.recyclerview.widget.LinearLayoutManager(this.getContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false);
+//            listimage.setLayoutManager(layoutManager);
+//
+//            prepareAttachmentData(gridView, listimage);
+//            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//                @Override
+//                public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
+//                    ((ConversationActivity) getActivity()).setAttachType(i);
+//                    switch (i) {
+//                        case 0:
+//                            ((ConversationActivity) getActivity()).processCameraAction(getActivity());
+//                            dialog.dismiss();
+//                            break;
+//                        case 1:
+//                            ((ConversationActivity) getActivity()).processGalleryAction(getActivity());
+//                            dialog.dismiss();
+//                            break;
+//                        case 2:
+//                            ((ConversationActivity) getActivity()).processVideoAction(getActivity());
+//                            dialog.dismiss();
+//                            break;
+//                        case 3:
+//                            ((ConversationActivity) getActivity()).processAudioAction((ConversationActivity) getActivity());
+//                            dialog.dismiss();
+//                            break;
+//                        case 4:
+//                            ((ConversationActivity) getActivity()).processFileAction(getActivity());
+//                            dialog.dismiss();
+//                            break;
+//                        case 5:
+//                            ((ConversationActivity) getActivity()).processContactAction(getActivity());
+//                            dialog.dismiss();
+//                            break;
+//                        case 6:
+//                            Intent intent = new Intent(getActivity(), StringeeLocationActivity.class);
+//                            getActivity().startActivityForResult(intent, ConversationActivity.REQUEST_CODE_LOCATION);
+//                            dialog.dismiss();
+//                            break;
+//                        case 7:
+//                            revealShow(dialogView, false, dialog);
+//                            break;
+//                    }
+//                }
+//            });
+//
+//            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+//                @Override
+//                public void onShow(DialogInterface dialog) {
+//                    revealShow(dialogView, true, null);
+//                }
+//            });
+//            dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+//                @Override
+//                public boolean onKey(DialogInterface d, int i, KeyEvent event) {
+//                    if (i == KeyEvent.KEYCODE_BACK) {
+//
+//                        revealShow(dialogView, false, dialog);
+//                        return true;
+//                    }
+//
+//                    return false;
+//                }
+//            });
+//            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+//            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+//            dialog.getWindow().setGravity(Gravity.BOTTOM);
+//            dialog.show();
+//        }
     }
 
     @Override
     public void onButtonStickerClick(boolean isShow) {
-        if (isShow && !isScrolledDown) {
-            scrollToBottom();
-        }
+//        if (isShow && !isScrolledDown) {
+//            scrollToBottom();
+//        }
     }
 
     public void onKeyboardShown() {

@@ -54,6 +54,8 @@ import com.stringee.chat.ui.kit.contact.STContactParser;
 import com.stringee.listener.StatusListener;
 import com.stringee.messaging.Conversation;
 import com.stringee.messaging.Message;
+import com.stringee.messaging.Message.MsgType;
+import com.stringee.messaging.Message.Type;
 import com.stringee.stringeechatuikit.R;
 import com.stringee.stringeechatuikit.common.Common;
 import com.stringee.stringeechatuikit.common.Utils;
@@ -148,18 +150,20 @@ public class MessageAdapter extends Adapter {
         if (itemViewType == 2) {
             MessageHolder2 messageHolder = (MessageHolder2) holder;
             String text = "";
-            if (message.getType() == Message.TYPE_CREATE_CONVERSATION) {
-                String creator = Utils.getCreator(message.getSenderId(), message.getConversationId());
-                if (creator.trim().length() == 0) {
-                    creator = conversation.getCreator();
+            if (message.getType() == Message.Type.CREATE_CONVERSATION) {
+                String creator = message.getSenderName();
+                if (Utils.isStringEmpty(creator)) {
+                    creator = message.getSenderId();
                 }
                 if (conversation.isGroup()) {
                     text = mContext.getString(R.string.create_conversation, creator);
                 } else {
                     text = mContext.getString(R.string.create_chat, creator);
                 }
-            } else if (message.getType() == Message.TYPE_NOTIFICATION) {
-                text = Utils.getMsgNotification(mContext, message);
+            } else if (message.getType() == Message.Type.NOTIFICATION) {
+                text = Utils.getNotificationText(mContext,conversation, message.getText());
+            }else if (message.getType() == Type.RATING) {
+                text = Utils.getRatingText(mContext, conversation, message);
             }
 
             messageHolder.customMessageTextView.setText(text);
@@ -204,11 +208,11 @@ public class MessageAdapter extends Adapter {
             }
             messageHolder.timeTextView.setText(Utils.getFormattedDate(message.getCreatedAt()));
             String text = message.getText();
-            int type = message.getType();
-            int msgType = message.getMsgType();
+            Type type = message.getType();
+            MsgType msgType = message.getMsgType();
 
             switch (type) {
-                case Message.TYPE_TEXT:
+                case TEXT:
                     messageHolder.messageTextView.setVisibility(View.VISIBLE);
                     messageHolder.chatLocationLayout.setVisibility(View.GONE);
                     messageHolder.mainContactShareLayout.setVisibility(View.GONE);
@@ -219,7 +223,7 @@ public class MessageAdapter extends Adapter {
                         messageHolder.messageLayout.setVisibility(View.VISIBLE);
                     }
                     break;
-                case Message.TYPE_LOCATION:
+                case LOCATION:
                     messageHolder.messageTextView.setVisibility(View.GONE);
                     if (conversation.isGroup()) {
                         messageHolder.chatLocationLayout.setLayoutParams(new RelativeLayout.LayoutParams((int) (0.6 * screenWidth), (int) (0.25 * screenHeight)));
@@ -258,7 +262,7 @@ public class MessageAdapter extends Adapter {
                         }
                     });
                     break;
-                case Message.TYPE_CONTACT:
+                case CONTACT:
                     messageHolder.messageTextView.setVisibility(View.GONE);
                     messageHolder.chatLocationLayout.setVisibility(View.GONE);
                     messageHolder.mainContactShareLayout.setVisibility(View.VISIBLE);
@@ -271,7 +275,7 @@ public class MessageAdapter extends Adapter {
 
                     setupContactShareView(message, messageHolder);
                     break;
-                case Message.TYPE_PHOTO:
+                case PHOTO:
                     messageHolder.messageTextView.setVisibility(View.GONE);
                     messageHolder.chatLocationLayout.setVisibility(View.GONE);
                     messageHolder.mainContactShareLayout.setVisibility(View.GONE);
@@ -321,7 +325,7 @@ public class MessageAdapter extends Adapter {
                     });
                     break;
 
-                case Message.TYPE_VIDEO:
+                case VIDEO:
                     messageHolder.messageTextView.setVisibility(View.GONE);
                     messageHolder.chatLocationLayout.setVisibility(View.GONE);
                     messageHolder.mainContactShareLayout.setVisibility(View.GONE);
@@ -409,7 +413,7 @@ public class MessageAdapter extends Adapter {
                         }
                     });
                     break;
-                case Message.TYPE_AUDIO:
+                case AUDIO:
                     messageHolder.messageTextView.setVisibility(View.GONE);
                     messageHolder.chatLocationLayout.setVisibility(View.GONE);
                     messageHolder.mainContactShareLayout.setVisibility(View.GONE);
@@ -421,7 +425,7 @@ public class MessageAdapter extends Adapter {
                     }
                     messageHolder.audioSeekBar.setVisibility(View.VISIBLE);
                     messageHolder.audioTimeTextView.setVisibility(View.VISIBLE);
-                    if (msgType == Message.MESSAGE_TYPE_SEND) {
+                    if (msgType == Message.MsgType.SEND) {
                         messageHolder.audioSeekBar.getProgressDrawable().setColorFilter(ContextCompat.getColor(mContext, R.color.stringee_time_sent), PorterDuff.Mode.MULTIPLY);
                         messageHolder.audioSeekBar.getThumb().setTint(ContextCompat.getColor(mContext, R.color.stringee_time_sent));
 //                        messageHolder.audioTimeTextView.setTextColor(ContextCompat.getColor(mContext, R.color.stringee_time_sent));
@@ -446,7 +450,7 @@ public class MessageAdapter extends Adapter {
                         messageHolder.playImageView.setVisibility(View.VISIBLE);
                     }
 
-                    if (msgType == Message.MESSAGE_TYPE_SEND) {
+                    if (msgType == Message.MsgType.SEND) {
                         messageHolder.durationTextView.setTextColor(ContextCompat.getColor(mContext, R.color.stringee_time_sent));
                         messageHolder.playImageView.setColorFilter(ContextCompat.getColor(mContext, R.color.stringee_time_sent));
                         messageHolder.downloadImageView.setColorFilter(ContextCompat.getColor(mContext, R.color.stringee_time_sent));
@@ -489,7 +493,7 @@ public class MessageAdapter extends Adapter {
                         }
                     });
                     break;
-                case Message.TYPE_FILE:
+                case FILE:
                     messageHolder.messageTextView.setVisibility(View.GONE);
                     messageHolder.chatLocationLayout.setVisibility(View.GONE);
                     messageHolder.mainContactShareLayout.setVisibility(View.GONE);
@@ -506,7 +510,7 @@ public class MessageAdapter extends Adapter {
 
                     messageHolder.fileTimeTextView.setText(Utils.getFormattedDate(message.getCreatedAt()));
 
-                    if (msgType == Message.MESSAGE_TYPE_SEND) {
+                    if (msgType == Message.MsgType.SEND) {
                         messageHolder.downloadImageView.setColorFilter(ContextCompat.getColor(mContext, R.color.stringee_time_sent));
                     } else {
                         messageHolder.downloadImageView.setColorFilter(ContextCompat.getColor(mContext, R.color.stringee_receive_text));
@@ -579,7 +583,7 @@ public class MessageAdapter extends Adapter {
 
                     break;
 
-                case Message.TYPE_STICKER:
+                case STICKER:
                     messageHolder.messageTextView.setVisibility(View.GONE);
                     messageHolder.chatLocationLayout.setVisibility(View.GONE);
                     messageHolder.mainContactShareLayout.setVisibility(View.GONE);
@@ -626,9 +630,9 @@ public class MessageAdapter extends Adapter {
                     break;
             }
 
-            if (message.getMsgType() == Message.MESSAGE_TYPE_SEND) {
+            if (message.getMsgType() == Message.MsgType.SEND) {
                 Drawable statusIcon;
-                if (type == Message.TYPE_PHOTO || type == Message.TYPE_LOCATION || type == Message.TYPE_VIDEO || type == Message.TYPE_STICKER) {
+                if (type == Message.Type.PHOTO || type == Message.Type.LOCATION || type == Message.Type.VIDEO || type == Message.Type.STICKER) {
                     statusIcon = pendingIcon;
                     if (message.getState() == Message.State.SENT) {
                         statusIcon = sentIcon;
@@ -648,35 +652,35 @@ public class MessageAdapter extends Adapter {
                     }
                 }
 
-                if (type == Message.TYPE_AUDIO) {
+                if (type == Message.Type.AUDIO) {
                     messageHolder.mediaLayout.setBackgroundResource(R.drawable.stringee_sent_message);
                     messageHolder.audioTimeTextView.setCompoundDrawablesWithIntrinsicBounds(null, null, statusIcon, null);
                 }
-                if (type == Message.TYPE_FILE) {
+                if (type == Message.Type.FILE) {
                     messageHolder.mediaLayout.setBackgroundResource(R.drawable.stringee_sent_message);
                     messageHolder.fileTimeTextView.setCompoundDrawablesWithIntrinsicBounds(null, null, statusIcon, null);
                 }
-                if (type == Message.TYPE_CONTACT) {
+                if (type == Message.Type.CONTACT) {
                     messageHolder.mediaLayout.setBackgroundResource(R.drawable.stringee_sent_message);
                     messageHolder.contactTimeTextView.setCompoundDrawablesWithIntrinsicBounds(null, null, statusIcon, null);
                 }
-                if (type == Message.TYPE_LOCATION) {
+                if (type == Message.Type.LOCATION) {
                     messageHolder.mediaLayout.setBackgroundResource(R.drawable.stringee_sent_message);
                     messageHolder.locationTimeTextView.setCompoundDrawablesWithIntrinsicBounds(null, null, statusIcon, null);
                 }
-                if (type == Message.TYPE_TEXT) {
+                if (type == Message.Type.TEXT) {
                     messageHolder.timeTextView.setCompoundDrawablesWithIntrinsicBounds(null, null, statusIcon, null);
                 }
-                if (type == Message.TYPE_PHOTO || type == Message.TYPE_VIDEO) {
+                if (type == Message.Type.PHOTO || type == Message.Type.VIDEO) {
                     messageHolder.mediaLayout.setBackgroundResource(R.drawable.stringee_sent_message);
                     messageHolder.previewTimeTextView.setCompoundDrawablesWithIntrinsicBounds(null, null, statusIcon, null);
                 }
-                if (type == Message.TYPE_STICKER) {
+                if (type == Message.Type.STICKER) {
                     messageHolder.mediaLayout.setBackgroundResource(R.color.stringee_transparent_color);
                     messageHolder.previewTimeTextView.setCompoundDrawablesWithIntrinsicBounds(null, null, statusIcon, null);
                 }
             } else {
-                if (type == Message.TYPE_STICKER) {
+                if (type == Message.Type.STICKER) {
                     messageHolder.mediaLayout.setBackgroundResource(R.color.stringee_transparent_color);
                 } else {
                     messageHolder.mediaLayout.setBackgroundResource(R.drawable.stringee_received_message);
@@ -708,17 +712,17 @@ public class MessageAdapter extends Adapter {
     @Override
     public int getItemViewType(int position) {
         Message message = getItem(position);
-        int type = message.getType();
-        int msgType = message.getMsgType();
-        if (type == Message.TYPE_CREATE_CONVERSATION || type == Message.TYPE_NOTIFICATION) {
+        Type type = message.getType();
+        MsgType msgType = message.getMsgType();
+        if (type == Message.Type.CREATE_CONVERSATION || type == Message.Type.NOTIFICATION || type == Type.RATING) {
             return 2;
-        } else if (type == Message.TYPE_TEMP_DATE) {
+        } else if (type == Message.Type.TEMP_DATE) {
             return 3;
         }
-        if (msgType == Message.MESSAGE_TYPE_SEND) {
+        if (msgType == Message.MsgType.SEND) {
             return 0;
         }
-        if (msgType == Message.MESSAGE_TYPE_RECEIVE) {
+        if (msgType == Message.MsgType.RECEIVE) {
             return 1;
         }
         return 0;
@@ -962,7 +966,7 @@ public class MessageAdapter extends Adapter {
         }
         MediaPlayerManager.getInstance(mContext).play(uri, message, messageHolder.playImageView, messageHolder.audioSeekBar, messageHolder.durationTextView);
         String key = message.getLocalId();
-        if (message.getMsgType() == Message.MESSAGE_TYPE_RECEIVE) {
+        if (message.getMsgType() == Message.MsgType.RECEIVE) {
             key = message.getId();
         }
         int state = MediaPlayerManager.getInstance(mContext).getAudioState(key);
@@ -978,7 +982,7 @@ public class MessageAdapter extends Adapter {
 
     private void updateApplozicSeekBar(final Message message, final MessageHolder messageHolder) {
         String key = message.getLocalId();
-        if (message.getMsgType() == Message.MESSAGE_TYPE_RECEIVE) {
+        if (message.getMsgType() == Message.MsgType.RECEIVE) {
             key = message.getId();
         }
         MediaPlayer mediaplayer = MediaPlayerManager.getInstance(mContext).getMediaPlayer(key);

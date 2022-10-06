@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -19,28 +20,32 @@ import com.stringee.chat.ui.kit.notification.NotificationService;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.listener.StringeeConnectionListener;
+import com.stringee.messaging.ChatRequest;
+import com.stringee.messaging.ChatRequest.State;
 import com.stringee.messaging.Conversation;
 import com.stringee.messaging.Message;
 import com.stringee.messaging.StringeeChange;
 import com.stringee.messaging.StringeeObject;
 import com.stringee.messaging.User;
 import com.stringee.messaging.listeners.CallbackListener;
-import com.stringee.messaging.listeners.ChangeEventListenter;
+import com.stringee.messaging.listeners.ChangeEventListener;
+import com.stringee.messaging.listeners.LiveChatEventListener;
 import com.stringee.stringeechatuikit.common.Common;
 import com.stringee.stringeechatuikit.common.Constant;
 import com.stringee.stringeechatuikit.common.PrefUtils;
+import com.stringee.stringeechatuikit.common.Utils;
 
 import org.json.JSONObject;
 
 public class BaseActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ProgressDialog prLoading;
-    private final String accessToken = "PUSH_YOUR_TOKEN_HERE";
+    public final String accessToken = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initAndConnectStringee(this, accessToken);
+        initAndConnectStringee(accessToken);
     }
 
     public void showProgress(String text) {
@@ -60,9 +65,9 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    public static void initAndConnectStringee(final BaseActivity context, String token) {
+    public void initAndConnectStringee(String token) {
         if (Common.client == null) {
-            Common.client = new StringeeClient(context);
+            Common.client = new StringeeClient(this);
             Common.client.setConnectionListener(new StringeeConnectionListener() {
                 @Override
                 public void onConnectionConnected(final StringeeClient client, boolean isReconnecting) {
@@ -93,20 +98,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                 });
                     }
-                    androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(Notify.CONNECTION_CONNECTED.getValue()));
-
-                    Log.d("Stringee", "Vao day ko");
-                    Common.client.getConversation("conv-vn-1-W99OTROUB7-1583768494257", new CallbackListener<Conversation>() {
-                        @Override
-                        public void onSuccess(Conversation conversation) {
-                            Log.d("Stringee", "onSuccess");
-                        }
-
-                        @Override
-                        public void onError(StringeeError error) {
-                            Log.d("Stringee", error.getMessage());
-                        }
-                    });
+                    LocalBroadcastManager.getInstance(BaseActivity.this).sendBroadcast(new Intent(Notify.CONNECTION_CONNECTED.getValue()));
                 }
 
                 @Override
@@ -118,9 +110,9 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 public void onIncomingCall(StringeeCall stringeeCall) {
                     String callId = stringeeCall.getCallId();
                     Common.callsMap.put(callId, stringeeCall);
-                    Intent intent = new Intent(context, IncomingCallActivity.class);
+                    Intent intent = new Intent(BaseActivity.this, IncomingCallActivity.class);
                     intent.putExtra("call_id", callId);
-                    context.startActivity(intent);
+                    startActivity(intent);
                 }
 
                 @Override
@@ -149,21 +141,59 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
 
-            Common.client.setChangeEventListenter(new ChangeEventListenter() {
+            Common.client.setChangeEventListener(new ChangeEventListener() {
                 @Override
                 public void onChangeEvent(StringeeChange change) {
-                    changeEvent(change, context);
+                    changeEvent(change);
                 }
             });
             Common.isChangeListenerSet = true;
+
+            Common.client.setLiveChatEventListener(new LiveChatEventListener() {
+                @Override
+                public void onReceiveChatRequest(ChatRequest chatRequest) {
+
+                }
+
+                @Override
+                public void onReceiveTransferChatRequest(ChatRequest chatRequest) {
+
+                }
+
+                @Override
+                public void onHandleOnAnotherDevice(ChatRequest chatRequest, State state) {
+
+                }
+
+                @Override
+                public void onTimeoutAnswerChat(ChatRequest chatRequest) {
+
+                }
+
+                @Override
+                public void onTimeoutInQueue(Conversation conversation) {
+                    runOnUiThread(() -> {
+                        Intent intent = new Intent(Notify.CONVERSATION_DELETED.getValue());
+                        LocalBroadcastManager.getInstance(BaseActivity.this).sendBroadcast(intent);
+                    });
+                }
+
+                @Override
+                public void onConversationEnded(Conversation conversation, User user) {
+                    runOnUiThread(() -> {
+                        Intent intent = new Intent(Notify.CONVERSATION_DELETED.getValue());
+                        LocalBroadcastManager.getInstance(BaseActivity.this).sendBroadcast(intent);
+                    });
+                }
+            });
         }
-        if (!Common.client.isConnected()) {
+        if (!Utils.isStringEmpty(token)) {
             Common.client.connect(token);
         }
     }
 
     public static void notifyMessage(final Message message, final BaseActivity context) {
-        if (!(Common.isChatting && Common.currentConvId != null && Common.currentConvId.equals(message.getConversationId())) && message.getMsgType() == Message.MESSAGE_TYPE_RECEIVE && !message.getSenderId().equals(Common.client.getUserId())) {
+        if (!(Common.isChatting && Common.currentConvId != null && Common.currentConvId.equals(message.getConversationId())) && message.getMsgType() == Message.MsgType.RECEIVE && !message.getSenderId().equals(Common.client.getUserId())) {
             String from = message.getSenderId();
             String senderName = from;
             User user = Common.client.getUser(from);
@@ -185,7 +215,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public static void changeEvent(StringeeChange change, BaseActivity context) {
+    public void changeEvent(StringeeChange change) {
         StringeeObject.Type objectType = change.getObjectType();
         StringeeChange.Type changeType = change.getChangeType();
         if (objectType == StringeeObject.Type.CONVERSATION) {
@@ -194,12 +224,12 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 case INSERT:
                     Intent intent = new Intent(Notify.CONVERSATION_ADDED.getValue());
                     intent.putExtra("conversation", conversation);
-                    androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
                     break;
                 case UPDATE:
                     Intent intent1 = new Intent(Notify.CONVERSATION_UPDATED.getValue());
                     intent1.putExtra("conversation", conversation);
-                    androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(context).sendBroadcast(intent1);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent1);
                     break;
                 case DELETE:
                     break;
@@ -208,15 +238,15 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
             Message message = (Message) change.getObject();
             switch (changeType) {
                 case INSERT:
-                    notifyMessage(message, context);
+                    notifyMessage(message, this);
                     Intent intent = new Intent(Notify.MESSAGE_ADDED.getValue());
                     intent.putExtra("message", message);
-                    androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
                     break;
                 case UPDATE:
                     Intent intent1 = new Intent(Notify.MESSAGE_UPDATED.getValue());
                     intent1.putExtra("message", message);
-                    androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(context).sendBroadcast(intent1);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent1);
                     break;
                 case DELETE:
                     break;

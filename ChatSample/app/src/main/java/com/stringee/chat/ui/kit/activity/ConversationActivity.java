@@ -13,14 +13,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.FileProvider;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,6 +21,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.stringee.chat.ui.kit.commons.Notify;
 import com.stringee.chat.ui.kit.commons.utils.FileUtils;
@@ -216,6 +215,7 @@ public class ConversationActivity extends BaseActivity {
         }
 
         if (getSupportFragmentManager().getBackStackEntryCount() == 1) {
+            chatFragment.endChat();
             finish();
             return;
         }
@@ -241,6 +241,7 @@ public class ConversationActivity extends BaseActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             ChatFragment fragment = (ChatFragment) getFragmentByTag(ConversationActivity.this, "ChatFragment");
             if (fragment != null) {

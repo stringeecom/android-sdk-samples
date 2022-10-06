@@ -49,7 +49,7 @@ public class MediaPlayerManager implements AudioManager.OnAudioFocusChangeListen
         this.playIconImageView = playIconImageView;
         this.message = message;
         String key = message.getLocalId();
-        if (message.getMsgType() == Message.MESSAGE_TYPE_RECEIVE) {
+        if (message.getMsgType() == Message.MsgType.RECEIVE) {
             key = message.getId();
         }
         MediaPlayer mp = pool.get(key);
@@ -246,7 +246,7 @@ public class MediaPlayerManager implements AudioManager.OnAudioFocusChangeListen
 
     private void setAudioIcons() {
         String key = message.getLocalId();
-        if (message.getMsgType() == Message.MESSAGE_TYPE_RECEIVE) {
+        if (message.getMsgType() == Message.MsgType.RECEIVE) {
             key = message.getId();
         }
         int state = MediaPlayerManager.getInstance(context).getAudioState(key);

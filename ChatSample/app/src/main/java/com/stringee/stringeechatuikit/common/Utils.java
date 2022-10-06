@@ -9,6 +9,8 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.ContactsContract;
 import android.view.Gravity;
 import android.view.View;
@@ -16,6 +18,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 
 import com.stringee.chat.ui.kit.commons.Constant;
 import com.stringee.chat.ui.kit.commons.DownloadFileService;
@@ -91,21 +95,29 @@ public class Utils {
     }
 
     public static void reportMessage(Context context, String message) {
-        Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
-        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-        if (v != null)
-            v.setGravity(Gravity.CENTER);
-        toast.show();
+        runOnUiThread(() -> {
+            Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                TextView v = toast.getView().findViewById(android.R.id.message);
+                if (v != null)
+                    v.setGravity(Gravity.CENTER);
+            }
+            toast.show();
+        });
     }
 
     public static void reportMessage(Context context, int resId) {
-        Toast toast = Toast.makeText(context, context.getString(resId), Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
-        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-        if (v != null)
-            v.setGravity(Gravity.CENTER);
-        toast.show();
+        runOnUiThread(() -> {
+            Toast toast = Toast.makeText(context, context.getString(resId), Toast.LENGTH_LONG);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                TextView v = toast.getView().findViewById(android.R.id.message);
+                if (v != null)
+                    v.setGravity(Gravity.CENTER);
+            }
+            toast.show();
+        });
     }
 
     /**
@@ -113,6 +125,7 @@ public class Utils {
      *
      * @param currentTime
      * @param startTime
+     *
      * @return
      */
     public static String getCallTime(long currentTime, long startTime) {
@@ -126,6 +139,7 @@ public class Utils {
      * Get free call time from duration
      *
      * @param duration
+     *
      * @return
      */
     public static String getAudioTime(long duration) {
@@ -399,50 +413,85 @@ public class Utils {
         return convName;
     }
 
-    public static String getNotificationText(Context context, Conversation conversation, String text) {
-        if (text == null) {
-            return "";
+    public static String getNotificationText(Context context, Conversation conversation, String msgText) {
+        String text = "";
+        if (msgText == null) {
+            return text;
         }
         try {
-            JSONObject jsonObject = new JSONObject(text);
+            JSONObject jsonObject = new JSONObject(msgText);
             int notiType = jsonObject.getInt("type");
-            if (notiType == 1 || notiType == 2) {
+            if (notiType == 1) {
                 JSONArray parsArray = jsonObject.getJSONArray("participants");
-                String strPars = "";
-                for (int j = 0; j < parsArray.length(); j++) {
-                    JSONObject parObject = parsArray.getJSONObject(j);
-                    String userId = parObject.getString("user");
-                    String name = parObject.optString("displayName");
-                    if (name.trim().length() == 0) {
-                        name = getParticipantName(conversation, userId);
+                if (parsArray.length() > 0) {
+                    String strPars = "";
+                    for (int j = 0; j < parsArray.length(); j++) {
+                        JSONObject parObject = parsArray.getJSONObject(j);
+                        String userId = parObject.optString("user", "");
+                        String name = parObject.optString("displayName", "");
+                        if (isStringEmpty(name)) {
+                            name = userId;
+                        }
+                        strPars = strPars + " " + name + ",";
                     }
-                    if (name.trim().length() == 0) {
+                    strPars = strPars.substring(0, strPars.length() - 1);
+                    text = context.getString(R.string.add_participants_to_group, strPars);
+                }
+            } else if (notiType == 2) {
+                JSONArray parsArray = jsonObject.getJSONArray("participants");
+                if (parsArray.length() > 0) {
+                    JSONObject parObject = parsArray.getJSONObject(0);
+                    String userId = parObject.optString("user", "");
+                    String name = parObject.optString("displayName", "");
+                    if (isStringEmpty(name)) {
                         name = userId;
                     }
-                    strPars = strPars + name + ",";
-                }
-                strPars = strPars.substring(0, strPars.length() - 1);
-
-                String actor;
-                if (notiType == 1) {
-                    actor = jsonObject.getString("addedby");
-                    String actorName = getParticipantName(conversation, actor);
-                    if (actorName.trim().length() == 0) {
-                        actorName = actor;
-                    }
-                    text = context.getString(R.string.add_participants_to_group, actorName, strPars);
-                } else {
-                    actor = jsonObject.getString("removedBy");
-                    String actorName = getParticipantName(conversation, actor);
-                    if (actorName.trim().length() == 0) {
-                        actorName = actor;
-                    }
-                    text = context.getString(R.string.remove_participants, actorName, strPars);
+                    text = context.getString(R.string.remove_participants, name);
                 }
             } else if (notiType == 3) {
                 String groupName = jsonObject.getString("groupName");
                 text = context.getString(R.string.rename_group_to, groupName);
+            } else if (notiType == 4) {
+                String actor = jsonObject.getString("endedby");
+                String actorName = getParticipantName(conversation, actor);
+                if (actorName.trim().length() == 0) {
+                    actorName = actor;
+                }
+                text = context.getString(R.string.ended_chat, actorName);
+            } else if (notiType == 5) {
+                String comment = jsonObject.getString("content");
+                if (!Utils.isStringEmpty(comment)) {
+                    text = context.getString(R.string.comment, comment);
+                }
             }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return text;
+    }
+
+    public static String getRatingText(Context context, Conversation conversation, Message message) {
+        String text = "";
+        if (message == null) {
+            return text;
+        }
+        String sender = message.getSenderId();
+        for (int i = 0; i < conversation.getParticipants().size(); i++) {
+            User user = conversation.getParticipants().get(i);
+            if (user.getUserId().equals(sender)) {
+                String name = user.getName();
+                if (name != null) {
+                    if (!Utils.isStringEmpty(name)) {
+                        sender = name;
+                    }
+                }
+                break;
+            }
+        }
+        try {
+            JSONObject jsonObject = new JSONObject(message.getText());
+            int rating = jsonObject.optInt("rating", 0);
+            text = context.getString(R.string.rate_chat, rating == 0 ? context.getString(R.string.bad) : context.getString(R.string.good));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -497,5 +546,35 @@ public class Utils {
             }
         }
         return "";
+    }
+
+    public static boolean isStringEmpty(@Nullable CharSequence text) {
+        if (text != null) {
+            if (text.toString().equalsIgnoreCase("null")) {
+                return true;
+            } else {
+                return text.toString().trim().length() <= 0;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    public static boolean isListEmpty(@Nullable List list) {
+        if (list != null) {
+            return list.isEmpty();
+        } else {
+            return true;
+        }
+    }
+
+    public static void runOnUiThread(Runnable runnable) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(runnable);
+    }
+
+    public static void postDelayed(Runnable runnable, long delayMillis) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(runnable, delayMillis);
     }
 }
