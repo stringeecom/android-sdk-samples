@@ -1,6 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.stringee.stringeechatuikit">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
@@ -48,6 +48,7 @@
 
         <activity
             android:name=".MainChatActivity"
+            android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/StringeeAppBaseTheme">
             <intent-filter>
@@ -56,61 +57,59 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name="com.stringee.chat.ui.kit.activity.ConversationActivity"
             android:configChanges="keyboardHidden|screenSize|locale|smallestScreenSize|screenLayout|orientation"
             android:launchMode="singleTask"
             android:theme="@style/StringeeAppTheme"
-            android:windowSoftInputMode="adjustResize"></activity>
-
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="com.stringee.chat.ui.kit.activity.StringeeLocationActivity"
             android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
             android:parentActivityName="com.stringee.chat.ui.kit.activity.ConversationActivity"
             android:theme="@style/StringeeAppTheme"
             android:windowSoftInputMode="adjustResize" />
-
         <activity
             android:name="com.stringee.chat.ui.kit.activity.ImageFullScreenActivity"
             android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
             android:label="@string/view_photo"
             android:theme="@style/Stringee_FullScreen_Theme"
             android:windowSoftInputMode="adjustResize" />
-
-
         <activity
             android:name="com.stringee.chat.ui.kit.activity.SelectFileActivity"
             android:configChanges="keyboardHidden|screenSize|locale|smallestScreenSize|screenLayout|orientation"
             android:launchMode="singleTask"
             android:theme="@style/StringeeAppBaseTheme"
-            android:windowSoftInputMode="adjustResize"></activity>
-
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="com.stringee.chat.ui.kit.activity.ConversationInfoActivity"
-            android:theme="@style/StringeeAppTheme"></activity>
-
+            android:theme="@style/StringeeAppTheme" />
         <activity
             android:name=".OutgoingCallActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
-
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".IncomingCallActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
-
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name="com.stringee.chat.ui.kit.activity.ChooseGalleryFolderActivity"
-            android:theme="@style/GalleryTheme"></activity>
+            android:theme="@style/GalleryTheme" />
         <activity
             android:name="com.stringee.chat.ui.kit.activity.ChooseGalleryFileActivity"
-            android:theme="@style/GalleryTheme"></activity>
-
+            android:theme="@style/GalleryTheme" />
         <activity
             android:name="com.stringee.chat.ui.kit.activity.ContactActivity"
-            android:theme="@style/StringeeAppTheme"></activity>
+            android:theme="@style/StringeeAppTheme" />
 
+        <activity
+            android:name="com.stringee.chat.ui.kit.activity.LiveChatActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/StringeeAppBaseTheme"
+            android:windowSoftInputMode="adjustResize" />
 
-        <service android:name=".MyFirebaseMessagingService">
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
@@ -119,14 +118,12 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAIfDW1KgmjAZ9Dx3kS2_gXZOH_mnLpKx8" />
-
         <meta-data
             android:name="main_folder_name"
             android:value="@string/app_name" />
-
         <meta-data
             android:name="com.package.name"
             android:value="${applicationId}" />
-
     </application>
+
 </manifest>

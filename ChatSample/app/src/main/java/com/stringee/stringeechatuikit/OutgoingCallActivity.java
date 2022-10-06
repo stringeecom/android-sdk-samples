@@ -16,6 +16,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.stringee.call.StringeeCall;
+import com.stringee.listener.StatusListener;
 import com.stringee.stringeechatuikit.common.Common;
 import com.stringee.stringeechatuikit.common.Utils;
 
@@ -185,11 +186,21 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                             }
                         } else if (signalingState == StringeeCall.SignalingState.BUSY) {
                             tvState.setText("Busy");
-                            mStringeeCall.hangup();
+                            mStringeeCall.hangup(new StatusListener() {
+                                @Override
+                                public void onSuccess() {
+
+                                }
+                            });
                             finish();
                         } else if (signalingState == StringeeCall.SignalingState.ENDED) {
                             tvState.setText("Ended");
-                            mStringeeCall.hangup();
+                            mStringeeCall.hangup(new StatusListener() {
+                                @Override
+                                public void onSuccess() {
+
+                                }
+                            });
                             finish();
                         }
                     }
@@ -270,7 +281,12 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                                         try {
                                             answerObject.put("type", "answerCameraRequest");
                                             answerObject.put("accept", false);
-                                            mStringeeCall.sendCallInfo(answerObject);
+                                            mStringeeCall.sendCallInfo(answerObject,new StatusListener() {
+                                                @Override
+                                                public void onSuccess() {
+
+                                                }
+                                            });
 
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -284,7 +300,12 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                                         try {
                                             answerObject.put("type", "answerCameraRequest");
                                             answerObject.put("accept", true);
-                                            mStringeeCall.sendCallInfo(answerObject);
+                                            mStringeeCall.sendCallInfo(answerObject,new StatusListener() {
+                                                @Override
+                                                public void onSuccess() {
+
+                                                }
+                                            });
 
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -332,7 +353,12 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
             }
         });
 
-        mStringeeCall.makeCall();
+        mStringeeCall.makeCall(new StatusListener() {
+            @Override
+            public void onSuccess() {
+
+            }
+        });
     }
 
     @Override
@@ -361,7 +387,12 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
 //                }
                 break;
             case R.id.btn_end:
-                mStringeeCall.hangup();
+                mStringeeCall.hangup(new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+                });
                 finish();
                 break;
             case R.id.btn_video:
@@ -399,7 +430,12 @@ public class OutgoingCallActivity extends AppCompatActivity implements View.OnCl
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                mStringeeCall.sendCallInfo(jsonObject);
+                mStringeeCall.sendCallInfo(jsonObject,new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+                });
             }
             mStringeeCall.enableVideo(isVideo);
         }

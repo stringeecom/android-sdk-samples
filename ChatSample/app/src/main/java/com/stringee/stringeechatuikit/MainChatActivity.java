@@ -7,7 +7,15 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.stringee.chat.ui.kit.activity.ConversationActivity;
+import com.stringee.chat.ui.kit.activity.LiveChatActivity;
 import com.stringee.chat.ui.kit.commons.Notify;
 import com.stringee.chat.ui.kit.fragment.ChatWithDialogFragment;
 import com.stringee.chat.ui.kit.fragment.CreateGroupFragment;
@@ -32,9 +40,9 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
-                (androidx.drawerlayout.widget.DrawerLayout) findViewById(R.id.drawer_layout));
+                (DrawerLayout) findViewById(R.id.drawer_layout));
 
-        androidx.fragment.app.FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.container, new MainChatFragment())
                 .commit();
@@ -45,7 +53,7 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
                 getSupportActionBar().setTitle(PrefUtils.getString(Constant.PREF_NAME, Common.client.getUserId()));
             }
         };
-        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).registerReceiver(connectReceiver, new IntentFilter(Notify.CONNECTION_CONNECTED.getValue()));
+        LocalBroadcastManager.getInstance(this).registerReceiver(connectReceiver, new IntentFilter(Notify.CONNECTION_CONNECTED.getValue()));
     }
 
     @Override
@@ -61,7 +69,7 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
     @Override
     public void onDestroy() {
         super.onDestroy();
-        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).unregisterReceiver(connectReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(connectReceiver);
     }
 
     @Override
@@ -93,11 +101,11 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
     }
 
     public void chatWith(View v) {
-        androidx.fragment.app.FragmentManager supportFragmentManager = getSupportFragmentManager();
-        androidx.fragment.app.DialogFragment fragment = new ChatWithDialogFragment();
-        androidx.fragment.app.FragmentTransaction fragmentTransaction = supportFragmentManager
+        FragmentManager supportFragmentManager = getSupportFragmentManager();
+        DialogFragment fragment = new ChatWithDialogFragment();
+        FragmentTransaction fragmentTransaction = supportFragmentManager
                 .beginTransaction();
-        androidx.fragment.app.Fragment prev = getSupportFragmentManager().findFragmentByTag("ChatWithDialogFragment");
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("ChatWithDialogFragment");
         if (prev != null) {
             fragmentTransaction.remove(prev);
         }
@@ -106,15 +114,20 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
     }
 
     public void createGroup(View v) {
-        androidx.fragment.app.FragmentManager supportFragmentManager = getSupportFragmentManager();
-        androidx.fragment.app.DialogFragment fragment = new CreateGroupFragment();
-        androidx.fragment.app.FragmentTransaction fragmentTransaction = supportFragmentManager
+        FragmentManager supportFragmentManager = getSupportFragmentManager();
+        DialogFragment fragment = new CreateGroupFragment();
+        FragmentTransaction fragmentTransaction = supportFragmentManager
                 .beginTransaction();
-        androidx.fragment.app.Fragment prev = getSupportFragmentManager().findFragmentByTag("CreateGroupFragment");
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("CreateGroupFragment");
         if (prev != null) {
             fragmentTransaction.remove(prev);
         }
         fragmentTransaction.addToBackStack(null);
         fragment.show(fragmentTransaction, "CreateGroupFragment");
+    }
+
+    public void liveChat(View v) {
+        Intent intent = new Intent(this, LiveChatActivity.class);
+        startActivity(intent);
     }
 }

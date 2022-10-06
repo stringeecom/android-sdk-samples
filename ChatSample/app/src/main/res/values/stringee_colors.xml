@@ -33,4 +33,5 @@
     <color name="stringee_text_hint">#767676</color>
     <color name="stringee_text_normal">#333333</color>
     <color name="stringee_text_subtitle">#646464</color>
+    <color name="item_selected">#eaeaea</color>
 </resources>

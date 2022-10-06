@@ -60,11 +60,11 @@ public class ConversationAdapter extends Adapter {
         final Conversation conversation = conversationList.get(position);
         String text = conversation.getText();
         switch (conversation.getLastMsgType()) {
-            case Message.TYPE_TEXT:
+            case TEXT:
                 viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_conv_time));
                 text = conversation.getText();
                 break;
-            case Message.TYPE_CREATE_CONVERSATION:
+            case CREATE_CONVERSATION:
                 viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_conv_time));
                 if (conversation.isGroup()) {
                     text = context.getString(R.string.create_conversation, Utils.getCreator(conversation));
@@ -72,35 +72,35 @@ public class ConversationAdapter extends Adapter {
                     text = context.getString(R.string.create_chat, Utils.getCreator(conversation));
                 }
                 break;
-            case Message.TYPE_LOCATION:
+            case LOCATION:
                 text = context.getString(R.string.location);
                 viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
-            case Message.TYPE_AUDIO:
+            case AUDIO:
                 text = context.getString(R.string.audio);
                 viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
-            case Message.TYPE_FILE:
+            case FILE:
                 text = context.getString(R.string.file);
                 viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
-            case Message.TYPE_PHOTO:
+            case PHOTO:
                 text = context.getString(R.string.photo);
                 viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
-            case Message.TYPE_VIDEO:
+            case VIDEO:
                 text = context.getString(R.string.video);
                 viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
-            case Message.TYPE_CONTACT:
+            case CONTACT:
                 text = context.getString(R.string.contact);
                 viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
-            case Message.TYPE_STICKER:
+            case STICKER:
                 text = context.getString(R.string.sticker);
                 viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
-            case Message.TYPE_NOTIFICATION:
+            case NOTIFICATION:
                 text = Utils.getNotificationText(context, conversation, conversation.getText());
         }
         String datetime = Utils.getFormattedDateAndTime(conversation.getUpdateAt());

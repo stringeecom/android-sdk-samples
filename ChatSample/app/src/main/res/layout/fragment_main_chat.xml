@@ -46,5 +46,17 @@
             android:text="@string/chat_with"
             android:textColor="@color/white" />
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@color/stringee_colorPrimary"
+            android:onClick="liveChat"
+            android:text="@string/live_chat"
+            android:textColor="@color/white" />
+
     </LinearLayout>
 </FrameLayout>
