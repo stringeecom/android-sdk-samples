@@ -31,11 +31,6 @@ class IncomingCallActivity : AppCompatActivity(), OnClickListener {
     private var isVideo = false
     private var isPermissionGranted = true
 
-    // For normal device has more than 3 cameras, 0 is back camera, 1 is front camera.
-    // Some device is different, must check camera id before select.
-    // When call starts, automatically use the front camera.
-    private var cameraId = 1
-
     private var mMediaState: MediaState = MediaState.DISCONNECTED
     private lateinit var mSignalingState: SignalingState
 
@@ -302,7 +297,10 @@ class IncomingCallActivity : AppCompatActivity(), OnClickListener {
                 binding.vIncoming.visibility = GONE
                 binding.btnEnd.visibility = VISIBLE
                 binding.btnSwitch.visibility = if (isVideoCall) VISIBLE else GONE
-                stringeeCall.answer()
+                stringeeCall.answer(object : StatusListener() {
+                    override fun onSuccess() {
+                    }
+                })
             }
             id.btn_end -> {
                 endCall(true)
@@ -318,7 +316,6 @@ class IncomingCallActivity : AppCompatActivity(), OnClickListener {
             id.btn_switch -> {
                 stringeeCall.switchCamera(object : StatusListener() {
                     override fun onSuccess() {
-                        cameraId = if (cameraId == 0) 1 else 0
                     }
 
                     override fun onError(stringeeError: StringeeError) {
@@ -328,7 +325,7 @@ class IncomingCallActivity : AppCompatActivity(), OnClickListener {
                             Common.reportMessage(this@IncomingCallActivity, stringeeError.message)
                         }
                     }
-                }, if (cameraId == 0) 1 else 0)
+                })
             }
         }
     }
@@ -336,9 +333,15 @@ class IncomingCallActivity : AppCompatActivity(), OnClickListener {
     private fun endCall(isHangup: Boolean) {
         binding.tvState.text = "Ended"
         if (isHangup) {
-            stringeeCall.hangup()
+            stringeeCall.hangup(object : StatusListener() {
+                override fun onSuccess() {
+                }
+            })
         } else {
-            stringeeCall.reject()
+            stringeeCall.reject(object : StatusListener() {
+                override fun onSuccess() {
+                }
+            })
         }
         dismissLayout()
     }

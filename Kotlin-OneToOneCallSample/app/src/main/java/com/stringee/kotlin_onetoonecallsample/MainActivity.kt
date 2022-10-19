@@ -20,11 +20,14 @@ import com.stringee.exception.StringeeError
 import com.stringee.kotlin_onetoonecallsample.R.id.*
 import com.stringee.kotlin_onetoonecallsample.R.string
 import com.stringee.kotlin_onetoonecallsample.databinding.ActivityMainBinding
+import com.stringee.listener.StatusListener
 import com.stringee.listener.StringeeConnectionListener
 import org.json.JSONObject
 
+
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var binding: ActivityMainBinding
+
     private var token = "PUT_YOUR_TOKEN_HERE"
     private lateinit var launcher: ActivityResultLauncher<Intent>
     private var progressDialog: ProgressDialog? = null
@@ -39,7 +42,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         binding.btnVoiceCall.setOnClickListener(this)
         binding.btnVoiceCall2.setOnClickListener(this)
 
-        progressDialog = ProgressDialog.show(this, "", "Connecting...")
+        progressDialog = ProgressDialog(this)
         progressDialog?.setCancelable(true)
         progressDialog?.show()
 
@@ -106,7 +109,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             override fun onIncomingCall(stringeeCall: StringeeCall) {
                 runOnUiThread {
                     Log.d(Common.TAG, "onIncomingCall: callId - ${stringeeCall.callId}")
-                    if (Common.isInCall) stringeeCall.reject() else {
+                    if (Common.isInCall) stringeeCall.reject(object : StatusListener() {
+                        override fun onSuccess() {
+                        }
+                    }) else {
                         Common.callsMap[stringeeCall.callId] = stringeeCall
                         val intent = Intent(
                             this@MainActivity,
@@ -120,7 +126,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             override fun onIncomingCall2(stringeeCall2: StringeeCall2) {
                 runOnUiThread {
                     Log.d(Common.TAG, "onIncomingCall2: callId - ${stringeeCall2.callId}")
-                    if (Common.isInCall) stringeeCall2.reject() else {
+                    if (Common.isInCall) stringeeCall2.reject(object : StatusListener() {
+                        override fun onSuccess() {
+                        }
+                    }) else {
                         Common.call2sMap[stringeeCall2.callId] = stringeeCall2
                         val intent = Intent(
                             this@MainActivity,
@@ -196,7 +205,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 intent.putExtra("is_video_call", isVideoCall)
                 launcher.launch(intent)
             } else {
-                Common.reportMessage(this, "Stringee session not connected");
+                Common.reportMessage(this, "Stringee session not connected")
             }
         }
     }
