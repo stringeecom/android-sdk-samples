@@ -33,11 +33,6 @@ class OutgoingCallActivity : AppCompatActivity(), OnClickListener {
     private var isVideo = false
     private var isPermissionGranted = true
 
-    // For normal device has more than 3 cameras, 0 is back camera, 1 is front camera.
-    // Some device is different, must check camera id before select.
-    // When call starts, automatically use the front camera.
-    private var cameraId = 1
-
     private var mMediaState: MediaState = MediaState.DISCONNECTED
     private lateinit var mSignalingState: SignalingState
 
@@ -264,7 +259,10 @@ class OutgoingCallActivity : AppCompatActivity(), OnClickListener {
             }
         })
 
-        stringeeCall.makeCall()
+        stringeeCall.makeCall(object : StatusListener() {
+            override fun onSuccess() {
+            }
+        })
     }
 
     override fun onClick(v: View?) {
@@ -291,7 +289,6 @@ class OutgoingCallActivity : AppCompatActivity(), OnClickListener {
             id.btn_switch -> {
                 stringeeCall.switchCamera(object : StatusListener() {
                     override fun onSuccess() {
-                        cameraId = if (cameraId == 0) 1 else 0
                     }
 
                     override fun onError(stringeeError: StringeeError) {
@@ -304,13 +301,16 @@ class OutgoingCallActivity : AppCompatActivity(), OnClickListener {
                             )
                         }
                     }
-                }, if (cameraId == 0) 1 else 0)
+                })
             }
         }
     }
 
     private fun endCall() {
-        stringeeCall.hangup()
+        stringeeCall.hangup(object : StatusListener() {
+            override fun onSuccess() {
+            }
+        })
         dismissLayout()
     }
 

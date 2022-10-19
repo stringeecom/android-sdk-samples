@@ -34,11 +34,6 @@ class OutgoingCall2Activity : AppCompatActivity(), OnClickListener {
     private var isVideo = false
     private var isPermissionGranted = true
 
-    // For normal device has more than 3 cameras, 0 is back camera, 1 is front camera.
-    // Some device is different, must check camera id before select.
-    // When call starts, automatically use the front camera.
-    private var cameraId = 1
-
     private var mMediaState: MediaState = MediaState.DISCONNECTED
     private lateinit var mSignalingState: SignalingState
 
@@ -266,9 +261,20 @@ class OutgoingCall2Activity : AppCompatActivity(), OnClickListener {
                     )
                 }
             }
+
+            override fun onTrackMediaStateChange(
+                p0: String?,
+                p1: StringeeVideoTrack.MediaType?,
+                p2: Boolean
+            ) {
+                TODO("Not yet implemented")
+            }
         })
 
-        stringeeCall2.makeCall()
+        stringeeCall2.makeCall(object : StatusListener() {
+            override fun onSuccess() {
+            }
+        })
     }
 
     override fun onClick(v: View?) {
@@ -295,7 +301,6 @@ class OutgoingCall2Activity : AppCompatActivity(), OnClickListener {
             id.btn_switch -> {
                 stringeeCall2.switchCamera(object : StatusListener() {
                     override fun onSuccess() {
-                        cameraId = if (cameraId == 0) 1 else 0
                     }
 
                     override fun onError(stringeeError: StringeeError) {
@@ -308,13 +313,16 @@ class OutgoingCall2Activity : AppCompatActivity(), OnClickListener {
                             )
                         }
                     }
-                }, if (cameraId == 0) 1 else 0)
+                })
             }
         }
     }
 
     private fun endCall() {
-        stringeeCall2.hangup()
+        stringeeCall2.hangup(object : StatusListener() {
+            override fun onSuccess() {
+            }
+        })
         dismissLayout()
     }
 
