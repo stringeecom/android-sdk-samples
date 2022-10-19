@@ -1,6 +1,7 @@
 package com.stringee.chat.ui.kit.adapter;
 
 import android.content.Context;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
 import com.stringee.chat.ui.kit.activity.ConversationActivity;
 import com.stringee.chat.ui.kit.commons.LocalImageLoader;
+import com.stringee.chat.ui.kit.commons.utils.FileUtils;
+import com.stringee.chat.ui.kit.commons.utils.FileUtils.FileType;
 import com.stringee.chat.ui.kit.fragment.ChatFragment;
 import com.stringee.chat.ui.kit.model.DataItem;
 import com.stringee.chat.ui.kit.model.Image;
@@ -82,10 +85,10 @@ public class MediaAdapter extends Adapter<ViewHolder> {
                     @Override
                     public void onClick(View view) {
                         mFragment.closeDialog();
-                        mFragment.sendPhoto(img.getDataPath());
+                        mFragment.sendPhoto(FileUtils.copyFileToCache(mContext, Uri.parse(img.getDataPath()), FileUtils.FileType.IMAGE));
                     }
                 });
-                LocalImageLoader.getInstance().displayImage("file://" + img.getDataPath(), imageViewHolder.imvImage);
+                LocalImageLoader.getInstance().displayImage(img.getDataPath(), imageViewHolder.imvImage);
                 break;
             case VIDEO:
                 final Video video = (Video) mObjects.get(position - 1);
@@ -95,7 +98,7 @@ public class MediaAdapter extends Adapter<ViewHolder> {
                     @Override
                     public void onClick(View view) {
                         mFragment.closeDialog();
-                        mFragment.sendVideo(new File(video.getDataPath()));
+                        mFragment.sendVideo(FileUtils.copyFileToCache(mContext, Uri.parse(video.getDataPath()), FileType.VIDEO));
                     }
                 });
                 LocalImageLoader.getInstance().displayImage("file://" + video.getDataPath(), videoHolder.thumbnail);

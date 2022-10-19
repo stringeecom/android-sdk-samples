@@ -16,6 +16,7 @@ import androidx.fragment.app.DialogFragment;
 
 import com.stringee.chat.ui.kit.activity.ConversationActivity;
 import com.stringee.chat.ui.kit.commons.utils.FileUtils;
+import com.stringee.chat.ui.kit.commons.utils.FileUtils.FileType;
 import com.stringee.stringeechatuikit.R;
 
 import java.io.File;
@@ -63,7 +64,7 @@ public class AudioMessageFragment extends DialogFragment {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String audioFileName = "audio_" + timeStamp + ".m4a";
 
-        outputFile = FileUtils.getFilePath(audioFileName, getActivity().getApplicationContext(), "audio/m4a").getAbsolutePath();
+        outputFile = FileUtils.getFileCachePath(getContext(), audioFileName, FileType.AUDIO).getAbsolutePath();
         prepareMediaRecorder();
 
         record.setOnClickListener(new View.OnClickListener() {

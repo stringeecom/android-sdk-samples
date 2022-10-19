@@ -7,10 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
+import android.os.Build.VERSION;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -23,14 +22,17 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.stringee.chat.ui.kit.commons.Notify;
 import com.stringee.chat.ui.kit.commons.utils.FileUtils;
+import com.stringee.chat.ui.kit.commons.utils.FileUtils.FileType;
 import com.stringee.chat.ui.kit.commons.utils.PermissionsUtils;
 import com.stringee.chat.ui.kit.commons.utils.StringeePermissions;
 import com.stringee.chat.ui.kit.fragment.AudioMessageFragment;
@@ -49,7 +51,6 @@ import com.stringee.stringeechatuikit.common.Utils;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 public class ConversationActivity extends BaseActivity {
 
@@ -89,7 +90,7 @@ public class ConversationActivity extends BaseActivity {
     private void addFragment(androidx.fragment.app.FragmentActivity fragmentActivity, Fragment fragmentToAdd, String fragmentTag, boolean addToBackStack) {
         FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
 
-        androidx.fragment.app.FragmentTransaction fragmentTransaction = supportFragmentManager
+        FragmentTransaction fragmentTransaction = supportFragmentManager
                 .beginTransaction();
         fragmentTransaction.replace(R.id.layout_child_activity, fragmentToAdd,
                 fragmentTag);
@@ -215,7 +216,9 @@ public class ConversationActivity extends BaseActivity {
         }
 
         if (getSupportFragmentManager().getBackStackEntryCount() == 1) {
-            chatFragment.endChat();
+            if (chatFragment != null) {
+                chatFragment.endChat();
+            }
             finish();
             return;
         }
@@ -258,7 +261,7 @@ public class ConversationActivity extends BaseActivity {
                         break;
                     case REQUEST_CODE_CAPTURE_VIDEO:
                         if (mediaFile != null) {
-                            fragment.sendVideo(mediaFile);
+                            fragment.sendVideo(mediaFile.getAbsolutePath());
                         }
                         break;
                     case REQUEST_CODE_CONTACT_SHARE:
@@ -272,9 +275,9 @@ public class ConversationActivity extends BaseActivity {
                     case REQUEST_CODE_GALLERY:
                         DataItem dataItem = (DataItem) data.getSerializableExtra("media");
                         if (dataItem instanceof Image) {
-                            fragment.sendPhoto(dataItem.getDataPath());
+                            fragment.sendPhoto(FileUtils.copyFileToCache(this, Uri.parse(dataItem.getDataPath()), FileType.IMAGE));
                         } else if (dataItem instanceof Video) {
-                            fragment.sendVideo(new File(dataItem.getDataPath()));
+                            fragment.sendVideo(FileUtils.copyFileToCache(this, Uri.parse(dataItem.getDataPath()), FileType.VIDEO));
                         }
                         break;
                 }
@@ -336,7 +339,7 @@ public class ConversationActivity extends BaseActivity {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 FragmentManager supportFragmentManager = getSupportFragmentManager();
                 DialogFragment fragment = AudioMessageFragment.newInstance();
-                androidx.fragment.app.FragmentTransaction fragmentTransaction = supportFragmentManager
+                FragmentTransaction fragmentTransaction = supportFragmentManager
                         .beginTransaction().add(fragment, "AudioMessageFragment");
 
                 fragmentTransaction.addToBackStack(null);
@@ -424,7 +427,7 @@ public class ConversationActivity extends BaseActivity {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             String imageFileName = "photo_" + timeStamp + ".jpeg";
 
-            mediaFile = FileUtils.getFilePath(imageFileName, activity.getApplicationContext(), "image/jpeg");
+            mediaFile = FileUtils.getFileCachePath(this, imageFileName, FileUtils.FileType.IMAGE);
 
             Uri capturedImageUri = FileProvider.getUriForFile(activity, getPackageName() + ".provider", mediaFile);
 
@@ -432,29 +435,12 @@ public class ConversationActivity extends BaseActivity {
 
             cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, capturedImageUri);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                ClipData clip =
-                        ClipData.newUri(activity.getContentResolver(), "a Photo", capturedImageUri);
-
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+                ClipData clip = ClipData.newUri(activity.getContentResolver(), "a Photo", capturedImageUri);
                 cameraIntent.setClipData(clip);
-                cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            } else {
-                List<ResolveInfo> resInfoList = activity.getPackageManager()
-                        .queryIntentActivities(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY);
-
-                for (ResolveInfo resolveInfo : resInfoList) {
-                    String packageName = resolveInfo.activityInfo.packageName;
-                    activity.grantUriPermission(packageName, capturedImageUri,
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                    activity.grantUriPermission(packageName, capturedImageUri,
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                }
             }
+            cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             if (cameraIntent.resolveActivity(activity.getApplicationContext().getPackageManager()) != null) {
                 if (mediaFile != null) {
@@ -472,43 +458,26 @@ public class ConversationActivity extends BaseActivity {
         try {
             Intent videoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            String imageFileName = "video_" + timeStamp + ".mp4";
+            String videoFileName = "video_" + timeStamp + ".mp4";
 
-            mediaFile = FileUtils.getFilePath(imageFileName, activity.getApplicationContext(), "video/mp4");
+            mediaFile = FileUtils.getFileCachePath(this, videoFileName, FileType.VIDEO);
 
             Uri videoFileUri = FileProvider.getUriForFile(activity, getPackageName() + ".provider", mediaFile);
 
             videoIntent.putExtra(MediaStore.EXTRA_OUTPUT, videoFileUri);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                videoIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                videoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                ClipData clip =
-                        ClipData.newUri(activity.getContentResolver(), "a Video", videoFileUri);
+            if (VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+                ClipData clip = ClipData.newUri(activity.getContentResolver(), "a Video", videoFileUri);
 
                 videoIntent.setClipData(clip);
-                videoIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                videoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-            } else {
-                List<ResolveInfo> resInfoList =
-                        activity.getPackageManager()
-                                .queryIntentActivities(videoIntent, PackageManager.MATCH_DEFAULT_ONLY);
-
-                for (ResolveInfo resolveInfo : resInfoList) {
-                    String packageName = resolveInfo.activityInfo.packageName;
-                    activity.grantUriPermission(packageName, videoFileUri,
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                    activity.grantUriPermission(packageName, videoFileUri,
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                }
             }
+            videoIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            videoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            videoIntent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
 
             if (videoIntent.resolveActivity(activity.getApplicationContext().getPackageManager()) != null) {
                 if (mediaFile != null) {
-                    videoIntent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
                     activity.startActivityForResult(videoIntent, REQUEST_CODE_CAPTURE_VIDEO);
                 }
             }
@@ -518,19 +487,19 @@ public class ConversationActivity extends BaseActivity {
         }
     }
 
-    private void processAudio(androidx.appcompat.app.AppCompatActivity activity) {
+    private void processAudio(AppCompatActivity activity) {
         if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfPermissionForAudioRecording(activity)) {
             new StringeePermissions(activity).requestAudio();
         } else if (PermissionsUtils.isAudioRecordingPermissionGranted(activity)) {
             FragmentManager supportFragmentManager = activity.getSupportFragmentManager();
             DialogFragment fragment = AudioMessageFragment.newInstance();
-            androidx.fragment.app.FragmentTransaction fragmentTransaction = supportFragmentManager
+            FragmentTransaction fragmentTransaction = supportFragmentManager
                     .beginTransaction().add(fragment, "AudioMessageFragment");
             fragmentTransaction.commitAllowingStateLoss();
         }
     }
 
-    public void processAudioAction(androidx.appcompat.app.AppCompatActivity activity) {
+    public void processAudioAction(AppCompatActivity activity) {
         if (PermissionsUtils.isStoragePermissionGranted(activity)) {
             processAudio(activity);
         } else {

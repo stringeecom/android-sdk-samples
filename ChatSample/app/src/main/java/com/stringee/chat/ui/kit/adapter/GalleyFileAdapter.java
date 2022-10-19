@@ -68,10 +68,10 @@ public class GalleyFileAdapter extends BaseAdapter {
 
         if (dataItem instanceof Image) {
             viewHolder.infoVideo.setVisibility(View.GONE);
-            LocalImageLoader.getInstance().displayImage("file://" + dataItem.getDataPath(), viewHolder.iv_image);
+            LocalImageLoader.getInstance().displayImage(dataItem.getDataPath(), viewHolder.iv_image);
         }
         if (dataItem instanceof Video) {
-            LocalImageLoader.getInstance().displayImage("file://" + dataItem.getDataPath(), viewHolder.iv_image);
+            LocalImageLoader.getInstance().displayImage(dataItem.getDataPath(), viewHolder.iv_image);
             try {
                 viewHolder.vidDur.setText(dataItem.getDuration());
             } catch (Exception e) {

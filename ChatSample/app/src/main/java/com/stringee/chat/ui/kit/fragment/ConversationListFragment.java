@@ -12,6 +12,9 @@ import android.widget.ProgressBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AlertDialog.Builder;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.OnScrollListener;
 
 import com.stringee.chat.ui.kit.activity.ConversationActivity;
 import com.stringee.chat.ui.kit.adapter.ConversationAdapter;
@@ -36,8 +39,8 @@ public class ConversationListFragment extends Fragment {
     public static List<Conversation> conversationList = new ArrayList<>();
     private ConversationAdapter adapter;
 
-    private androidx.recyclerview.widget.RecyclerView conversationListView;
-    private androidx.recyclerview.widget.LinearLayoutManager linearLayoutManager;
+    private RecyclerView conversationListView;
+    private LinearLayoutManager linearLayoutManager;
     private ProgressBar prLoading;
 
     private boolean isLoading;
@@ -63,7 +66,7 @@ public class ConversationListFragment extends Fragment {
 
         prLoading = view.findViewById(R.id.prLoading);
         conversationListView = view.findViewById(R.id.conversationList);
-        linearLayoutManager = new androidx.recyclerview.widget.LinearLayoutManager(getActivity());
+        linearLayoutManager = new LinearLayoutManager(getActivity());
         conversationListView.setLayoutManager(linearLayoutManager);
         conversationListView.setHasFixedSize(true);
         adapter = new ConversationAdapter(getActivity(), conversationList);
@@ -77,17 +80,17 @@ public class ConversationListFragment extends Fragment {
             }
         });
 
-        conversationListView.addOnScrollListener(new androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+        conversationListView.addOnScrollListener(new OnScrollListener() {
             @Override
-            public void onScrollStateChanged(androidx.recyclerview.widget.RecyclerView recyclerView, int newState) {
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
             }
 
             @Override
-            public void onScrolled(androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 if (!recyclerView.canScrollVertically(1) && !isLoading && !isLast && isTouched) {
                     prLoading.setVisibility(View.VISIBLE);
-                    long lastUpdate = conversationList.get(conversationList.size() - 1).getUpdateAt();
+                    long lastUpdate = conversationList.get(0).getUpdateAt();
                     Common.client.getConversationsBefore(lastUpdate, Constant.CONVERSATIONS_COUNT, new CallbackListener<List<Conversation>>() {
                         @Override
                         public void onSuccess(final List<Conversation> conversations) {
@@ -127,6 +130,21 @@ public class ConversationListFragment extends Fragment {
                         }
                     });
                 }
+            }
+
+            @Override
+            public void onError(StringeeError stringeeError) {
+                super.onError(stringeeError);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Get latest conversations from server
+                            getLatestConversations();
+                        }
+                    });
+                }
+
             }
         });
 
