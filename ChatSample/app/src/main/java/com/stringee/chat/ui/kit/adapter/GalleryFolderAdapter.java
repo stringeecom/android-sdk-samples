@@ -56,7 +56,7 @@ public class GalleryFolderAdapter extends BaseAdapter {
 
         viewHolder.tvFolderName.setText(data.get(position).getName());
         viewHolder.tvFolderSize.setText(data.get(position).getListData().size() + "");
-        LocalImageLoader.getInstance().displayImage("file://" + data.get(position).getListData().get(0).getDataPath(), viewHolder.folderImageView);
+        LocalImageLoader.getInstance().displayImage(data.get(position).getListData().get(0).getDataPath(), viewHolder.folderImageView);
         return convertView;
     }
 

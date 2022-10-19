@@ -14,11 +14,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.recyclerview.widget.RecyclerView.Adapter;
-
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Display;
@@ -35,6 +30,11 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.RecyclerView.Adapter;
+
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
@@ -46,6 +46,7 @@ import com.stringee.chat.ui.kit.commons.LocalImageLoader;
 import com.stringee.chat.ui.kit.commons.MediaPlayerManager;
 import com.stringee.chat.ui.kit.commons.utils.AlphaNumberColorUtil;
 import com.stringee.chat.ui.kit.commons.utils.FileUtils;
+import com.stringee.chat.ui.kit.commons.utils.FileUtils.FileType;
 import com.stringee.chat.ui.kit.commons.utils.LocationUtils;
 import com.stringee.chat.ui.kit.commons.utils.PermissionsUtils;
 import com.stringee.chat.ui.kit.commons.utils.StringeePermissions;
@@ -161,8 +162,8 @@ public class MessageAdapter extends Adapter {
                     text = mContext.getString(R.string.create_chat, creator);
                 }
             } else if (message.getType() == Message.Type.NOTIFICATION) {
-                text = Utils.getNotificationText(mContext,conversation, message.getText());
-            }else if (message.getType() == Type.RATING) {
+                text = Utils.getNotificationText(mContext, conversation, message.getText());
+            } else if (message.getType() == Type.RATING) {
                 text = Utils.getRatingText(mContext, conversation, message);
             }
 
@@ -396,7 +397,7 @@ public class MessageAdapter extends Adapter {
                                     messageHolder.videoIconImageView.setVisibility(View.GONE);
                                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                                     String filename = "video_" + timeStamp + ".mp4";
-                                    File destFile = FileUtils.getFilePath(filename, mContext, "video/mp4");
+                                    File destFile = FileUtils.getFilePath(filename, mContext, FileType.VIDEO);
                                     final String dest = destFile.getAbsolutePath();
                                     Utils.downloadAttachment(message.getFileUrl(), dest, new StatusListener() {
                                         @Override
@@ -470,7 +471,7 @@ public class MessageAdapter extends Adapter {
                                 messageHolder.downloadImageView.setVisibility(View.GONE);
                                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                                 String filename = "audio_" + timeStamp + ".m4a";
-                                File destFile = FileUtils.getFilePath(filename, mContext, "audio/m4a");
+                                File destFile = FileUtils.getFilePath(filename, mContext, FileType.AUDIO);
                                 final String dest = destFile.getAbsolutePath();
                                 Utils.downloadAttachment(message.getFileUrl(), dest, new StatusListener() {
                                     @Override
@@ -551,7 +552,7 @@ public class MessageAdapter extends Adapter {
                                 if (paths != null && paths.length > 0) {
                                     fileName = timeStamp + "_" + paths[paths.length - 1];
                                 }
-                                File destFile = FileUtils.getFilePath(fileName, mContext, "other");
+                                File destFile = FileUtils.getFilePath(fileName, mContext, FileType.OTHER);
                                 final String dest = destFile.getAbsolutePath();
                                 Utils.downloadAttachment(message.getFileUrl(), dest, new StatusListener() {
                                     @Override
@@ -930,7 +931,7 @@ public class MessageAdapter extends Adapter {
         } else {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             String imageFileName = "contact_" + timeStamp + ".vcf";
-            File outputFile = FileUtils.getFilePath(imageFileName, mContext.getApplicationContext(), "text/x-vcard");
+            File outputFile = FileUtils.getFilePath(imageFileName, mContext.getApplicationContext(), FileType.CONTACT);
             byte[] buf = message.getContact().trim().getBytes();
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream(outputFile.getAbsoluteFile());

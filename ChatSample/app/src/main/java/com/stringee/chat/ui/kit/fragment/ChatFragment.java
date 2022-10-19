@@ -5,16 +5,21 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ContentUris;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -41,6 +46,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AlertDialog.Builder;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -101,6 +108,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -110,7 +118,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     private EditText messageEditText;
     private ImageButton attachButton;
     private TextView tvNoMessage;
-    private androidx.recyclerview.widget.RecyclerView stickersRecyclerView;
+    private RecyclerView stickersRecyclerView;
     private GridView stickersGridView;
     private CusRelativeLayout rootView;
     private CusKeyboardWidget keyboardWidget;
@@ -118,9 +126,9 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     private ListView stickersListView;
 
     private List<Message> messages = new ArrayList<>();
-    private androidx.recyclerview.widget.RecyclerView messagesRecyclerView;
+    private RecyclerView messagesRecyclerView;
     private MessageAdapter adapter;
-    private androidx.recyclerview.widget.LinearLayoutManager linearLayoutManager;
+    private LinearLayoutManager linearLayoutManager;
     private ProgressBar prLoading;
     private boolean isLoading;
     private boolean isTop = false;
@@ -164,7 +172,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         messageEditText = view.findViewById(id.messageEditText);
 
         messagesRecyclerView = view.findViewById(id.messagesRecyclerView);
-        linearLayoutManager = new androidx.recyclerview.widget.LinearLayoutManager(getActivity());
+        linearLayoutManager = new LinearLayoutManager(getActivity());
         messagesRecyclerView.setLayoutManager(linearLayoutManager);
         messagesRecyclerView.setHasFixedSize(true);
 
@@ -176,14 +184,14 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             }
         });
 
-        messagesRecyclerView.addOnScrollListener(new androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+        messagesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(androidx.recyclerview.widget.RecyclerView recyclerView, int newState) {
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
             }
 
             @Override
-            public void onScrolled(androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
                 if (!isScrolledDown) {
@@ -253,7 +261,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         });
 
         stickersRecyclerView = view.findViewById(id.stickersRecyclerView);
-        androidx.recyclerview.widget.LinearLayoutManager layoutManager = new androidx.recyclerview.widget.LinearLayoutManager(getActivity(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
         stickersRecyclerView.setLayoutManager(layoutManager);
         stickersGridView = view.findViewById(id.stickersGridView);
         stickersGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -356,9 +364,9 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         }
         menu.findItem(id.menu_info).setVisible(conversation.getChannelType() == ChannelType.NORMAL);
         menu.findItem(id.menu_end_chat).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
-//        menu.findItem(id.menu_rate).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
+        menu.findItem(id.menu_rate).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
         menu.findItem(id.menu_email_chat_transcript).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
-//        menu.findItem(id.menu_edit_info).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
+        menu.findItem(id.menu_edit_info).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
     }
 
     @Override
@@ -670,38 +678,56 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                         adapter.notifyDataSetChanged();
                         messagesRecyclerView.scrollToPosition(messages.size() - 1);
 
-                        conversation.getLastMessages(Common.client, Constant.MESSAGES_COUNT, new CallbackListener<List<Message>>() {
-                            @Override
-                            public void onSuccess(final List<Message> messages1) {
-                                if (getActivity() == null) {
-                                    return;
-                                }
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        prLoading.setVisibility(View.GONE);
+                        getLastMessages();
+                    }
+                });
+            }
 
-                                        if (messages1.size() < Constant.MESSAGES_COUNT) {
-                                            isTop = true;
-                                        } else {
-                                            isTop = false;
-                                        }
+            @Override
+            public void onError(StringeeError stringeeError) {
+                super.onError(stringeeError);
+                if (getActivity() == null) {
+                    return;
+                }
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                       getLastMessages();
+                    }
+                });
+            }
+        });
+    }
 
-                                        merge(messages1);
-                                        addTempDate(messages, false);
-                                        adapter.notifyDataSetChanged();
-                                        messagesRecyclerView.scrollToPosition(messages.size() - 1);
-                                        readMessages(messages);
+    private void getLastMessages(){
+        conversation.getLastMessages(Common.client, Constant.MESSAGES_COUNT, new CallbackListener<List<Message>>() {
+            @Override
+            public void onSuccess(final List<Message> messages1) {
+                if (getActivity() == null) {
+                    return;
+                }
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        prLoading.setVisibility(View.GONE);
 
-                                        if (messages.size() == 0) {
-                                            tvNoMessage.setVisibility(View.VISIBLE);
-                                        } else {
-                                            tvNoMessage.setVisibility(View.GONE);
-                                        }
-                                    }
-                                });
-                            }
-                        });
+                        if (messages1.size() < Constant.MESSAGES_COUNT) {
+                            isTop = true;
+                        } else {
+                            isTop = false;
+                        }
+
+                        merge(messages1);
+                        addTempDate(messages, false);
+                        adapter.notifyDataSetChanged();
+                        messagesRecyclerView.scrollToPosition(messages.size() - 1);
+                        readMessages(messages);
+
+                        if (messages.size() == 0) {
+                            tvNoMessage.setVisibility(View.VISIBLE);
+                        } else {
+                            tvNoMessage.setVisibility(View.GONE);
+                        }
                     }
                 });
             }
@@ -888,7 +914,12 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         conversation.sendMessage(Common.client, message, new StatusListener() {
             @Override
             public void onSuccess() {
+                android.util.Log.d("Stringee", "onSuccess: ");
+            }
 
+            @Override
+            public void onError(com.stringee.exception.StringeeError stringeeError) {
+                super.onError(stringeeError);
             }
         });
     }
@@ -910,11 +941,11 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         });
     }
 
-    public void sendVideo(File mediaFile) {
+    public void sendVideo(String filePath) {
         Message message = new Message(Message.Type.VIDEO);
-        message.setFilePath(mediaFile.getAbsolutePath());
+        message.setFilePath(filePath);
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        retriever.setDataSource(getActivity(), Uri.fromFile(mediaFile));
+        retriever.setDataSource(getActivity(), Uri.parse(filePath));
         String time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
         message.setDuration(Integer.parseInt(time));
         retriever.release();
@@ -971,7 +1002,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         }
     }
 
-    private void prepareAttachmentData(GridView g, androidx.recyclerview.widget.RecyclerView r) {
+    private void prepareAttachmentData(GridView g, RecyclerView r) {
         String[] alltitles = getResources().getStringArray(R.array.multimediaOptions);
         TypedArray imgs = getResources().obtainTypedArray(R.array.multimediaOptionIcons);
         StringeeMultimediaPopupAdapter adapter2 = new StringeeMultimediaPopupAdapter(getContext(), imgs, Arrays.asList(alltitles));
@@ -982,60 +1013,53 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     }
 
     private ArrayList<Image> getAllShownImages(Activity activity) {
-        Uri uri;
-        Cursor cursor;
-        int column_index_data, column_index_addDate;
         ArrayList<Image> listOfAllImages = new ArrayList<>();
-        uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        Cursor cursor = getContext().getContentResolver().query(
+                Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{Images.Media._ID, Images.Media.DATE_MODIFIED},
+                null, null, null);
 
-        String[] projection = {MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.DATE_MODIFIED};
-
-        cursor = activity.getContentResolver().query(uri, projection, null,
-                null, null);
-
-        assert cursor != null;
-        column_index_data = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-        column_index_addDate = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED);
-        while (cursor.moveToNext()) {
-            String absolutePathOfImage = cursor.getString(column_index_data);
-            String dateModified = cursor.getString(column_index_addDate);
-            long lDateModified = dateModified != null ? Long.parseLong(dateModified) : 0;
-            Image img = new Image(absolutePathOfImage, lDateModified);
-            listOfAllImages.add(img);
+        if (cursor != null) {
+            int column_index_id = cursor.getColumnIndexOrThrow(Images.Media._ID);
+            int column_index_addDate = cursor.getColumnIndexOrThrow(Images.Media.DATE_MODIFIED);
+            while (cursor.moveToNext()) {
+                int id = cursor.getInt(column_index_id);
+                String dateModified = cursor.getString(column_index_addDate);
+                long lDateModified = dateModified != null ? Long.parseLong(dateModified) : 0;
+                Image img = new Image(ContentUris.withAppendedId(Images.Media.EXTERNAL_CONTENT_URI, id).toString(), lDateModified);
+                listOfAllImages.add(img);
+            }
+            cursor.close();
         }
         return listOfAllImages;
     }
 
     @SuppressLint("Recycle")
     private ArrayList<Video> getAllShownVideos(Activity activity) {
-        Uri uri;
-        Cursor cursor;
-        int column_index_data, column_index_addDate, column_index_duration;
         ArrayList<Video> listOfAllVideos = new ArrayList<>();
-        uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        Cursor cursor = getContext().getContentResolver().query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Video.Media._ID, MediaStore.Video.Media.DURATION, MediaStore.Video.Media.DATE_MODIFIED},
+                null, null, null);
 
-        String[] projection = {MediaStore.Video.Media.DATA, MediaStore.Video.Media.DURATION, MediaStore.Video.Media.DATE_MODIFIED};
+        if (cursor != null) {
+            int column_index_id = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID);
+            int column_index_addDate = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED);
+            int column_index_duration = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION);
+            while (cursor.moveToNext()) {
+                int id = cursor.getInt(column_index_id);
+                String dateModified = cursor.getString(column_index_addDate);
+                long lDateModified = dateModified != null ? Long.parseLong(dateModified) : 0;
+                String dur = cursor.getString(column_index_duration);
+                long ldur = dateModified != null ? dur != null ? Long.parseLong(dur) : 0 : 0;
+                String videoDuration = String.format(Locale.getDefault(), "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(ldur),
+                        TimeUnit.MILLISECONDS.toMinutes(ldur) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(ldur)),
+                        TimeUnit.MILLISECONDS.toSeconds(ldur) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(ldur)));
 
-        cursor = activity.getContentResolver().query(uri, projection, null,
-                null, null);
-
-        assert cursor != null;
-        column_index_data = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA);
-        column_index_addDate = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED);
-        column_index_duration = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION);
-        while (cursor.moveToNext()) {
-            String absolutePathOfImage = cursor.getString(column_index_data);
-            String dateModified = cursor.getString(column_index_addDate);
-            long lDateModified = dateModified != null ? Long.parseLong(dateModified) : 0;
-
-            String dur = cursor.getString(column_index_duration);
-            long ldur = (dateModified != null && dur != null) ? Long.parseLong(dur) : 0;
-            @SuppressLint("DefaultLocale") String videoDuration = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(ldur),
-                    TimeUnit.MILLISECONDS.toMinutes(ldur) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(ldur)),
-                    TimeUnit.MILLISECONDS.toSeconds(ldur) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(ldur)));
-
-            Video video = new Video(absolutePathOfImage, lDateModified, videoDuration);
-            listOfAllVideos.add(video);
+                Video video = new Video(ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id).toString(), lDateModified, videoDuration);
+                listOfAllVideos.add(video);
+            }
+            cursor.close();
         }
         return listOfAllVideos;
     }
@@ -1066,7 +1090,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         int cx = (int) (attachButton.getX() + (attachButton.getWidth() >> 1) + 580);
         int cy = (int) (attachButton.getY() + (attachButton.getHeight() >> 1) + 530);
         if (b) {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
                 Animator revealAnimator = ViewAnimationUtils.createCircularReveal(view, cx, cy, 0, endRadius);
                 view.setVisibility(View.VISIBLE);
                 revealAnimator.setDuration(300);
@@ -1079,7 +1103,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                 animator.start();
             }
         } else {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
                 Animator anim = ViewAnimationUtils.createCircularReveal(view, cx, cy, endRadius, 0);
                 anim.addListener(new AnimatorListenerAdapter() {
                     @Override
@@ -1135,99 +1159,99 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
 
     @Override
     public void onButtonVoiceClick() {
-//        ((ConversationActivity) getActivity()).processAudioAction((ConversationActivity) getActivity());
+        ((ConversationActivity) getActivity()).processAudioAction((ConversationActivity) getActivity());
     }
 
     @Override
     public void onButtonAttachClick() {
-//        ((ConversationActivity) getActivity()).hideKeyboard(attachButton);
-//        if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission(getActivity())) {
-//            PermissionsUtils.requestPermissions(getActivity(), PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
-//        } else {
-//            final View dialogView = View.inflate(getContext(), R.layout.popup_window, null);
-//
-//            dialog = new Dialog(getContext());
-//            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-//            dialog.setContentView(dialogView);
-//
-//            GridView gridView = dialog.findViewById(id.attachGrid);
-//
-//            androidx.recyclerview.widget.RecyclerView listimage = dialog.findViewById(id.imageRecyclerView);
-//            androidx.recyclerview.widget.LinearLayoutManager layoutManager = new androidx.recyclerview.widget.LinearLayoutManager(this.getContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false);
-//            listimage.setLayoutManager(layoutManager);
-//
-//            prepareAttachmentData(gridView, listimage);
-//            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//                @Override
-//                public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
-//                    ((ConversationActivity) getActivity()).setAttachType(i);
-//                    switch (i) {
-//                        case 0:
-//                            ((ConversationActivity) getActivity()).processCameraAction(getActivity());
-//                            dialog.dismiss();
-//                            break;
-//                        case 1:
-//                            ((ConversationActivity) getActivity()).processGalleryAction(getActivity());
-//                            dialog.dismiss();
-//                            break;
-//                        case 2:
-//                            ((ConversationActivity) getActivity()).processVideoAction(getActivity());
-//                            dialog.dismiss();
-//                            break;
-//                        case 3:
-//                            ((ConversationActivity) getActivity()).processAudioAction((ConversationActivity) getActivity());
-//                            dialog.dismiss();
-//                            break;
-//                        case 4:
-//                            ((ConversationActivity) getActivity()).processFileAction(getActivity());
-//                            dialog.dismiss();
-//                            break;
-//                        case 5:
-//                            ((ConversationActivity) getActivity()).processContactAction(getActivity());
-//                            dialog.dismiss();
-//                            break;
-//                        case 6:
-//                            Intent intent = new Intent(getActivity(), StringeeLocationActivity.class);
-//                            getActivity().startActivityForResult(intent, ConversationActivity.REQUEST_CODE_LOCATION);
-//                            dialog.dismiss();
-//                            break;
-//                        case 7:
-//                            revealShow(dialogView, false, dialog);
-//                            break;
-//                    }
-//                }
-//            });
-//
-//            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-//                @Override
-//                public void onShow(DialogInterface dialog) {
-//                    revealShow(dialogView, true, null);
-//                }
-//            });
-//            dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-//                @Override
-//                public boolean onKey(DialogInterface d, int i, KeyEvent event) {
-//                    if (i == KeyEvent.KEYCODE_BACK) {
-//
-//                        revealShow(dialogView, false, dialog);
-//                        return true;
-//                    }
-//
-//                    return false;
-//                }
-//            });
-//            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-//            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
-//            dialog.getWindow().setGravity(Gravity.BOTTOM);
-//            dialog.show();
-//        }
+        ((ConversationActivity) getActivity()).hideKeyboard(attachButton);
+        if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission(getActivity())) {
+            PermissionsUtils.requestPermissions(getActivity(), PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
+        } else {
+            final View dialogView = View.inflate(getContext(), R.layout.popup_window, null);
+
+            dialog = new Dialog(getContext());
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            dialog.setContentView(dialogView);
+
+            GridView gridView = dialog.findViewById(id.attachGrid);
+
+            RecyclerView listimage = dialog.findViewById(id.imageRecyclerView);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(this.getContext(), LinearLayoutManager.HORIZONTAL, false);
+            listimage.setLayoutManager(layoutManager);
+
+            prepareAttachmentData(gridView, listimage);
+            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
+                    ((ConversationActivity) getActivity()).setAttachType(i);
+                    switch (i) {
+                        case 0:
+                            ((ConversationActivity) getActivity()).processCameraAction(getActivity());
+                            dialog.dismiss();
+                            break;
+                        case 1:
+                            ((ConversationActivity) getActivity()).processGalleryAction(getActivity());
+                            dialog.dismiss();
+                            break;
+                        case 2:
+                            ((ConversationActivity) getActivity()).processVideoAction(getActivity());
+                            dialog.dismiss();
+                            break;
+                        case 3:
+                            ((ConversationActivity) getActivity()).processAudioAction((ConversationActivity) getActivity());
+                            dialog.dismiss();
+                            break;
+                        case 4:
+                            ((ConversationActivity) getActivity()).processFileAction(getActivity());
+                            dialog.dismiss();
+                            break;
+                        case 5:
+                            ((ConversationActivity) getActivity()).processContactAction(getActivity());
+                            dialog.dismiss();
+                            break;
+                        case 6:
+                            Intent intent = new Intent(getActivity(), StringeeLocationActivity.class);
+                            getActivity().startActivityForResult(intent, ConversationActivity.REQUEST_CODE_LOCATION);
+                            dialog.dismiss();
+                            break;
+                        case 7:
+                            revealShow(dialogView, false, dialog);
+                            break;
+                    }
+                }
+            });
+
+            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                @Override
+                public void onShow(DialogInterface dialog) {
+                    revealShow(dialogView, true, null);
+                }
+            });
+            dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface d, int i, KeyEvent event) {
+                    if (i == KeyEvent.KEYCODE_BACK) {
+
+                        revealShow(dialogView, false, dialog);
+                        return true;
+                    }
+
+                    return false;
+                }
+            });
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+            dialog.getWindow().setGravity(Gravity.BOTTOM);
+            dialog.show();
+        }
     }
 
     @Override
     public void onButtonStickerClick(boolean isShow) {
-//        if (isShow && !isScrolledDown) {
-//            scrollToBottom();
-//        }
+        if (isShow && !isScrolledDown) {
+            scrollToBottom();
+        }
     }
 
     public void onKeyboardShown() {

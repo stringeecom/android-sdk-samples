@@ -6,8 +6,11 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Environment;
 import android.provider.ContactsContract;
+import android.provider.OpenableColumns;
 import android.util.Log;
 
 import com.stringee.chat.ui.kit.model.Contact;
@@ -31,6 +34,8 @@ public class FileUtils {
     public static final String MAIN_FOLDER_META_DATA = "main_folder_name";
     public static final String STRINGEE_IMAGES_FOLDER = "/Images";
     public static final String STRINGEE_VIDEOS_FOLDER = "/Video";
+    private static final String STRINGEE_AUDIO_FOLDER = "/audio";
+    private static final String STRINGEE_CONTACT_FOLDER = "/contact";
     public static final String STRINGEE_OTHER_FILES_FOLDER = "/Documents";
     public static final String STRINGEE_THUMBNAIL_SUFIX = "/.Thumbnail";
     public static final String STRINGEE_STICKER_FOLDER = "/Sticker";
@@ -38,29 +43,65 @@ public class FileUtils {
     public static final String IMAGE_DIR = "image";
     private static final String TAG = "FileUtils";
 
-    public static File getFilePath(String fileName, Context context, String contentType) {
-        return getFilePath(fileName, context, contentType, false);
+    public enum FileType {
+        IMAGE,
+        VIDEO,
+        AUDIO,
+        CONTACT,
+        STICKER,
+        OTHER,
     }
 
-    public static File getFilePath(String fileName, Context context, String contentType, boolean isThumbnail) {
-        File filePath;
+    public static File getFilePath(String fileName, Context context, FileType fileType) {
+        return new File(getSaveFileDir(context, fileType), fileName);
+    }
+
+    public static File getSaveFileDir(Context context, FileType fileType) {
         File dir;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            String folder = "/" + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_OTHER_FILES_FOLDER;
+            String folder = "/";
+            if (VERSION.SDK_INT >= VERSION_CODES.R) {
+                folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA);
+                switch (fileType) {
+                    case IMAGE:
+                        dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + folder);
+                        break;
+                    case VIDEO:
+                        dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).getAbsolutePath() + folder);
+                        break;
+                    case AUDIO:
+                        dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_AUDIOBOOKS).getAbsolutePath() + folder);
+                        break;
+                    case CONTACT:
+                        dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath() + folder);
+                        break;
+                    case OTHER:
+                    default:
+                        dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + folder);
+                        break;
+                }
+            } else {
+                switch (fileType) {
+                    case IMAGE:
+                        folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_IMAGES_FOLDER;
+                        break;
+                    case VIDEO:
+                        folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_VIDEOS_FOLDER;
+                        break;
+                    case AUDIO:
+                        folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_AUDIO_FOLDER;
+                        break;
+                    case CONTACT:
+                        folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_CONTACT_FOLDER;
+                        break;
+                    case OTHER:
+                    default:
+                        folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_OTHER_FILES_FOLDER;
+                        break;
+                }
+                dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + folder);
+            }
 
-            if (contentType.startsWith("image")) {
-                folder = "/" + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_IMAGES_FOLDER;
-            } else if (contentType.startsWith("video")) {
-                folder = "/" + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_VIDEOS_FOLDER;
-            } else if (contentType.startsWith("audio")) {
-                folder = "/" + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_AUDIOS_FOLDER;
-            } else if (contentType.startsWith("sticker")) {
-                folder = "/" + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_STICKER_FOLDER;
-            }
-            if (isThumbnail) {
-                folder = folder + STRINGEE_THUMBNAIL_SUFIX;
-            }
-            dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + folder);
             if (!dir.exists()) {
                 dir.mkdirs();
             }
@@ -69,8 +110,7 @@ public class FileUtils {
             // path to /data/data/yourapp/app_data/imageDir
             dir = cw.getDir(IMAGE_DIR, Context.MODE_PRIVATE);
         }
-        filePath = new File(dir, fileName);
-        if (!isThumbnail && (contentType.startsWith("image") || contentType.startsWith("video") || contentType.startsWith("sticker"))) {
+        if (fileType== FileType.IMAGE || fileType== FileType.VIDEO || fileType== FileType.STICKER) {
             File noMediaFile = new File(dir, ".nomedia");
             if (!noMediaFile.exists()) {
                 try {
@@ -80,7 +120,7 @@ public class FileUtils {
                 }
             }
         }
-        return filePath;
+        return dir;
     }
 
     public Bitmap loadMessageImage(Context context, String url) {
@@ -107,13 +147,14 @@ public class FileUtils {
 
     /**
      * @param contactData
+     *
      * @return
      */
     public static String vCard(Uri contactData, Context context) throws Exception {
         Cursor cursor = context.getContentResolver().query(contactData, null, null, null, null);
         cursor.moveToFirst();
-        String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-        String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+        String name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME));
+        String lookupKey = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.LOOKUP_KEY));
         Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_VCARD_URI, lookupKey);
 
         BufferedReader br = null;
@@ -169,14 +210,14 @@ public class FileUtils {
         File file = new File(folder);
         if (!file.exists() || !file.isDirectory())
             return null;
-        String[] subfiles = file.list();
-        if (subfiles.length == 0)
+        String[] subFiles = file.list();
+        if (subFiles == null || subFiles.length == 0)
             return null;
-        for (int i = 0; i < subfiles.length; i++) {
-            if (fileNamePattern == null || subfiles[i].matches(fileNamePattern)) {
+        for (String subFile : subFiles) {
+            if (fileNamePattern == null || subFile.matches(fileNamePattern)) {
                 StringeeFile StringeeFile = new StringeeFile();
-                String filePath = folder + "/" + subfiles[i];
-                StringeeFile.setName(subfiles[i]);
+                String filePath = folder + "/" + subFile;
+                StringeeFile.setName(subFile);
                 StringeeFile.setPath(filePath);
                 // check type file
                 StringeeFile.setType(checkTypeFile(filePath));
@@ -186,10 +227,10 @@ public class FileUtils {
                     File f = new File(filePath);
                     int length = (int) f.length() / 1024;
                     StringeeFile.setSize(length);
-                    if (!StringeeFile.getName().substring(0, 1).equals("."))
+                    if (StringeeFile.getName().charAt(0) != '.')
                         files.add(StringeeFile);
                 } else {
-                    if (!StringeeFile.getName().substring(0, 1).equals("."))
+                    if (StringeeFile.getName().charAt(0) != '.')
                         dics.add(StringeeFile);
                 }
             }
@@ -340,5 +381,81 @@ public class FileUtils {
         }
         // The directory is now empty so delete it
         return dir.delete();
+    }
+
+    public static String copyFileToCache(Context context, Uri uri, FileType fileType) {
+        Cursor cursor = context.getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null);
+        String name = "";
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int nameIndex = cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME);
+                name = (cursor.getString(nameIndex));
+            }
+            if (!cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        // Create cache file
+        File output = new File(getCacheDir(context, fileType) + "/" + name);
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(uri);
+            java.io.FileOutputStream outputStream = new java.io.FileOutputStream(output);
+
+            int read;
+            final byte[] buffers = new byte[4096];
+            while ((read = inputStream.read(buffers)) != -1) {
+                outputStream.write(buffers, 0, read);
+            }
+            inputStream.close();
+            outputStream.close();
+        } catch (Exception e) {
+            Log.e("Exception", e.getMessage());
+        }
+        return output.getPath();
+    }
+
+    public static File getCacheDir(Context context, FileType fileType) {
+        File dir;
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            String folder = "/";
+            switch (fileType) {
+                case IMAGE:
+                    folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_IMAGES_FOLDER;
+                    break;
+                case VIDEO:
+                    folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_VIDEOS_FOLDER;
+                    break;
+                case AUDIO:
+                    folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_AUDIO_FOLDER;
+                    break;
+                case CONTACT:
+                    folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_CONTACT_FOLDER;
+                    break;
+                case OTHER:
+                default:
+                    folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_OTHER_FILES_FOLDER;
+                    break;
+            }
+            // Create cache folder
+            if (VERSION.SDK_INT >= 19) {
+                File[] dirs = context.getExternalCacheDirs();
+                dir = new File(dirs[0] + folder);
+            } else {
+                dir = new File(context.getExternalCacheDir() + folder);
+            }
+
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+        } else {
+            ContextWrapper cw = new ContextWrapper(context);
+            // path to /data/data/yourapp/app_data/imageDir
+            dir = cw.getDir(IMAGE_DIR, Context.MODE_PRIVATE);
+        }
+        return dir;
+    }
+
+    public static File getFileCachePath(Context context, String fileName, FileType fileType) {
+        return new File(getCacheDir(context, fileType), fileName);
     }
 }

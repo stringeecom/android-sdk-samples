@@ -25,6 +25,7 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.ortiz.touchview.TouchImageView;
 import com.stringee.chat.ui.kit.commons.LocalImageLoader;
 import com.stringee.chat.ui.kit.commons.utils.FileUtils;
+import com.stringee.chat.ui.kit.commons.utils.FileUtils.FileType;
 import com.stringee.listener.StatusListener;
 import com.stringee.messaging.Message;
 import com.stringee.stringeechatuikit.R;
@@ -157,7 +158,7 @@ public class ImageFullScreenActivity extends androidx.appcompat.app.AppCompatAct
             if (url != null && url.length() > 0) {
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                 String imageFileName = "photo_" + timeStamp + ".jpeg";
-                File file = FileUtils.getFilePath(imageFileName, this, "image/jpeg");
+                File file = FileUtils.getFilePath(imageFileName, this, FileType.IMAGE);
                 final String dest = file.getAbsolutePath();
                 Utils.downloadAttachment(url, dest, new StatusListener() {
                     @Override
