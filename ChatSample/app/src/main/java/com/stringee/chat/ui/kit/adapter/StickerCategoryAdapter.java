@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.stringee.chat.ui.kit.commons.utils.FileUtils;
+import com.stringee.chat.ui.kit.commons.utils.FileUtils.FileType;
 import com.stringee.chat.ui.kit.commons.utils.PermissionsUtils;
 import com.stringee.chat.ui.kit.model.StickerCategory;
 import com.stringee.stringeechatuikit.R;
@@ -120,7 +121,7 @@ public class StickerCategoryAdapter extends BaseAdapter {
             @Override
             public void run() {
                 if (category.isDownloaded()) {
-                    FileUtils.deleteDir(new File(FileUtils.getAppDir(mContext, "sticker").getAbsolutePath() + "/" + category.getId()));
+                    FileUtils.deleteDir(new File(FileUtils.getCacheDir(mContext, FileType.STICKER).getAbsolutePath() + "/" + category.getId()));
                     ((Activity) mContext).runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -137,7 +138,7 @@ public class StickerCategoryAdapter extends BaseAdapter {
                         urlConnection.setRequestMethod("GET");
                         urlConnection.setDoOutput(true);
                         urlConnection.connect();
-                        File file = new File(FileUtils.getAppDir(mContext, "sticker"), category.getId() + ".zip");
+                        File file = new File(FileUtils.getCacheDir(mContext, FileType.STICKER), category.getId() + ".zip");
                         FileOutputStream fileOutput = new FileOutputStream(file);
                         InputStream inputStream = urlConnection.getInputStream();
                         byte[] buffer = new byte[1024];
@@ -146,7 +147,7 @@ public class StickerCategoryAdapter extends BaseAdapter {
                             fileOutput.write(buffer, 0, bufferLength);
                         }
                         fileOutput.close();
-                        File dest = FileUtils.getAppDir(mContext, "sticker");
+                        File dest = FileUtils.getCacheDir(mContext, FileType.STICKER);
                         if (!dest.exists()) {
                             dest.mkdir();
                         }

@@ -21,6 +21,7 @@
 #-renamesourcefileattribute SourceFile
 -dontwarn org.webrtc.**
 -keep class org.webrtc.** { *; }
+-keep class com.stringee.** { *; }
 -dontwarn com.google.android.gms.internal.zzbeb
 -dontwarn com.google.android.gms.internal.zzbec
 -dontwarn org.apache.http.**
@@ -32,3 +33,13 @@
     public static *** i(...);
     public static *** e(...);
 }
+
+-keepattributes InnerClasses
+
+-keep class io.jsonwebtoken.** { *; }
+-keepnames class io.jsonwebtoken.* { *; }
+-keepnames interface io.jsonwebtoken.* { *; }
+
+-keep class org.bouncycastle.** { *; }
+-keepnames class org.bouncycastle.** { *; }
+-dontwarn org.bouncycastle.**

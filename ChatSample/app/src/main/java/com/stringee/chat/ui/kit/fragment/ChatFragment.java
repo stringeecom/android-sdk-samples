@@ -65,6 +65,7 @@ import com.stringee.chat.ui.kit.adapter.StickerIconAdapter;
 import com.stringee.chat.ui.kit.adapter.StringeeMultimediaPopupAdapter;
 import com.stringee.chat.ui.kit.commons.Constant;
 import com.stringee.chat.ui.kit.commons.utils.FileUtils;
+import com.stringee.chat.ui.kit.commons.utils.FileUtils.FileType;
 import com.stringee.chat.ui.kit.commons.utils.PermissionsUtils;
 import com.stringee.chat.ui.kit.listener.ChatUIListener;
 import com.stringee.chat.ui.kit.listener.ICusKeyboard;
@@ -355,13 +356,13 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        if (conversation.isGroup()) {
+//        if (conversation.isGroup()) {
             menu.findItem(id.menu_voice_call).setVisible(false);
             menu.findItem(id.menu_video_call).setVisible(false);
-        } else {
-            menu.findItem(id.menu_voice_call).setVisible(true);
-            menu.findItem(id.menu_video_call).setVisible(true);
-        }
+//        } else {
+//            menu.findItem(id.menu_voice_call).setVisible(true);
+//            menu.findItem(id.menu_video_call).setVisible(true);
+//        }
         menu.findItem(id.menu_info).setVisible(conversation.getChannelType() == ChannelType.NORMAL);
         menu.findItem(id.menu_end_chat).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
         menu.findItem(id.menu_rate).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
@@ -462,7 +463,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     }
 
     private void doLoadStickers() {
-        File file = FileUtils.getAppDir(getActivity(), "sticker");
+        File file = FileUtils.getCacheDir(getActivity(), FileType.STICKER);
         File[] directories = file.listFiles();
         if (directories != null && directories.length > 0) {
             Common.stickerDirectories.clear();
@@ -481,7 +482,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                             if (!filename.equals("icon.png") && (filename.endsWith(".png") || filename.endsWith(".jpg") || filename.endsWith(".jpeg"))) {
                                 Sticker sticker = new Sticker();
                                 sticker.setCatId(dir.getName());
-                                sticker.setName(filename);
+                                 sticker.setName(filename);
                                 sticker.setPath("file://" + dir.getAbsolutePath() + "/" + filename);
                                 lstStickers.add(sticker);
                                 Collections.sort(lstStickers);
@@ -579,7 +580,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                                 @Override
                                 public void run() {
                                     if (category.isDownloaded()) {
-                                        File dir = new File(FileUtils.getAppDir(getActivity(), "sticker").getAbsolutePath() + "/" + category.getId());
+                                        File dir = new File(FileUtils.getCacheDir(requireContext(), FileType.STICKER).getAbsolutePath() + "/" + category.getId());
                                         category.setIconUrl("file://" + dir.getAbsolutePath() + "/icon.png");
                                         stickerIcons.add(0, category);
                                         stickerIconAdapter.notifyDataSetChanged();
@@ -957,9 +958,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         });
     }
 
-    public void sendFile(String filePath) {
-        Message message = new Message(Message.Type.FILE);
-        message.setFilePath(filePath);
+    public void sendFile(Message message) {
         conversation.sendMessage(Common.client, message, new StatusListener() {
             @Override
             public void onSuccess() {

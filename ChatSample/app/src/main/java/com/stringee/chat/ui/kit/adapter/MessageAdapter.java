@@ -12,7 +12,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -612,11 +611,11 @@ public class MessageAdapter extends Adapter {
                             if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE)
                                     == PackageManager.PERMISSION_GRANTED) {
                                 displayFromLocal = true;
-                                stickerPath = "file://" + Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + Utils.getMetaDataValue(mContext, FileUtils.MAIN_FOLDER_META_DATA) + FileUtils.STRINGEE_STICKER_FOLDER + "/" + message.getStickerCategory() + "/" + message.getStickerName();
+                                stickerPath = "file:/" + FileUtils.getCacheDir(mContext, FileType.STICKER) + "/" + message.getStickerCategory() + "/" + message.getStickerName();
                             }
                         } else {
                             displayFromLocal = true;
-                            stickerPath = "file://" + Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + Utils.getMetaDataValue(mContext, FileUtils.MAIN_FOLDER_META_DATA) + FileUtils.STRINGEE_STICKER_FOLDER + "/" + message.getStickerCategory() + "/" + message.getStickerName();
+                            stickerPath = "file:/" + FileUtils.getCacheDir(mContext, FileType.STICKER) + "/" + message.getStickerCategory() + "/" + message.getStickerName();
                         }
                     }
                     DisplayImageOptions stickerOptions = new DisplayImageOptions.Builder()

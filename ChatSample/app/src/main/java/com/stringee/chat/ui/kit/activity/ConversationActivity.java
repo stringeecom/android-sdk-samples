@@ -181,6 +181,10 @@ public class ConversationActivity extends BaseActivity {
         menu.findItem(R.id.menu_voice_call).setVisible(false);
         menu.findItem(R.id.menu_video_call).setVisible(false);
         menu.findItem(R.id.menu_info).setVisible(false);
+        menu.findItem(com.stringee.stringeechatuikit.R.id.menu_end_chat).setVisible(false);
+        menu.findItem(com.stringee.stringeechatuikit.R.id.menu_rate).setVisible(false);
+        menu.findItem(com.stringee.stringeechatuikit.R.id.menu_email_chat_transcript).setVisible(false);
+        menu.findItem(com.stringee.stringeechatuikit.R.id.menu_edit_info).setVisible(false);
         return true;
     }
 
@@ -269,8 +273,12 @@ public class ConversationActivity extends BaseActivity {
                         fragment.sendContact(contact);
                         break;
                     case REQUEST_CODE_FILE:
-                        String path = data.getStringExtra("path");
-                        fragment.sendFile(path);
+                        Uri uri = data.getData();
+                        String filePath = FileUtils.copyFileToCache(ConversationActivity.this, uri, FileType.OTHER);
+                        Message message = new Message(Message.Type.FILE);
+                        FileUtils.getFileInfoFromUri(ConversationActivity.this, uri, message);
+                        message.setFilePath(filePath);
+                        fragment.sendFile(message);
                         break;
                     case REQUEST_CODE_GALLERY:
                         DataItem dataItem = (DataItem) data.getSerializableExtra("media");
@@ -524,7 +532,7 @@ public class ConversationActivity extends BaseActivity {
         if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission(activity)) {
             new StringeePermissions(activity).requestStoragePermissions();
         } else {
-            Intent intent = new Intent(this, SelectFileActivity.class);
+            Intent intent = new Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT);
             activity.startActivityForResult(intent, REQUEST_CODE_FILE);
         }
     }
@@ -569,6 +577,11 @@ public class ConversationActivity extends BaseActivity {
         convDeletedReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                Conversation conversation = (Conversation) intent.getSerializableExtra("conversation");
+                ConversationListFragment fragment = (ConversationListFragment) getFragmentByTag(ConversationActivity.this, "ConversationFragment");
+                if (fragment != null) {
+                    fragment.onConversationDeleted(conversation);
+                }
                 finish();
             }
         };

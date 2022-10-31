@@ -15,6 +15,7 @@ import android.util.Log;
 
 import com.stringee.chat.ui.kit.model.Contact;
 import com.stringee.chat.ui.kit.model.StringeeFile;
+import com.stringee.messaging.Message;
 import com.stringee.stringeechatuikit.common.Utils;
 
 import java.io.BufferedReader;
@@ -64,6 +65,7 @@ public class FileUtils {
                 folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA);
                 switch (fileType) {
                     case IMAGE:
+                    case STICKER:
                         dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + folder);
                         break;
                     case VIDEO:
@@ -94,6 +96,9 @@ public class FileUtils {
                     case CONTACT:
                         folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_CONTACT_FOLDER;
                         break;
+                    case STICKER:
+                        folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_STICKER_FOLDER;
+                        break;
                     case OTHER:
                     default:
                         folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_OTHER_FILES_FOLDER;
@@ -110,7 +115,7 @@ public class FileUtils {
             // path to /data/data/yourapp/app_data/imageDir
             dir = cw.getDir(IMAGE_DIR, Context.MODE_PRIVATE);
         }
-        if (fileType== FileType.IMAGE || fileType== FileType.VIDEO || fileType== FileType.STICKER) {
+        if (fileType == FileType.IMAGE || fileType == FileType.VIDEO || fileType == FileType.STICKER) {
             File noMediaFile = new File(dir, ".nomedia");
             if (!noMediaFile.exists()) {
                 try {
@@ -431,6 +436,9 @@ public class FileUtils {
                 case CONTACT:
                     folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_CONTACT_FOLDER;
                     break;
+                case STICKER:
+                    folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_STICKER_FOLDER;
+                    break;
                 case OTHER:
                 default:
                     folder = folder + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + STRINGEE_OTHER_FILES_FOLDER;
@@ -457,5 +465,30 @@ public class FileUtils {
 
     public static File getFileCachePath(Context context, String fileName, FileType fileType) {
         return new File(getCacheDir(context, fileType), fileName);
+    }
+
+    public static void getFileInfoFromUri(Context context, Uri uri, Message message) {
+        String name = "";
+        long size = 0;
+        if (uri.getScheme().equals("content")) {
+            String[] projection = new String[]{OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE};
+            try (Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null)) {
+                if (cursor.moveToFirst()) {
+                    name = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME));
+                    size = cursor.getLong(cursor.getColumnIndexOrThrow(OpenableColumns.SIZE));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (Utils.isStringEmpty(name)) {
+            name = uri.getPath();
+            int cut = name.lastIndexOf('/');
+            if (cut != -1) {
+                name = name.substring(cut + 1);
+            }
+        }
+        message.setFileName(name);
+        message.setFileLength(size);
     }
 }

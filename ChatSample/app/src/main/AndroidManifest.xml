@@ -6,10 +6,7 @@
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-feature
         android:glEsVersion="0x00020000"
-        android:required="true" />
-
-    <!-- Stringee permissions -->
-
+        android:required="true" /> <!-- Stringee permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -99,7 +96,6 @@
         <activity
             android:name="com.stringee.chat.ui.kit.activity.ContactActivity"
             android:theme="@style/StringeeAppTheme" />
-
         <activity
             android:name="com.stringee.chat.ui.kit.activity.LiveChatActivity"
             android:exported="false"
