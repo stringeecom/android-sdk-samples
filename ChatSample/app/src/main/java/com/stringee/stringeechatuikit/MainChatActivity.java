@@ -76,20 +76,26 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
     public void onNavigationDrawerItemSelected(int position) {
         switch (position) {
             case 0:
-                Intent intent = new Intent(this, ConversationActivity.class);
-                startActivity(intent);
+                if (Common.client != null) {
+                    Intent intent = new Intent(this, ConversationActivity.class);
+                    startActivity(intent);
+                }
                 break;
             case 1:
                 String pushToken = PrefUtils.getString(Constant.PREF_PUSH_TOKEN, "");
                 PrefUtils.clear();
-                Common.client.clearDb();
-                Common.client.unregisterPushToken(pushToken, new StatusListener() {
-                    @Override
-                    public void onSuccess() {
-                        Common.client.disconnect();
-                        Common.client = null;
-                    }
-                });
+                if (Common.client != null) {
+                    Common.client.clearDb();
+                    Common.client.unregisterPushToken(pushToken, new StatusListener() {
+                        @Override
+                        public void onSuccess() {
+
+                        }
+                    });
+                    Common.client.disconnect();
+                    Common.client = null;
+                }
+                getSupportActionBar().setTitle(R.string.connecting);
                 finish();
                 break;
         }

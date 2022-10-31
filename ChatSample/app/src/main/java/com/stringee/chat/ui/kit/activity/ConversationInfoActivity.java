@@ -13,6 +13,8 @@ import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.stringee.chat.ui.kit.adapter.ParticipantAdapter;
 import com.stringee.chat.ui.kit.commons.Notify;
 import com.stringee.chat.ui.kit.commons.utils.AlphaNumberColorUtil;
@@ -146,7 +148,14 @@ public class ConversationInfoActivity extends BaseActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(ConversationInfoActivity.this).sendBroadcast(new Intent(Notify.CONVERSATION_DELETED.getValue()));
+                                mConversation.delete(Common.client, new com.stringee.listener.StatusListener() {
+                                    @Override
+                                    public void onSuccess() {
+                                    }
+                                });
+                                Intent intent = new Intent(Notify.CONVERSATION_DELETED.getValue());
+                                intent.putExtra("conversation", mConversation);
+                                LocalBroadcastManager.getInstance(ConversationInfoActivity.this).sendBroadcast(intent);
                                 popupWindow.dismiss();
                                 finish();
                             }

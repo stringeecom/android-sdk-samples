@@ -85,7 +85,29 @@ public class ParticipantAdapter extends Adapter {
                     .cacheInMemory(true)
                     .cacheOnDisk(true)
                     .build();
-            ImageLoader.getInstance().displayImage(avatar, viewHolder.imAvatar, options);
+            ImageLoader.getInstance().displayImage(avatar, viewHolder.imAvatar, options, new com.nostra13.universalimageloader.core.listener.ImageLoadingListener() {
+                @Override
+                public void onLoadingStarted(String imageUri, android.view.View view) {
+
+                }
+
+                @Override
+                public void onLoadingFailed(String imageUri, android.view.View view, com.nostra13.universalimageloader.core.assist.FailReason failReason) {
+
+                }
+
+                @Override
+                public void onLoadingComplete(String imageUri, android.view.View view, android.graphics.Bitmap loadedImage) {
+                    Utils.runOnUiThread(() -> {
+                        viewHolder.imAvatar.setImageBitmap(loadedImage);
+                    });
+                }
+
+                @Override
+                public void onLoadingCancelled(String imageUri, android.view.View view) {
+
+                }
+            });
         } else {
             viewHolder.tvAlphabet.setVisibility(View.VISIBLE);
             viewHolder.imAvatar.setVisibility(View.GONE);

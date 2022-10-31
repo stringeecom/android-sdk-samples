@@ -40,7 +40,7 @@ import org.json.JSONObject;
 public class BaseActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ProgressDialog prLoading;
-    public final String accessToken = "";
+    public final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2NjcxODM3MDQiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjY5Nzc1NzA0LCJ1c2VySWQiOiJ1c2VyMSJ9.GB9ni1PLrB8ps_iKgJe-gLQ8hMUv4xAnhjpiljNuiN4";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -174,6 +174,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 public void onTimeoutInQueue(Conversation conversation) {
                     runOnUiThread(() -> {
                         Intent intent = new Intent(Notify.CONVERSATION_DELETED.getValue());
+                        intent.putExtra("conversation", conversation);
                         LocalBroadcastManager.getInstance(BaseActivity.this).sendBroadcast(intent);
                     });
                 }
@@ -182,6 +183,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 public void onConversationEnded(Conversation conversation, User user) {
                     runOnUiThread(() -> {
                         Intent intent = new Intent(Notify.CONVERSATION_DELETED.getValue());
+                        intent.putExtra("conversation", conversation);
                         LocalBroadcastManager.getInstance(BaseActivity.this).sendBroadcast(intent);
                     });
                 }

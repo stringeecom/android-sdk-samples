@@ -155,4 +155,5 @@
     <string name="email_chat_transcript_success">Email chat transcript success</string>
     <string name="domain">Domain</string>
     <string name="edit_info_success">Edit info success</string>
+    <string name="user_id">User id</string>
 </resources>

@@ -114,39 +114,41 @@ public class ConversationListFragment extends Fragment {
             }
         });
 
-        Common.client.getLocalConversations(PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""), new CallbackListener<List<Conversation>>() {
-            @Override
-            public void onSuccess(final List<Conversation> conversations) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            conversationList.clear();
-                            conversationList.addAll(conversations);
-                            adapter.notifyDataSetChanged();
+        getLatestConversations();
 
-                            // Get latest conversations from server
-                            getLatestConversations();
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onError(StringeeError stringeeError) {
-                super.onError(stringeeError);
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            // Get latest conversations from server
-                            getLatestConversations();
-                        }
-                    });
-                }
-
-            }
-        });
+//        Common.client.getLocalConversations(PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""), new CallbackListener<List<Conversation>>() {
+//            @Override
+//            public void onSuccess(final List<Conversation> conversations) {
+//                if (getActivity() != null) {
+//                    getActivity().runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            conversationList.clear();
+//                            conversationList.addAll(conversations);
+//                            adapter.notifyDataSetChanged();
+//
+//                            // Get latest conversations from server
+//                            getLatestConversations();
+//                        }
+//                    });
+//                }
+//            }
+//
+//            @Override
+//            public void onError(StringeeError stringeeError) {
+//                super.onError(stringeeError);
+//                if (getActivity() != null) {
+//                    getActivity().runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            // Get latest conversations from server
+//                            getLatestConversations();
+//                        }
+//                    });
+//                }
+//
+//            }
+//        });
 
         return view;
     }
@@ -364,7 +366,7 @@ public class ConversationListFragment extends Fragment {
         }
     }
 
-    private void onConversationDeleted(final Conversation conversation) {
+    public void onConversationDeleted(final Conversation conversation) {
         if (getActivity() == null) {
             return;
         }
