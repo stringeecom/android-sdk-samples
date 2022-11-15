@@ -40,7 +40,7 @@ import org.json.JSONObject;
 public class BaseActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ProgressDialog prLoading;
-    public final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2NjcxODM3MDQiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjY5Nzc1NzA0LCJ1c2VySWQiOiJ1c2VyMSJ9.GB9ni1PLrB8ps_iKgJe-gLQ8hMUv4xAnhjpiljNuiN4";
+    public final String accessToken = "PUT_YOUR_TOKEN_HERE";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
