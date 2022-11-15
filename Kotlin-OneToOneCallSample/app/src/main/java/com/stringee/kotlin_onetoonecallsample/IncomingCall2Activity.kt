@@ -31,11 +31,6 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
     private var isVideo = false
     private var isPermissionGranted = true
 
-    // For normal device has more than 3 cameras, 0 is back camera, 1 is front camera.
-    // Some device is different, must check camera id before select.
-    // When call starts, automatically use the front camera.
-    private var cameraId = 1
-
     private var mMediaState: MediaState = MediaState.DISCONNECTED
     private lateinit var mSignalingState: SignalingState
 
@@ -269,6 +264,14 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
                     )
                 }
             }
+
+            override fun onTrackMediaStateChange(
+                p0: String?,
+                p1: StringeeVideoTrack.MediaType?,
+                p2: Boolean
+            ) {
+                TODO("Not yet implemented")
+            }
         })
 
         stringeeCall2.ringing(object : StatusListener() {
@@ -304,7 +307,10 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
                 binding.vIncoming.visibility = GONE
                 binding.btnEnd.visibility = VISIBLE
                 binding.btnSwitch.visibility = if (isVideoCall) VISIBLE else GONE
-                stringeeCall2.answer()
+                stringeeCall2.answer(object : StatusListener() {
+                    override fun onSuccess() {
+                    }
+                })
             }
             R.id.btn_end -> {
                 endCall(true)
@@ -320,7 +326,6 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
             R.id.btn_switch -> {
                 stringeeCall2.switchCamera(object : StatusListener() {
                     override fun onSuccess() {
-                        cameraId = if (cameraId == 0) 1 else 0
                     }
 
                     override fun onError(stringeeError: StringeeError) {
@@ -330,7 +335,7 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
                             Common.reportMessage(this@IncomingCall2Activity, stringeeError.message)
                         }
                     }
-                }, if (cameraId == 0) 1 else 0)
+                })
             }
         }
     }
@@ -338,9 +343,15 @@ class IncomingCall2Activity : AppCompatActivity(), OnClickListener {
     private fun endCall(isHangup: Boolean) {
         binding.tvState.text = "Ended"
         if (isHangup) {
-            stringeeCall2.hangup()
+            stringeeCall2.hangup(object : StatusListener() {
+                override fun onSuccess() {
+                }
+            })
         } else {
-            stringeeCall2.reject()
+            stringeeCall2.reject(object : StatusListener() {
+                override fun onSuccess() {
+                }
+            })
         }
         dismissLayout()
     }
