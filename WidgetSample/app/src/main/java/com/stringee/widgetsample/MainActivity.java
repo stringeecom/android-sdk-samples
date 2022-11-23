@@ -20,7 +20,7 @@ import com.stringee.widget.StringeeWidget;
 public class MainActivity extends AppCompatActivity {
 
     //put your access token here
-    public static String accessToken = "YOUR_ACCESS_TOKEN";
+    public static String accessToken = "eyJhbGciOiJIUzI1NiIsImN0eSI6InN0cmluZ2VlLWFwaTt2PTEiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE2NjkxODA2NTQsInVzZXJJZCI6IlZUX1RFU1RfSEFVTlRfQlAiLCJpc3MiOiJTS1NWOTNIRTRrT2xEOGpMeDVzY2toUUVaSzRYTGE3T0JKIiwianRpIjoiU0tTVjkzSEU0a09sRDhqTHg1c2NraFFFWks0WExhN09CSi0xNjY5MTc3MDU0NTgwIn0.qGsJvdBxl_ZsW4D2eIHafmkuPvf88ESYrBd7Nw_C26w";
     private StringeeWidget stringeeWidget;
     private String to;
 
@@ -75,6 +75,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void initAndConnectStringee(String token) {
         stringeeWidget = StringeeWidget.getInstance(this);
+        java.util.List<com.stringee.common.SocketAddress> socketAddressList= new java.util.ArrayList<>();
+        socketAddressList.add(new com.stringee.common.SocketAddress("ccv1.viettel.vn",9879));
+        socketAddressList.add(new com.stringee.common.SocketAddress("ccv2.viettel.vn",9879));
+        stringeeWidget.setHost(socketAddressList);
         stringeeWidget.setListener(new StringeeListener() {
             @Override
             public void onConnectionConnected() {
