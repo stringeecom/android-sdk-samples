@@ -31,7 +31,8 @@
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
-                android:text="Video Call" />
+                android:text="Video Call"
+                android:layout_marginStart="20dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -50,13 +51,14 @@
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
-                android:text="Video Call 2" />
+                android:text="Video Call 2"
+                android:layout_marginStart="20dp" />
         </LinearLayout>
 
     </LinearLayout>
 
     <TextView
-        android:id="@+id/tv_userid"
+        android:id="@+id/tv_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
