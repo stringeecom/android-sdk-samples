@@ -39,9 +39,8 @@ public class ClientManager {
 
     private StringeeClient stringeeClient;
     private OnConnectionListener listener;
-    private String token = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE2OTIyMzgwNTQiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNjk0ODMwMDU0LCJ1c2VySWQiOiJhbmRyb2lkMiJ9.sw358afCHwzRr4sgpBAOH0bdNEjBjskq4U6cEjhnObQ";
+    private String token = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDEyNTUwODAiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNzAzODQ3MDgwLCJ1c2VySWQiOiJhbmRyb2lkMSJ9.bkt-aG1sNWCJirKO_soJs-IBELdqq1K1GuPRjJZ_zV4";
     public boolean isInCall = false;
-    public boolean isAppInBackground = false;
     public boolean isPermissionGranted = true;
 
     public StringeeClient getStringeeClient() {

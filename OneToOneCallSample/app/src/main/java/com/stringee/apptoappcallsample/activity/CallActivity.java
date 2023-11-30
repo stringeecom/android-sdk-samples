@@ -218,12 +218,18 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
         });
         if (!isIncomingCall) {
             String to = getIntent().getStringExtra(Constant.PARAM_TO);
+            if (!isVideoCall) {
+                voiceCallBinding.tvUser1.setText(to);
+            }
             callManager.initializedOutgoingCall(to, isVideoCall, isStringeeCall);
             callManager.makeCall();
         } else {
             incomingCallBinding.tvUser.setText(callManager.getFrom());
+            if (!isVideoCall) {
+                voiceCallBinding.tvUser1.setText(callManager.getFrom());
+            }
             boolean isAnswerFromPush = getIntent().getBooleanExtra(Constant.PARAM_ACTION_ANSWER_FROM_PUSH, false);
-            if (isAnswerFromPush){
+            if (isAnswerFromPush) {
                 callManager.answer();
             }
         }

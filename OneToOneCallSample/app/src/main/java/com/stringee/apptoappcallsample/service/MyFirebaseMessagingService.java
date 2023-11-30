@@ -41,9 +41,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         JSONObject jsonObject = new JSONObject(data);
                         String callStatus = jsonObject.optString("callStatus");
                         if (callStatus.equals("started")) {
-                            if (ClientManager.getInstance(this).getStringeeClient() == null){
+//                            if (ClientManager.getInstance(this).getStringeeClient() == null) {
                                 ClientManager.getInstance(this).connect();
-                            }
+//                            }
                         }
                         if (callStatus.equals("ended") || callStatus.equals("answered") || callStatus.equals("agentEnded")) {
                             NotificationUtils.getInstance(this).cancelNotification(Constant.INCOMING_CALL_ID);
