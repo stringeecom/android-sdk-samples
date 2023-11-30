@@ -50,7 +50,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="35dp"
                     android:layout_marginTop="40dp"
-                    android:gravity="center"
+                    android:gravity="left"
                     android:orientation="vertical">
 
                     <TextView
@@ -67,7 +67,7 @@
                         android:src="@drawable/green_line_horizontal" />
 
                     <TextView
-                        android:id="@+id/tv_user"
+                        android:id="@+id/tv_user1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"

@@ -123,6 +123,7 @@ public class CallManager {
                 @Override
                 public void onSignalingStateChange(StringeeCall stringeeCall, StringeeCall.SignalingState signalingState, String reason, int sipCode, String sipReason) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onSignalingStateChange: " + signalingState);
                         callSignalingState = signalingState;
                         switch (callSignalingState) {
                             case CALLING:
@@ -156,6 +157,7 @@ public class CallManager {
                 @Override
                 public void onError(StringeeCall stringeeCall, int code, String desc) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG,"onError: " + desc);
                         callStatus = CallStatus.ENDED;
                         if (listener != null) {
                             listener.onError(desc);
@@ -167,6 +169,7 @@ public class CallManager {
                 @Override
                 public void onHandledOnAnotherDevice(StringeeCall stringeeCall, StringeeCall.SignalingState signalingState, String desc) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG,"onHandledOnAnotherDevice: " + signalingState);
                         if (signalingState != StringeeCall.SignalingState.RINGING) {
                             callStatus = CallStatus.ENDED;
                             if (listener != null) {
@@ -179,6 +182,7 @@ public class CallManager {
                 @Override
                 public void onMediaStateChange(StringeeCall stringeeCall, StringeeCall.MediaState mediaState) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onMediaStateChange: " + mediaState);
                         callMediaState = mediaState;
                         if (callSignalingState == StringeeCall.SignalingState.ANSWERED) {
                             callStatus = CallStatus.STARTED;
@@ -193,6 +197,7 @@ public class CallManager {
                 @Override
                 public void onLocalStream(StringeeCall stringeeCall) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onLocalStream");
                         if (isVideoCall) {
                             if (listener != null) {
                                 listener.onReceiveLocalStream();
@@ -204,6 +209,7 @@ public class CallManager {
                 @Override
                 public void onRemoteStream(StringeeCall stringeeCall) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onRemoteStream");
                         if (isVideoCall) {
                             if (listener != null) {
                                 listener.onReceiveRemoteStream();
@@ -222,6 +228,7 @@ public class CallManager {
                 @Override
                 public void onSignalingStateChange(StringeeCall2 stringeeCall2, StringeeCall2.SignalingState signalingState, String reason, int sipCode, String sipReason) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onSignalingStateChange: " + signalingState);
                         call2SignalingState = signalingState;
                         switch (call2SignalingState) {
                             case CALLING:
@@ -253,6 +260,7 @@ public class CallManager {
                 @Override
                 public void onError(StringeeCall2 stringeeCall2, int code, String desc) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onError: " + desc);
                         callStatus = CallStatus.ENDED;
                         if (listener != null) {
                             listener.onError(desc);
@@ -264,6 +272,7 @@ public class CallManager {
                 @Override
                 public void onHandledOnAnotherDevice(StringeeCall2 stringeeCall2, StringeeCall2.SignalingState signalingState, String desc) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onHandledOnAnotherDevice: " + signalingState);
                         if (signalingState != StringeeCall2.SignalingState.RINGING) {
                             callStatus = CallStatus.ENDED;
                             if (listener != null) {
@@ -276,6 +285,7 @@ public class CallManager {
                 @Override
                 public void onMediaStateChange(StringeeCall2 stringeeCall2, StringeeCall2.MediaState mediaState) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onMediaStateChange: " + mediaState);
                         call2MediaState = mediaState;
                         if (call2SignalingState == StringeeCall2.SignalingState.ANSWERED) {
                             callStatus = CallStatus.STARTED;
@@ -290,6 +300,7 @@ public class CallManager {
                 @Override
                 public void onLocalStream(StringeeCall2 stringeeCall2) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onLocalStream");
                         if (isVideoCall) {
                             if (listener != null) {
                                 listener.onReceiveLocalStream();
@@ -301,6 +312,7 @@ public class CallManager {
                 @Override
                 public void onRemoteStream(StringeeCall2 stringeeCall2) {
                     Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onRemoteStream");
                         if (isVideoCall) {
                             if (listener != null) {
                                 listener.onReceiveRemoteStream();
@@ -468,26 +480,26 @@ public class CallManager {
                 stringeeCall.hangup(new StatusListener() {
                     @Override
                     public void onSuccess() {
-                        handleResponse("answer", true, null);
+                        handleResponse("hangup", true, null);
                     }
 
                     @Override
                     public void onError(StringeeError stringeeError) {
                         super.onError(stringeeError);
-                        handleResponse("answer", false, stringeeError.getMessage());
+                        handleResponse("hangup", false, stringeeError.getMessage());
                     }
                 });
             } else {
                 stringeeCall.reject(new StatusListener() {
                     @Override
                     public void onSuccess() {
-                        handleResponse("answer", true, null);
+                        handleResponse("reject", true, null);
                     }
 
                     @Override
                     public void onError(StringeeError stringeeError) {
                         super.onError(stringeeError);
-                        handleResponse("answer", false, stringeeError.getMessage());
+                        handleResponse("reject", false, stringeeError.getMessage());
                     }
                 });
             }
@@ -496,26 +508,26 @@ public class CallManager {
                 stringeeCall2.hangup(new StatusListener() {
                     @Override
                     public void onSuccess() {
-                        handleResponse("answer", true, null);
+                        handleResponse("hangup", true, null);
                     }
 
                     @Override
                     public void onError(StringeeError stringeeError) {
                         super.onError(stringeeError);
-                        handleResponse("answer", false, stringeeError.getMessage());
+                        handleResponse("hangup", false, stringeeError.getMessage());
                     }
                 });
             } else {
                 stringeeCall2.reject(new StatusListener() {
                     @Override
                     public void onSuccess() {
-                        handleResponse("answer", true, null);
+                        handleResponse("reject", true, null);
                     }
 
                     @Override
                     public void onError(StringeeError stringeeError) {
                         super.onError(stringeeError);
-                        handleResponse("answer", false, stringeeError.getMessage());
+                        handleResponse("reject", false, stringeeError.getMessage());
                     }
                 });
             }
@@ -636,8 +648,10 @@ public class CallManager {
     private boolean isCallNotInitialized() {
         boolean isCallNotInitialized = true;
         if (isStringeeCall) {
+            Log.d(Constant.TAG, "isCallNotInitialized1: " + stringeeCall);
             isCallNotInitialized = stringeeCall == null;
         } else {
+            Log.d(Constant.TAG, "isCallNotInitialized2: " + stringeeCall2);
             isCallNotInitialized = stringeeCall2 == null;
         }
         if (isCallNotInitialized) {
@@ -705,7 +719,7 @@ public class CallManager {
         }
     }
 
-    private void startTimer(){
+    private void startTimer() {
         long startTime = System.currentTimeMillis();
 
         timer = new Timer();
