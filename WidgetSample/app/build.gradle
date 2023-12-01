@@ -17,13 +17,17 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    lintOptions {
+        abortOnError true
+        checkReleaseBuilds false
     }
     namespace 'com.stringee.widgetsample'
 }
@@ -33,5 +37,5 @@ dependencies {
     implementation 'com.google.android.material:material:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.android.volley:volley:1.2.1'
-    implementation 'com.stringee.sdk.android:stringee-android-widget:1.0.6'
+    implementation 'com.stringee.sdk.android:stringee-android-widget:1.1.0'
 }
