@@ -7,13 +7,10 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog.Builder;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LifecycleObserver;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.stringee.apptoappcallsample.R.id;
 import com.stringee.apptoappcallsample.R.string;
