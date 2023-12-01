@@ -11,16 +11,19 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
+import com.stringee.common.SocketAddress;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.widget.CallConfig;
 import com.stringee.widget.StringeeListener;
 import com.stringee.widget.StringeeWidget;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     //put your access token here
-    public static String accessToken = "eyJhbGciOiJIUzI1NiIsImN0eSI6InN0cmluZ2VlLWFwaTt2PTEiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE2NjkxODA2NTQsInVzZXJJZCI6IlZUX1RFU1RfSEFVTlRfQlAiLCJpc3MiOiJTS1NWOTNIRTRrT2xEOGpMeDVzY2toUUVaSzRYTGE3T0JKIiwianRpIjoiU0tTVjkzSEU0a09sRDhqTHg1c2NraFFFWks0WExhN09CSi0xNjY5MTc3MDU0NTgwIn0.qGsJvdBxl_ZsW4D2eIHafmkuPvf88ESYrBd7Nw_C26w";
+    public static String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDEzOTQ5ODgiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNzAzOTg2OTg4LCJ1c2VySWQiOiJpb3MxIn0.y1UAZNCg4KhmAvCDajvN_lzah3GW6iRR-OkDdTCe_nw";
     private StringeeWidget stringeeWidget;
     private String to;
 
@@ -75,10 +78,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void initAndConnectStringee(String token) {
         stringeeWidget = StringeeWidget.getInstance(this);
-        java.util.List<com.stringee.common.SocketAddress> socketAddressList= new java.util.ArrayList<>();
-        socketAddressList.add(new com.stringee.common.SocketAddress("ccv1.viettel.vn",9879));
-        socketAddressList.add(new com.stringee.common.SocketAddress("ccv2.viettel.vn",9879));
-        stringeeWidget.setHost(socketAddressList);
+//        List<SocketAddress> socketAddressList= new java.util.ArrayList<>();
+//        socketAddressList.add(new SocketAddress("your host",your_port);
+//        stringeeWidget.setHost(socketAddressList);
         stringeeWidget.setListener(new StringeeListener() {
             @Override
             public void onConnectionConnected() {
