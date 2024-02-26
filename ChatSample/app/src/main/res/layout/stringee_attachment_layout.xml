@@ -4,12 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@android:color/transparent"
-    android:paddingLeft="8dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="0dp"
     android:visibility="gone">
 
 
     <FrameLayout
-        android:id="@+id/iconLayout"
+        android:id="@+id/v_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
@@ -17,7 +18,7 @@
         android:layout_marginBottom="3dp">
 
         <ImageView
-            android:id="@+id/playImageView"
+            android:id="@+id/iv_play"
             android:layout_width="45dp"
             android:layout_height="45dp"
             android:layout_gravity="center_vertical"
@@ -35,21 +36,21 @@
             android:visibility="gone" />
 
         <RelativeLayout
-            android:id="@+id/downloadLayout"
+            android:id="@+id/v_download"
             android:layout_width="45dp"
             android:layout_height="45dp"
             android:layout_gravity="center_vertical"
             android:visibility="invisible">
 
             <ImageView
-                android:id="@+id/downloadImageView"
+                android:id="@+id/iv_download"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:layout_centerInParent="true"
                 android:src="@drawable/circle_arrow_down_download" />
 
             <ProgressBar
-                android:id="@+id/audioProgressBar"
+                android:id="@+id/pb_audio"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
@@ -59,20 +60,20 @@
     </FrameLayout>
 
     <SeekBar
-        android:id="@+id/audioSeekbar"
+        android:id="@+id/sb_audio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toRightOf="@id/iconLayout" />
+        android:layout_toEndOf="@id/v_icon" />
 
     <TextView
-        android:id="@+id/fileNameTextView"
+        android:id="@+id/tv_file_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_toRightOf="@id/iconLayout"
+        android:layout_toEndOf="@id/v_icon"
         android:ellipsize="end"
         android:lines="1"
         android:textColor="@color/stringee_time_sent"
@@ -81,39 +82,39 @@
 
 
     <TextView
-        android:id="@+id/durationTextView"
+        android:id="@+id/tv_duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/audioSeekbar"
-        android:layout_marginLeft="8dp"
+        android:layout_below="@id/sb_audio"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="20dp"
-        android:layout_toRightOf="@id/iconLayout"
+        android:layout_toEndOf="@id/v_icon"
         android:text="00:00"
         android:textColor="@color/stringee_time_sent"
         android:textSize="12sp" />
 
     <TextView
-        android:id="@+id/audioTime"
+        android:id="@+id/tv_audio_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/audioSeekbar"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="right"
+        android:layout_below="@id/sb_audio"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="end"
         android:layout_marginTop="25dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp"
         android:gravity="center"
         android:textColor="@color/stringee_time_sent"
         android:textSize="11sp" />
 
     <TextView
-        android:id="@+id/fileTime"
+        android:id="@+id/tv_file_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/fileNameTextView"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="right"
+        android:layout_below="@id/tv_file_name"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="end"
         android:layout_marginTop="25dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp"
         android:textColor="@color/stringee_time_sent"
         android:textSize="11sp" />
 

@@ -35,8 +35,8 @@ public class CreateGroupFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         activity = (BaseActivity) getActivity();
         View view = activity.getLayoutInflater().inflate(R.layout.fragment_create_group, null);
-        nameEditText = view.findViewById(R.id.nameEditText);
-        userIdsEditText = view.findViewById(R.id.userIdsEditText);
+        nameEditText = view.findViewById(R.id.et_name);
+        userIdsEditText = view.findViewById(R.id.et_user_id);
         return new Builder(activity).setTitle(R.string.create_group)
                 .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
                     @Override
@@ -48,17 +48,25 @@ public class CreateGroupFragment extends DialogFragment {
                             return;
                         }
 
+                        String[] userIdsList = userIds.split(",");
+                        List<User> participants = new ArrayList<>();
+                        for (String s : userIdsList) {
+                            if (!s.trim().equals(Common.client.getUserId())) {
+                                User user = new User(s);
+                                participants.add(user);
+                            }
+                        }
+
+                        if (participants.size() <= 1) {
+                            Toast.makeText(activity, R.string.create_conversation_fail, Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
                         activity.showProgress(getString(R.string.loading));
                         ConversationOptions options = new ConversationOptions();
                         options.setName(groupName);
                         options.setDistinct(false);
                         options.setGroup(true);
-                        String[] userIdsList = userIds.split(",");
-                        List<User> participants = new ArrayList<>();
-                        for (int i = 0; i < userIdsList.length; i++) {
-                            User user = new User(userIdsList[i]);
-                            participants.add(user);
-                        }
                         Common.client.createConversation(participants, options, new CallbackListener<Conversation>() {
                             @Override
                             public void onSuccess(final Conversation conv) {

@@ -10,6 +10,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import com.stringee.StringeeClient;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
@@ -22,19 +26,17 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-    private Button btnJoinRoom;
     private TextView tvTitle;
 
-    private String accessToken = "PUT_ACCESS_TOKEN_HERE";
-    private String roomToken = "PUT_ROOM_TOKEN_HERER";
+//    private final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDM5MTczMjIiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjEiLCJleHAiOjE3NDA0Nzk5MTd9.EF5Q7F5GvciEghyg1YRSWoqJc8vS44o5EUohaEztuwk";
+//    private final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDQwNTU5OTEiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjIiLCJleHAiOjE3NDA0ODAwNTV9.xUY_8dSNuoZf2dHj77jNWQWjjvqpDv-kafTNm3JL2yY";
+    private final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDQwODQxNTYiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjMiLCJleHAiOjE3NDA0ODAwODN9.sOdOw7D8NDran5Qxyi3flAuzpfB8rgqYlSRnwdYvHZ4";
+    private final String roomToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDM5MTgwNzQiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwicm9vbUlkIjoicm9vbS12bi0xLVFOUUJZMDVDU0UtMTcwNTAxNDc1NzE2MSIsInBlcm1pc3Npb25zIjp7InN1YnNjcmliZSI6dHJ1ZSwicHVibGlzaCI6dHJ1ZSwiY29udHJvbF9yb29tIjp0cnVlfSwiZXhwIjoxNzQwNDc5OTE4fQ.Sopy3dgQ1dEeVMXb-sgv0g2sHV6pKh40K5ES4ecH-4s";
 
     public static StringeeClient client;
 
-    public static final int REQUEST_VIDEO_PERMISSION = 1;
+    public static final int REQUEST_VIDEO_CONFERENCE_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,49 +59,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.joinButton:
-                if (client != null && client.isConnected()) {
-                    if (checkPermission()) {
-                        Intent intent = new Intent(this, RoomActivity.class);
-                        intent.putExtra("room_token", roomToken);
-                        startActivity(intent);
-                    }
-                } else {
-                    Toast.makeText(this, "Please wait for connecting", Toast.LENGTH_SHORT).show();
+        if (view.getId() == R.id.joinButton) {
+            if (client != null && client.isConnected()) {
+                if (checkPermission()) {
+                    Intent intent = new Intent(this, RoomActivity.class);
+                    intent.putExtra("room_token", roomToken);
+                    startActivity(intent);
                 }
-
-                break;
+            } else {
+                Toast.makeText(this, "Please wait for connecting", Toast.LENGTH_SHORT).show();
+            }
         }
 
     }
 
     private void initView() {
         tvTitle = findViewById(R.id.titleTextView);
-        btnJoinRoom = findViewById(R.id.joinButton);
+        Button btnJoinRoom = findViewById(R.id.joinButton);
         btnJoinRoom.setOnClickListener(this);
     }
 
     private boolean checkPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            List<String> lstPermissions = new ArrayList<>();
-            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                lstPermissions.add(Manifest.permission.RECORD_AUDIO);
-            }
+        List<String> lstPermissions = new ArrayList<>();
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            lstPermissions.add(Manifest.permission.RECORD_AUDIO);
+        }
 
-            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                lstPermissions.add(Manifest.permission.CAMERA);
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            lstPermissions.add(Manifest.permission.CAMERA);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                lstPermissions.add(Manifest.permission.BLUETOOTH_CONNECT);
             }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                lstPermissions.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
 
-            if (lstPermissions.size() > 0) {
-                String[] permissions = new String[lstPermissions.size()];
-                for (int i = 0; i < lstPermissions.size(); i++) {
-                    permissions[i] = lstPermissions.get(i);
-                }
-                ActivityCompat.requestPermissions(MainActivity.this, permissions, REQUEST_VIDEO_PERMISSION);
-                return false;
+        if (lstPermissions.size() > 0) {
+            String[] permissions = new String[lstPermissions.size()];
+            for (int i = 0; i < lstPermissions.size(); i++) {
+                permissions[i] = lstPermissions.get(i);
             }
-            return true;
+            ActivityCompat.requestPermissions(MainActivity.this, permissions, REQUEST_VIDEO_CONFERENCE_PERMISSION);
+            return false;
         }
         return true;
     }
@@ -111,12 +117,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             client.setConnectionListener(new StringeeConnectionListener() {
                 @Override
                 public void onConnectionConnected(StringeeClient stringeeClient, boolean b) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            tvTitle.setText(getString(R.string.connected_as, client.getUserId()));
-                        }
-                    });
+                    runOnUiThread(() -> tvTitle.setText(getString(R.string.connected_as, client.getUserId())));
                 }
 
                 @Override
@@ -159,35 +160,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[],
-                                           int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         boolean isGranted = false;
-        if (grantResults.length > 0) {
-            for (int i = 0; i < grantResults.length; i++) {
-                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                    isGranted = false;
-                    break;
-                } else {
-                    isGranted = true;
-                }
+        for (int grantResult : grantResults) {
+            if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                isGranted = false;
+                break;
+            } else {
+                isGranted = true;
             }
         }
-        switch (requestCode) {
-            case REQUEST_VIDEO_PERMISSION:
-                if (!isGranted) {
-                    return;
-                } else {
-                    if (client != null) {
-                        if (client.isConnected()) {
-                            Intent intent = new Intent(this, RoomActivity.class);
-                            intent.putExtra("room_token", roomToken);
-                            startActivity(intent);
-                        }
-                    } else {
-                        Toast.makeText(this, "Please login first!", Toast.LENGTH_SHORT).show();
+        if (requestCode == REQUEST_VIDEO_CONFERENCE_PERMISSION) {
+            if (isGranted) {
+                if (client != null) {
+                    if (client.isConnected()) {
+                        Intent intent = new Intent(this, RoomActivity.class);
+                        intent.putExtra("room_token", roomToken);
+                        startActivity(intent);
                     }
+                } else {
+                    Toast.makeText(this, "Please login first!", Toast.LENGTH_SHORT).show();
                 }
-                break;
+            }
         }
     }
 }

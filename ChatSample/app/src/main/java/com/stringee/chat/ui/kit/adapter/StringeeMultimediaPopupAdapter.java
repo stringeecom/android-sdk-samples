@@ -49,8 +49,8 @@ public class StringeeMultimediaPopupAdapter extends BaseAdapter {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         assert inflater != null;
         convertView = inflater.inflate(R.layout.stringee_multimedia_option_item, null);
-        ImageView img = convertView.findViewById(R.id.imageItem);
-        TextView text = convertView.findViewById(R.id.stringee_multimedia_text);
+        ImageView img = convertView.findViewById(R.id.iv_item);
+        TextView text = convertView.findViewById(R.id.tv_mult_imedia);
         img.setImageResource(multimediaIcons.getResourceId(position, -1));
         text.setText(multimediaText.get(position));
         return convertView;

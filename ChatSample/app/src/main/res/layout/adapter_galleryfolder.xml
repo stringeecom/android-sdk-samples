@@ -1,51 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginLeft="2dp"
     android:layout_marginTop="2dp"
     android:layout_marginRight="2dp"
-    android:layout_marginBottom="2dp"
-    android:orientation="vertical">
+    android:layout_marginBottom="2dp">
+
+    <ImageView
+        android:id="@+id/iv_imageFolder"
+        android:layout_width="190dp"
+        android:layout_height="190dp"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop" />
 
     <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_width="190dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/iv_imageFolder"
+        android:background="#dd888888"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
 
-        <ImageView
-            android:id="@+id/iv_imageFolder"
-            android:layout_width="190dp"
-            android:layout_height="190dp"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="center"
-            android:scaleType="centerCrop" />
-
-        <RelativeLayout
-            android:layout_width="190dp"
+        <TextView
+            android:id="@+id/tv_folder_name"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/iv_imageFolder"
-            android:background="#dd888888"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp">
+            android:layout_marginStart="10dp"
+            android:textColor="#ffffff"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_folder_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginLeft="10dp"
-                android:textColor="#ffffff"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tv_folder_size"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="160dp"
-                android:layout_marginLeft="160dp"
-                android:textColor="#dfdfdf"
-                android:textSize="12sp" />
-        </RelativeLayout>
+        <TextView
+            android:id="@+id/tv_folder_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="160dp"
+            android:textColor="#dfdfdf"
+            android:textSize="12sp" />
     </RelativeLayout>
-</LinearLayout>
+</RelativeLayout>

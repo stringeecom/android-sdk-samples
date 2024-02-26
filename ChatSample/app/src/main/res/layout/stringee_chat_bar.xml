@@ -33,10 +33,10 @@
                 android:id="@+id/sendLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true">
+                android:layout_alignParentEnd="true">
 
                 <ImageButton
-                    android:id="@+id/attachButton"
+                    android:id="@+id/btn_attach"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="@null"
@@ -46,11 +46,10 @@
 
                 <FrameLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toLeftOf="@id/recordButton">
+                    android:layout_height="wrap_content">
 
                     <ImageButton
-                        android:id="@+id/sendMessageButton"
+                        android:id="@+id/btn_send_msg"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:background="@null"
@@ -59,7 +58,7 @@
                         android:visibility="gone" />
 
                     <ImageButton
-                        android:id="@+id/recordButton"
+                        android:id="@+id/btn_record"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:background="@null"
@@ -71,11 +70,11 @@
 
 
             <EditText
-                android:id="@+id/messageEditText"
+                android:id="@+id/et_msg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/sendLayout"
-                android:layout_toRightOf="@id/stickerButton"
+                android:layout_toStartOf="@id/sendLayout"
+                android:layout_toEndOf="@id/stickerButton"
                 android:background="@android:color/transparent"
                 android:hint="@string/message"
                 android:inputType="textCapSentences|textMultiLine"

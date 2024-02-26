@@ -1,10 +1,5 @@
 package com.stringee.videoconference.sample;
 
-import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.DisplayMetrics;
-
 import com.stringee.video.RemoteParticipant;
 
 import java.util.List;
@@ -14,11 +9,11 @@ public class Utils {
         if (localId == null) {
             return "";
         }
-        String roomName = localId;
+        StringBuilder roomName = new StringBuilder(localId);
         for (RemoteParticipant remoteParticipant : remoteParticipantList) {
-            roomName = roomName + ", " + remoteParticipant.getId().trim();
+            roomName.append(", ").append(remoteParticipant.getId().trim());
         }
-        return roomName;
+        return roomName.toString();
     }
 
     public static String getNewRoomName(String oldRoomName, String participantId, String type) {
@@ -35,21 +30,5 @@ public class Utils {
                 break;
         }
         return newRoomName;
-    }
-
-    public static int dpToPx(Context context, int dp) {
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
-        return px;
-    }
-
-    public static void postDelay1s(Runnable runnable) {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(runnable, 1500);
-    }
-
-    public static void runOnUIThreat(Runnable runnable) {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(runnable);
     }
 }

@@ -1,5 +1,6 @@
 package com.stringee.apptoappcallsample.common;
 
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioAttributes.Builder;
@@ -8,35 +9,38 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 
-import com.stringee.apptoappcallsample.manager.ClientManager;
+import androidx.annotation.RequiresApi;
+
 import com.stringee.common.StringeeAudioManager;
 import com.stringee.common.StringeeAudioManager.AudioDevice;
 
+import java.util.List;
+
 public class AudioManagerUtils {
     private static volatile AudioManagerUtils instance;
-    private static final Object lock = new Object();
     private OnAudioEvents audioEvents;
     private StringeeAudioManager audioManager;
     private AudioManager am;
 
-    private MediaPlayer incomingRingtone;
+    private final MediaPlayer incomingRingtone;
     private Vibrator incomingVibrator;
 
-    private Context context;
+    private final Context context;
 
-    private Uri incomingRingtoneUri;
+    private final Uri incomingRingtoneUri;
 
     private int previousAudioModel;
     private boolean previousSpeaker;
 
     public static AudioManagerUtils getInstance(Context context) {
         if (instance == null) {
-            synchronized (lock) {
+            synchronized (AudioManagerUtils.class) {
                 if (instance == null) {
                     instance = new AudioManagerUtils(context);
                 }
@@ -46,7 +50,7 @@ public class AudioManagerUtils {
     }
 
     public AudioManagerUtils(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.incomingRingtoneUri = Uri.parse(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE).toString());
         this.incomingRingtone = new MediaPlayer();
     }
@@ -85,16 +89,12 @@ public class AudioManagerUtils {
             am.setMode(AudioManager.MODE_RINGTONE);
             am.setSpeakerphoneOn(true);
             boolean isHeadsetPlugged = false;
-            if (VERSION.SDK_INT < VERSION_CODES.M) {
-                isHeadsetPlugged = am.isWiredHeadsetOn();
-            } else {
-                final AudioDeviceInfo[] devices = am.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-                for (AudioDeviceInfo device : devices) {
-                    final int type = device.getType();
-                    if (type == AudioDeviceInfo.TYPE_WIRED_HEADSET || type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || type == AudioDeviceInfo.TYPE_USB_DEVICE) {
-                        isHeadsetPlugged = true;
-                        break;
-                    }
+            final AudioDeviceInfo[] devices = am.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
+            for (AudioDeviceInfo device : devices) {
+                final int type = device.getType();
+                if (type == AudioDeviceInfo.TYPE_WIRED_HEADSET || type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || type == AudioDeviceInfo.TYPE_USB_DEVICE) {
+                    isHeadsetPlugged = true;
+                    break;
                 }
             }
             boolean needRing = am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL;
@@ -116,10 +116,8 @@ public class AudioManagerUtils {
                     incomingRingtone.setDataSource(context, incomingRingtoneUri);
                     incomingRingtone.prepareAsync();
                 } catch (Exception e) {
-                    if (incomingRingtone != null) {
-                        incomingRingtone.stop();
-                        incomingRingtone.reset();
-                    }
+                    incomingRingtone.stop();
+                    incomingRingtone.reset();
                 }
             }
             if (needVibrate) {

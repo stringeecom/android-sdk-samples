@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootView"
+    android:id="@+id/v_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingTop="15dp"
@@ -11,13 +11,13 @@
         android:layout_width="25dp"
         android:layout_height="25dp"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="15dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="15dp"
         android:background="@drawable/list_check_bg"
         android:visibility="gone">
 
         <ImageView
-            android:id="@+id/checkImageView"
+            android:id="@+id/iv_check"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -32,16 +32,15 @@
         android:layout_marginRight="50dp">
 
         <TextView
-            android:id="@+id/customMessage"
+            android:id="@+id/tv_custom_msg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:background="@drawable/stringee_conversation_custom_message"
+            android:gravity="center"
             android:padding="8dp"
             android:textColor="@color/sent_message_text_color"
             android:textSize="14sp"
             android:textStyle="bold" />
     </RelativeLayout>
-
-
 </RelativeLayout>

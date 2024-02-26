@@ -7,12 +7,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.text.Spannable;
 import android.text.SpannableString;
-import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 
 import androidx.core.app.NotificationCompat;
@@ -24,7 +22,6 @@ import com.stringee.apptoappcallsample.service.RejectCallReceiver;
 
 public class NotificationUtils {
     private static volatile NotificationUtils instance;
-    private static final Object lock = new Object();
     private final Context context;
     private final NotificationManager nm;
 
@@ -39,7 +36,7 @@ public class NotificationUtils {
 
     public static synchronized NotificationUtils getInstance(Context context) {
         if (instance == null) {
-            synchronized (lock) {
+            synchronized (NotificationUtils.class) {
                 if (instance == null) {
                     instance = new NotificationUtils(context);
                 }
@@ -103,14 +100,10 @@ public class NotificationUtils {
         PendingIntent actionRejectPendingIntent = PendingIntent.getBroadcast(context, (int) (System.currentTimeMillis() & 0xfffffff), actionRejectIntent, flag);
 
         SpannableString answerTitle = new SpannableString("Answer");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            answerTitle.setSpan(new ForegroundColorSpan(Color.parseColor("#57D24D")), 0, answerTitle.length(), 0);
-        }
+        answerTitle.setSpan(new ForegroundColorSpan(Color.parseColor("#57D24D")), 0, answerTitle.length(), 0);
 
         Spannable endTitle = new SpannableString("Reject");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            endTitle.setSpan(new ForegroundColorSpan(Color.parseColor("#F64D64")), 0, endTitle.length(), 0);
-        }
+        endTitle.setSpan(new ForegroundColorSpan(Color.parseColor("#F64D64")), 0, endTitle.length(), 0);
 
         Builder notificationBuilder = new Builder(context, channelId);
         notificationBuilder.setContentTitle("Incoming call");

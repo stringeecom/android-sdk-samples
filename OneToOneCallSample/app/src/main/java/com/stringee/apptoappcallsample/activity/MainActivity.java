@@ -1,6 +1,5 @@
 package com.stringee.apptoappcallsample.activity;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,7 +21,6 @@ import com.stringee.apptoappcallsample.manager.ClientManager;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, LifecycleObserver {
     private ActivityMainBinding binding;
-    private ProgressDialog progressDialog;
     private ClientManager clientManager;
 
     @Override
@@ -36,9 +34,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         binding.btnVoiceCall2.setOnClickListener(this);
         binding.btnVideoCall2.setOnClickListener(this);
 
-        progressDialog = ProgressDialog.show(this, "", "Connecting...");
-        progressDialog.setCancelable(true);
-        progressDialog.show();
         clientManager = ClientManager.getInstance(this);
 
         initAndConnectStringee();
@@ -63,9 +58,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Builder builder = new Builder(this);
                     builder.setTitle(string.app_name);
                     builder.setMessage("Permissions must be granted for the call");
-                    builder.setPositiveButton("Ok", (dialogInterface, id) -> {
-                        dialogInterface.cancel();
-                    });
+                    builder.setPositiveButton("Ok", (dialogInterface, id) -> dialogInterface.cancel());
                     builder.setNegativeButton("Settings", (dialogInterface, id) -> {
                         dialogInterface.cancel();
                         // open app setting
@@ -82,10 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void initAndConnectStringee() {
-        clientManager.addOnConnectionListener(status -> runOnUiThread(() -> {
-            progressDialog.dismiss();
-            binding.tvStatus.setText(status);
-        }));
+        clientManager.addOnConnectionListener(status -> runOnUiThread(() -> binding.tvStatus.setText(status)));
         clientManager.connect();
     }
 

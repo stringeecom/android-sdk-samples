@@ -11,7 +11,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -32,6 +31,7 @@ import android.widget.TextView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.Adapter;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -48,7 +48,6 @@ import com.stringee.chat.ui.kit.commons.utils.FileUtils;
 import com.stringee.chat.ui.kit.commons.utils.FileUtils.FileType;
 import com.stringee.chat.ui.kit.commons.utils.LocationUtils;
 import com.stringee.chat.ui.kit.commons.utils.PermissionsUtils;
-import com.stringee.chat.ui.kit.commons.utils.StringeePermissions;
 import com.stringee.chat.ui.kit.contact.STContactData;
 import com.stringee.chat.ui.kit.contact.STContactParser;
 import com.stringee.listener.StatusListener;
@@ -67,6 +66,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class MessageAdapter extends Adapter {
@@ -97,11 +97,13 @@ public class MessageAdapter extends Adapter {
         deliveredIcon = context.getResources().getDrawable(R.drawable.stringee_ic_action_message_delivered_w);
         pendingIcon = context.getResources().getDrawable(R.drawable.stringee_ic_action_message_pending_w);
         readIcon = context.getResources().getDrawable(R.drawable.stringee_ic_action_message_read_w);
+        readIcon.setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_ATOP);
 
         sentIconDark = context.getResources().getDrawable(R.drawable.stringee_ic_action_message_sent);
         deliveredIconDark = context.getResources().getDrawable(R.drawable.stringee_ic_action_message_delivered);
         pendingIconDark = context.getResources().getDrawable(R.drawable.stringee_ic_action_message_pending);
         readIconDark = context.getResources().getDrawable(R.drawable.stringee_ic_action_message_read);
+        readIconDark.setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_ATOP);
 
         Display dm = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         screenWidth = dm.getWidth();
@@ -109,7 +111,7 @@ public class MessageAdapter extends Adapter {
     }
 
     @Override
-    public androidx.recyclerview.widget.RecyclerView.ViewHolder onCreateViewHolder(@androidx.annotation.NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@androidx.annotation.NonNull ViewGroup parent, int viewType) {
         LayoutInflater mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (mInflater == null) {
             return null;
@@ -131,7 +133,7 @@ public class MessageAdapter extends Adapter {
 
     @SuppressLint("NewApi")
     @Override
-    public void onBindViewHolder(@androidx.annotation.NonNull androidx.recyclerview.widget.RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@androidx.annotation.NonNull RecyclerView.ViewHolder holder, int position) {
         int itemViewType = getItemViewType(position);
         final Message message = messageList.get(position);
 
@@ -141,11 +143,7 @@ public class MessageAdapter extends Adapter {
             id = message.getLocalId();
         }
         Message message1 = selectedMap.get(id);
-        if (message1 != null) {
-            isSelected = true;
-        } else {
-            isSelected = false;
-        }
+        isSelected = message1 != null;
 
         if (itemViewType == 2) {
             MessageHolder2 messageHolder = (MessageHolder2) holder;
@@ -182,8 +180,8 @@ public class MessageAdapter extends Adapter {
             }
         } else if (itemViewType == 3) {
             MessageHolder3 messageHolder3 = (MessageHolder3) holder;
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM");
-            SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("dd MMM, yyyy");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM", Locale.getDefault());
+            SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("dd MMM, yyyy", Locale.getDefault());
             Date date = new Date(message.getCreatedAt());
 
             if (Utils.isSameYear(message.getCreatedAt())) {
@@ -373,28 +371,20 @@ public class MessageAdapter extends Adapter {
                         @Override
                         public void onClick(View view) {
                             if (videoFilePath != null && videoFilePath.trim().length() > 0) {
-                                if (Build.VERSION.SDK_INT >= 24) {
-                                    File videoFile = new File(videoFilePath);
-                                    Uri fileUri = FileProvider.getUriForFile(mContext, mContext.getPackageName() + ".provider", videoFile);
-                                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                                    intent.setDataAndType(fileUri, "*/*");
-                                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    mContext.startActivity(intent);
-                                } else {
-                                    Uri uri = Uri.parse(videoFilePath);
-                                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                                    intent.setDataAndType(uri, "*/*");
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    mContext.startActivity(intent);
-                                }
+                                File videoFile = new File(videoFilePath);
+                                Uri fileUri = FileProvider.getUriForFile(mContext, mContext.getPackageName() + ".provider", videoFile);
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setDataAndType(fileUri, "*/*");
+                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                mContext.startActivity(intent);
                             } else {
-                                if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission((ConversationActivity) mContext)) {
-                                    new StringeePermissions((ConversationActivity) mContext).requestStoragePermissions();
+                                if (Utils.hasMarshmallow() && !PermissionsUtils.getInstance().checkSelfForStoragePermission(mContext)) {
+                                    PermissionsUtils.getInstance().requestPermissions((ConversationActivity) mContext, PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
                                 } else {
                                     messageHolder.progressBar.setVisibility(View.VISIBLE);
                                     messageHolder.videoIconImageView.setVisibility(View.GONE);
-                                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
                                     String filename = "video_" + timeStamp + ".mp4";
                                     File destFile = FileUtils.getFilePath(filename, mContext, FileType.VIDEO);
                                     final String dest = destFile.getAbsolutePath();
@@ -463,12 +453,12 @@ public class MessageAdapter extends Adapter {
                     messageHolder.downloadLayout.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission((ConversationActivity) mContext)) {
-                                new StringeePermissions((ConversationActivity) mContext).requestStoragePermissions();
+                            if (Utils.hasMarshmallow() && !PermissionsUtils.getInstance().checkSelfForStoragePermission(mContext)) {
+                                PermissionsUtils.getInstance().requestPermissions((ConversationActivity) mContext, PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
                             } else {
                                 messageHolder.audioProgressBar.setVisibility(View.VISIBLE);
                                 messageHolder.downloadImageView.setVisibility(View.GONE);
-                                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
                                 String filename = "audio_" + timeStamp + ".m4a";
                                 File destFile = FileUtils.getFilePath(filename, mContext, FileType.AUDIO);
                                 final String dest = destFile.getAbsolutePath();
@@ -536,12 +526,12 @@ public class MessageAdapter extends Adapter {
                     messageHolder.downloadLayout.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission((ConversationActivity) mContext)) {
-                                new StringeePermissions((ConversationActivity) mContext).requestStoragePermissions();
+                            if (Utils.hasMarshmallow() && !PermissionsUtils.getInstance().checkSelfForStoragePermission(mContext)) {
+                                PermissionsUtils.getInstance().requestPermissions((ConversationActivity) mContext, PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
                             } else {
                                 messageHolder.audioProgressBar.setVisibility(View.VISIBLE);
                                 messageHolder.downloadImageView.setVisibility(View.GONE);
-                                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
                                 String url = message.getFileUrl();
                                 String[] paths = null;
                                 if (url != null) {
@@ -690,15 +680,11 @@ public class MessageAdapter extends Adapter {
                     boolean isShowAva = true;
                     if (position < messageList.size() - 1) {
                         Message nextMessage = messageList.get(position + 1);
-                        if (message.getSenderId().equals(nextMessage.getSenderId())) {
-                            isShowAva = false;
-                        } else {
-                            isShowAva = true;
-                        }
+                        isShowAva = !message.getSenderId().equals(nextMessage.getSenderId());
                     }
                     if (isShowAva) {
                         messageHolder.alphabeticTextView.setVisibility(View.VISIBLE);
-                        displayImage(message, messageHolder.contactImageView, messageHolder.alphabeticTextView);
+                        displayImage(message, messageHolder.alphabeticTextView);
                     } else {
                         messageHolder.alphabeticTextView.setVisibility(View.GONE);
                     }
@@ -737,7 +723,7 @@ public class MessageAdapter extends Adapter {
         return messageList.get(position);
     }
 
-    class MessageHolder extends androidx.recyclerview.widget.RecyclerView.ViewHolder {
+    class MessageHolder extends RecyclerView.ViewHolder {
 
         TextView messageTextView, timeTextView, alphabeticTextView, shareContactName, shareContactNo, durationTextView, fileNameTextView, contactAlphabeticTextView, contactTimeTextView, audioTimeTextView, fileTimeTextView, locationTimeTextView, previewTimeTextView;
         ImageView contactImageView, mapImageView, shareContactImage, previewImageView, playImageView, videoIconImageView, downloadImageView, imAttachIcon, checkImageView;
@@ -755,22 +741,22 @@ public class MessageAdapter extends Adapter {
         public MessageHolder(View itemView) {
             super(itemView);
 
-            rootView = itemView.findViewById(R.id.rootView);
-            messageLayout = itemView.findViewById(R.id.messageLayout);
-            messageTextView = itemView.findViewById(R.id.message);
+            rootView = itemView.findViewById(R.id.v_root);
+            messageLayout = itemView.findViewById(R.id.v_msg);
+            messageTextView = itemView.findViewById(R.id.tv_msg);
             messageTextView.setMaxWidth((int) (0.65 * screenWidth));
-            timeTextView = itemView.findViewById(R.id.createdAtTime);
+            timeTextView = itemView.findViewById(R.id.tv_create_at);
             alphabeticTextView = itemView.findViewById(R.id.alphabeticImage);
             contactImageView = itemView.findViewById(R.id.contactImage);
             vAvatar = itemView.findViewById(R.id.v_avatar_received);
-            mapImageView = itemView.findViewById(R.id.static_mapview);
+            mapImageView = itemView.findViewById(R.id.iv_static_mapview);
             mainContactShareLayout = itemView.findViewById(R.id.contact_share_layout);
             chatLocationLayout = itemView.findViewById(R.id.chat_location);
             attachmentPreviewLayout = itemView.findViewById(R.id.attachment_preview_layout);
             attachmentAudioLayout = itemView.findViewById(R.id.attach_audio_layout);
-            mediaLayout = itemView.findViewById(R.id.mediaLayout);
+            mediaLayout = itemView.findViewById(R.id.v_media);
             vSelect = itemView.findViewById(R.id.v_select);
-            checkImageView = itemView.findViewById(R.id.checkImageView);
+            checkImageView = itemView.findViewById(R.id.iv_check);
 
 
             contactAlphabeticTextView = mainContactShareLayout.findViewById(R.id.tv_contact_alphabetic);
@@ -778,25 +764,25 @@ public class MessageAdapter extends Adapter {
             shareContactName = mainContactShareLayout.findViewById(R.id.tv_contact_name);
             shareContactNo = mainContactShareLayout.findViewById(R.id.tv_contact_phone);
             addContactButton = mainContactShareLayout.findViewById(R.id.contact_share_add_btn);
-            contactTimeTextView = mainContactShareLayout.findViewById(R.id.contactTime);
+            contactTimeTextView = mainContactShareLayout.findViewById(R.id.tv_contact_time);
 
-            previewImageView = attachmentPreviewLayout.findViewById(R.id.preview);
-            videoIconImageView = attachmentPreviewLayout.findViewById(R.id.video_icon);
-            progressBar = attachmentPreviewLayout.findViewById(R.id.progressBar);
-            previewTimeTextView = attachmentPreviewLayout.findViewById(R.id.previewTime);
+            previewImageView = attachmentPreviewLayout.findViewById(R.id.iv_preview);
+            videoIconImageView = attachmentPreviewLayout.findViewById(R.id.iv_video_icon);
+            progressBar = attachmentPreviewLayout.findViewById(R.id.pb);
+            previewTimeTextView = attachmentPreviewLayout.findViewById(R.id.tv_preview_time);
 
-            playImageView = attachmentAudioLayout.findViewById(R.id.playImageView);
-            durationTextView = attachmentAudioLayout.findViewById(R.id.durationTextView);
-            audioSeekBar = attachmentAudioLayout.findViewById(R.id.audioSeekbar);
-            downloadLayout = attachmentAudioLayout.findViewById(R.id.downloadLayout);
-            audioProgressBar = attachmentAudioLayout.findViewById(R.id.audioProgressBar);
-            downloadImageView = attachmentAudioLayout.findViewById(R.id.downloadImageView);
-            audioTimeTextView = attachmentAudioLayout.findViewById(R.id.audioTime);
-            fileNameTextView = attachmentAudioLayout.findViewById(R.id.fileNameTextView);
-            fileTimeTextView = attachmentAudioLayout.findViewById(R.id.fileTime);
+            playImageView = attachmentAudioLayout.findViewById(R.id.iv_play);
+            durationTextView = attachmentAudioLayout.findViewById(R.id.tv_duration);
+            audioSeekBar = attachmentAudioLayout.findViewById(R.id.sb_audio);
+            downloadLayout = attachmentAudioLayout.findViewById(R.id.v_download);
+            audioProgressBar = attachmentAudioLayout.findViewById(R.id.pb_audio);
+            downloadImageView = attachmentAudioLayout.findViewById(R.id.iv_download);
+            audioTimeTextView = attachmentAudioLayout.findViewById(R.id.tv_audio_time);
+            fileNameTextView = attachmentAudioLayout.findViewById(R.id.tv_file_name);
+            fileTimeTextView = attachmentAudioLayout.findViewById(R.id.tv_file_time);
             imAttachIcon = attachmentAudioLayout.findViewById(R.id.im_attach_icon);
 
-            locationTimeTextView = chatLocationLayout.findViewById(R.id.locationTime);
+            locationTimeTextView = chatLocationLayout.findViewById(R.id.tv_location_time);
 
             rootView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -815,17 +801,17 @@ public class MessageAdapter extends Adapter {
         }
     }
 
-    class MessageHolder2 extends androidx.recyclerview.widget.RecyclerView.ViewHolder {
+    class MessageHolder2 extends RecyclerView.ViewHolder {
         TextView customMessageTextView;
         View rootView, vSelect;
         ImageView checkImageView;
 
         public MessageHolder2(View itemView) {
             super(itemView);
-            customMessageTextView = itemView.findViewById(R.id.customMessage);
-            rootView = itemView.findViewById(R.id.rootView);
+            customMessageTextView = itemView.findViewById(R.id.tv_custom_msg);
+            rootView = itemView.findViewById(R.id.v_root);
             vSelect = itemView.findViewById(R.id.v_select);
-            checkImageView = itemView.findViewById(R.id.checkImageView);
+            checkImageView = itemView.findViewById(R.id.iv_check);
 
             rootView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -844,16 +830,16 @@ public class MessageAdapter extends Adapter {
         }
     }
 
-    class MessageHolder3 extends androidx.recyclerview.widget.RecyclerView.ViewHolder {
+    class MessageHolder3 extends RecyclerView.ViewHolder {
         TextView timeTextView;
 
         public MessageHolder3(View itemView) {
             super(itemView);
-            timeTextView = itemView.findViewById(R.id.timeTextView);
+            timeTextView = itemView.findViewById(R.id.tv_time);
         }
     }
 
-    public void displayImage(Message message, ImageView contactImage, TextView alphabeticTextView) {
+    public void displayImage(Message message, TextView alphabeticTextView) {
         if (alphabeticTextView != null) {
             alphabeticTextView.setVisibility(View.VISIBLE);
             String sender = message.getSenderId();
@@ -925,10 +911,10 @@ public class MessageAdapter extends Adapter {
     }
 
     private void showContact(Message message) {
-        if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission((ConversationActivity) mContext)) {
-            new StringeePermissions((ConversationActivity) mContext).requestStoragePermissions();
+        if (Utils.hasMarshmallow() && !PermissionsUtils.getInstance().checkSelfForContactPermission(mContext)) {
+            PermissionsUtils.getInstance().requestPermissions((ConversationActivity) mContext, PermissionsUtils.PERMISSION_CONTACT, PermissionsUtils.REQUEST_CONTACT_SHOW);
         } else {
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             String imageFileName = "contact_" + timeStamp + ".vcf";
             File outputFile = FileUtils.getFilePath(imageFileName, mContext.getApplicationContext(), FileType.CONTACT);
             byte[] buf = message.getContact().trim().getBytes();
@@ -942,13 +928,8 @@ public class MessageAdapter extends Adapter {
 
             Intent intent = new Intent();
             intent.setAction(Intent.ACTION_VIEW);
-            Uri outputUri = null;
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            if (Build.VERSION.SDK_INT >= 24) {
-                outputUri = FileProvider.getUriForFile(mContext, mContext.getPackageName() + ".provider", outputFile);
-            } else {
-                outputUri = Uri.fromFile(outputFile);
-            }
+            Uri outputUri = FileProvider.getUriForFile(mContext, mContext.getPackageName() + ".provider", outputFile);
             if (intent.resolveActivity(mContext.getPackageManager()) != null) {
                 intent.setDataAndType(outputUri, "text/x-vcard");
                 mContext.startActivity(intent);
@@ -958,12 +939,7 @@ public class MessageAdapter extends Adapter {
 
 
     public void playAudio(Message message, MessageHolder messageHolder) {
-        Uri uri;
-        if (Build.VERSION.SDK_INT >= 24) {
-            uri = FileProvider.getUriForFile(mContext, mContext.getPackageName() + ".provider", new File(message.getFilePath()));
-        } else {
-            uri = Uri.parse(message.getFilePath());
-        }
+        Uri uri = FileProvider.getUriForFile(mContext, mContext.getPackageName() + ".provider", new File(message.getFilePath()));
         MediaPlayerManager.getInstance(mContext).play(uri, message, messageHolder.playImageView, messageHolder.audioSeekBar, messageHolder.durationTextView);
         String key = message.getLocalId();
         if (message.getMsgType() == Message.MsgType.RECEIVE) {
@@ -1009,12 +985,7 @@ public class MessageAdapter extends Adapter {
         if (localPath != null && localPath.length() > 0) {
             File file = new File(localPath);
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            Uri uri;
-            if (Build.VERSION.SDK_INT >= 24) {
-                uri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
-            } else {
-                uri = Uri.fromFile(file);
-            }
+            Uri uri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
             intent.setDataAndType(uri, "*/*");
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -1035,7 +1006,7 @@ public class MessageAdapter extends Adapter {
         return false;
     }
 
-    private void onItemLongClick(androidx.recyclerview.widget.RecyclerView.ViewHolder holder) {
+    private void onItemLongClick(RecyclerView.ViewHolder holder) {
         if (selectedMap.size() == 0) {
             ((ConversationActivity) mContext).showSelectedMenu(2);
             int position = holder.getLayoutPosition();
@@ -1049,7 +1020,7 @@ public class MessageAdapter extends Adapter {
         }
     }
 
-    private void onItemClick(androidx.recyclerview.widget.RecyclerView.ViewHolder holder) {
+    private void onItemClick(RecyclerView.ViewHolder holder) {
         int position = holder.getLayoutPosition();
         Message message = messageList.get(position);
         String id = message.getId();

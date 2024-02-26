@@ -38,7 +38,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp"
                 android:background="@drawable/button_menu_selector"
                 android:src="@drawable/msg_panel_clear"
                 android:tint="#666a6d" />
@@ -48,8 +48,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="20dp"
-                android:layout_toRightOf="@id/closeMenuBtn"
+                android:layout_marginStart="20dp"
+                android:layout_toEndOf="@id/closeMenuBtn"
                 android:textColor="#666a6d"
                 android:textSize="@dimen/stringee_text_size_20"
                 android:textStyle="bold" />
@@ -58,9 +58,9 @@
                 android:id="@+id/deleteBtn"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_marginRight="10dp"
+                android:layout_marginEnd="10dp"
                 android:background="@drawable/button_menu_selector"
                 android:src="@drawable/ic_ab_delete"
                 android:tint="#666a6d" />

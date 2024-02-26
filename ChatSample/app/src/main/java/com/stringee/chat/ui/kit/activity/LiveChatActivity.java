@@ -84,33 +84,33 @@ public class LiveChatActivity extends BaseActivity {
         });
         spQueue.setAdapter(queueAdapter);
 
-        connectReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                getSupportActionBar().setTitle(etName.getText().toString());
-                vConnect.setVisibility(View.GONE);
-                vSubmit.setVisibility(View.VISIBLE);
-
-                if (!Utils.isStringEmpty(etPhone.getText())) {
-                    User user = new User();
-                    user.setPhone(etPhone.getText().toString());
-                    Common.client.updateUser(user, new StatusListener() {
-                        @Override
-                        public void onSuccess() {
-                            phone = etPhone.getText().toString();
-                        }
-
-                        @Override
-                        public void onError(com.stringee.exception.StringeeError stringeeError) {
-                            super.onError(stringeeError);
-                        }
-                    });
-                }
-                getChatInfo();
-                dismissProgress();
-            }
-        };
-        LocalBroadcastManager.getInstance(this).registerReceiver(connectReceiver, new IntentFilter(Notify.CONNECTION_CONNECTED.getValue()));
+//        connectReceiver = new BroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                getSupportActionBar().setTitle(etName.getText().toString());
+//                vConnect.setVisibility(View.GONE);
+//                vSubmit.setVisibility(View.VISIBLE);
+//
+//                if (!Utils.isStringEmpty(etPhone.getText())) {
+//                    User user = new User();
+//                    user.setPhone(etPhone.getText().toString());
+//                    Common.client.updateUser(user, new StatusListener() {
+//                        @Override
+//                        public void onSuccess() {
+//                            phone = etPhone.getText().toString();
+//                        }
+//
+//                        @Override
+//                        public void onError(com.stringee.exception.StringeeError stringeeError) {
+//                            super.onError(stringeeError);
+//                        }
+//                    });
+//                }
+//                getChatInfo();
+//                dismissProgress();
+//            }
+//        };
+//        LocalBroadcastManager.getInstance(this).registerReceiver(connectReceiver, new IntentFilter(Notify.CONNECTION_CONNECTED.getValue()));
     }
 
     @Override
@@ -145,6 +145,9 @@ public class LiveChatActivity extends BaseActivity {
             vSubmit.setVisibility(View.GONE);
             Common.client.disconnect();
         } else {
+            name = "";
+            email = "";
+            phone = "";
             super.onBackPressed();
         }
     }
@@ -159,29 +162,34 @@ public class LiveChatActivity extends BaseActivity {
             return;
         }
         showProgress(getString(string.loading));
-        Common.client.createLiveChat(queue.getId(), new CallbackListener<Conversation>() {
+        Common.client.updateUser(name, email, null, new StatusListener() {
             @Override
-            public void onSuccess(Conversation conversation) {
-                runOnUiThread(() -> {
-                    conversation.sendMessage(Common.client, new Message(etText.getText().toString()), new StatusListener() {
-                        @Override
-                        public void onSuccess() {
+            public void onSuccess() {
+                Common.client.createLiveChat(queue.getId(), new CallbackListener<Conversation>() {
+                    @Override
+                    public void onSuccess(Conversation conversation) {
+                        runOnUiThread(() -> {
+                            conversation.sendMessage(Common.client, new Message(etText.getText().toString()), new StatusListener() {
+                                @Override
+                                public void onSuccess() {
 
-                        }
-                    });
-                    dismissProgress();
-                    Intent intent = new Intent(LiveChatActivity.this, ConversationActivity.class);
-                    intent.putExtra("conversation", conversation);
-                    startActivity(intent);
-                });
-            }
+                                }
+                            });
+                            dismissProgress();
+                            Intent intent = new Intent(LiveChatActivity.this, ConversationActivity.class);
+                            intent.putExtra("conversation", conversation);
+                            startActivity(intent);
+                        });
+                    }
 
-            @Override
-            public void onError(StringeeError stringeeError) {
-                super.onError(stringeeError);
-                runOnUiThread(() -> {
-                    dismissProgress();
-                    Utils.reportMessage(LiveChatActivity.this, stringeeError.getMessage());
+                    @Override
+                    public void onError(StringeeError stringeeError) {
+                        super.onError(stringeeError);
+                        runOnUiThread(() -> {
+                            dismissProgress();
+                            Utils.reportMessage(LiveChatActivity.this, stringeeError.getMessage());
+                        });
+                    }
                 });
             }
         });
@@ -220,6 +228,27 @@ public class LiveChatActivity extends BaseActivity {
                 runOnUiThread(() -> {
                     Common.client.disconnect();
                     initAndConnectStringee(s);
+                    getSupportActionBar().setTitle(etName.getText().toString());
+                    vConnect.setVisibility(View.GONE);
+                    vSubmit.setVisibility(View.VISIBLE);
+
+                    if (!Utils.isStringEmpty(etPhone.getText())) {
+                        User user = new User();
+                        user.setPhone(etPhone.getText().toString());
+                        Common.client.updateUser(user, new StatusListener() {
+                            @Override
+                            public void onSuccess() {
+                                phone = etPhone.getText().toString();
+                            }
+
+                            @Override
+                            public void onError(com.stringee.exception.StringeeError stringeeError) {
+                                super.onError(stringeeError);
+                            }
+                        });
+                    }
+                    getChatInfo();
+                    dismissProgress();
                 });
             }
 

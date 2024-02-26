@@ -26,9 +26,6 @@ public class QueueAdapter extends ArrayAdapter<Queue> {
     @Override
     public View getDropDownView(int position, @androidx.annotation.Nullable View convertView, @NonNull ViewGroup parent) {
         TextView v = (TextView) super.getView(position, convertView, parent);
-        if (v == null) {
-            v = new TextView(getContext());
-        }
         Queue queue = getItem(position);
         v.setText(queue.getName());
         return v;
@@ -40,7 +37,7 @@ public class QueueAdapter extends ArrayAdapter<Queue> {
         if (v == null) {
             v = LayoutInflater.from(getContext()).inflate(layout.simple_spinner_item, null);
         }
-        TextView lbl = (TextView) v.findViewById(id.text1);
+        TextView lbl = v.findViewById(id.text1);
         lbl.setText(getItem(position).getName());
         return v;
     }
