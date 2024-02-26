@@ -20,7 +20,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp"
                 android:background="@drawable/item_selectable"
                 android:padding="10dp"
                 android:src="@drawable/ic_action_back" />
@@ -29,9 +29,9 @@
                 android:id="@+id/btn_more"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_marginRight="10dp"
+                android:layout_marginEnd="10dp"
                 android:background="@drawable/item_selectable"
                 android:padding="10dp"
                 android:src="@drawable/ic_action_more" />
@@ -46,7 +46,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="15dp"
+                android:layout_marginStart="15dp"
                 android:background="@drawable/circular_textview"
                 android:gravity="center"
                 android:textColor="#ffffff"
@@ -56,8 +56,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="20dp"
-                android:layout_toRightOf="@id/tv_avatar"
+                android:layout_marginStart="20dp"
+                android:layout_toEndOf="@id/tv_avatar"
                 android:orientation="vertical">
 
                 <TextView
@@ -81,11 +81,11 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/participantList"
+        android:id="@+id/rv_participant"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:cacheColorHint="@android:color/transparent"
-        android:scrollbars="vertical"></androidx.recyclerview.widget.RecyclerView>
+        android:scrollbars="vertical" />
 
 
 </LinearLayout>

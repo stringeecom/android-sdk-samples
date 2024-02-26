@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
@@ -26,7 +25,6 @@ import com.stringee.stringeechatuikit.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -47,14 +45,11 @@ public class ChooseGalleryFolderActivity extends AppCompatActivity {
         mActionBar.setDisplayHomeAsUpEnabled(true);
         mActionBar.setTitle(R.string.gallery);
 
-        foldersGridView = findViewById(R.id.galleryGridFolder);
-        foldersGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getApplicationContext(), ChooseGalleryFileActivity.class);
-                intent.putExtra("folder", adapter.getItem(position));
-                startActivityForResult(intent, REQUEST_CODE);
-            }
+        foldersGridView = findViewById(R.id.gv_gallery_folder);
+        foldersGridView.setOnItemClickListener((parent, view, position, id) -> {
+            Intent intent = new Intent(getApplicationContext(), ChooseGalleryFileActivity.class);
+            intent.putExtra("folder", adapter.getItem(position));
+            startActivityForResult(intent, REQUEST_CODE);
         });
         getAllMediaFolders();
         adapter = new GalleryFolderAdapter(this, allMediaFolders);

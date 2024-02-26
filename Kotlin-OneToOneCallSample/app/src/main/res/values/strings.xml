@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Kotlin-OneToOneCallSample</string>
+    <string name="voice_call">Voice call</string>
+    <string name="video_call">Video Call</string>
+    <string name="voice_call_2">Voice call 2</string>
+    <string name="video_call_2">Video Call 2</string>
+    <string name="incoming">Incoming</string>
+    <string name="user">User</string>
 </resources>

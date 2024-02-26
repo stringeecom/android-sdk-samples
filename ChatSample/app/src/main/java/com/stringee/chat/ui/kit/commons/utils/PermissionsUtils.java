@@ -1,9 +1,12 @@
 package com.stringee.chat.ui.kit.commons.utils;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -11,19 +14,56 @@ import androidx.core.content.ContextCompat;
  * Created by sunil on 20/sticker_icon_1/16.
  */
 public class PermissionsUtils {
-
+    private static volatile PermissionsUtils instance;
+    public static String[] PERMISSIONS_LOCATION;
+    public static String[] PERMISSIONS_STORAGE;
+    public static String[] PERMISSIONS_RECORD_AUDIO;
+    public static String[] PERMISSION_CAPTURE_IMAGE;
+    public static String[] PERMISSION_CAPTURE_VIDEO;
+    public static String[] PERMISSION_CONTACT;
     public static final int REQUEST_STORAGE = 0;
-    public static final int REQUEST_LOCATION = 1;
-    public static final int REQUEST_CAMERA = 2;
-    public static final int REQUEST_AUDIO_RECORD = 3;
+    public static final int REQUEST_CAPTURE_IMAGE = 1;
+    public static final int REQUEST_CAPTURE_VIDEO = 2;
+    public static final int REQUEST_RECORD_AUDIO = 3;
     public static final int REQUEST_CONTACT = 4;
-    public static final int REQUEST_CAMERA_AUDIO = 5;
-    public static String[] PERMISSIONS_LOCATION = {Manifest.permission.ACCESS_FINE_LOCATION};
-    public static String[] PERMISSIONS_STORAGE = {Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE};
-    public static String[] PERMISSIONS_RECORD_AUDIO = {Manifest.permission.RECORD_AUDIO};
-    public static String[] PERMISSION_CAMERA = {Manifest.permission.CAMERA};
-    public static String[] PERMISSION_CONTACT = {Manifest.permission.READ_CONTACTS};
+    public static final int REQUEST_CONTACT_SHOW = 5;
+    public static final int REQUEST_LOCATION = 6;
+
+    public PermissionsUtils() {
+        PERMISSIONS_LOCATION = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+        PERMISSIONS_STORAGE = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PERMISSIONS_STORAGE = new String[]{Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO};
+        }
+        PERMISSIONS_RECORD_AUDIO = new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PERMISSIONS_RECORD_AUDIO = new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_MEDIA_AUDIO};
+        }
+        PERMISSION_CAPTURE_IMAGE = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PERMISSION_CAPTURE_IMAGE = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES};
+        }
+        PERMISSION_CAPTURE_VIDEO = new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PERMISSION_CAPTURE_VIDEO = new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_MEDIA_VIDEO};
+        }
+        PERMISSION_CONTACT = new String[]{Manifest.permission.READ_CONTACTS};
+    }
+
+    public static PermissionsUtils getInstance() {
+        if (instance == null) {
+            synchronized (PermissionsUtils.class) {
+                if (instance == null) {
+                    instance = new PermissionsUtils();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public void requestPermissions(Activity activity, String[] permissions, int requestCode) {
+        ActivityCompat.requestPermissions(activity, permissions, requestCode);
+    }
 
     public static boolean verifyPermissions(int[] grantResults) {
         if (grantResults.length < 1) {
@@ -38,113 +78,69 @@ public class PermissionsUtils {
         return true;
     }
 
-    public static boolean shouldShowRequestForLocationPermission(Activity activity) {
-        return (ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                || ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.ACCESS_COARSE_LOCATION));
+    public boolean shouldShowRequestForLocationPermission(Activity activity) {
+        return shouldShowRequestListPermissionRationale(activity, PERMISSIONS_LOCATION);
     }
 
-    public static boolean shouldShowRequestForAudioPermission(Activity activity) {
-        return (ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.RECORD_AUDIO));
+    public boolean shouldShowRequestForRecordAudioPermission(Activity activity) {
+        return shouldShowRequestListPermissionRationale(activity, PERMISSIONS_RECORD_AUDIO);
     }
 
-
-    public static boolean shouldShowRequestForStoragePermission(Activity activity) {
-        return (ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                || ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.READ_EXTERNAL_STORAGE));
+    public boolean shouldShowRequestForStoragePermission(Activity activity) {
+        return shouldShowRequestListPermissionRationale(activity, PERMISSIONS_STORAGE);
     }
 
-    public static boolean shouldShowRequestForCallPermission(Activity activity) {
-        return (ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.CALL_PHONE));
+    public boolean shouldShowRequestForCaptureImagePermission(Activity activity) {
+        return shouldShowRequestListPermissionRationale(activity, PERMISSION_CAPTURE_IMAGE);
     }
 
-    public static boolean shouldShowRequestForCameraPermission(Activity activity) {
-        return (ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.CAMERA));
+    public boolean shouldShowRequestForCaptureVideoPermission(Activity activity) {
+        return shouldShowRequestListPermissionRationale(activity, PERMISSION_CAPTURE_VIDEO);
     }
 
-    public static boolean shouldShowRequestForContactPermission(Activity activity) {
-        return (ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.READ_CONTACTS));
+    public boolean shouldShowRequestForContactPermission(Activity activity) {
+        return shouldShowRequestListPermissionRationale(activity, PERMISSION_CONTACT);
     }
 
-    public static boolean shouldShowRequestForVideoPermission(Activity activity) {
-        return (ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.CAMERA)
-                && ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.RECORD_AUDIO));
+    public boolean checkSelfForStoragePermission(Context context) {
+        return checkSelfListPermission(context, PERMISSIONS_STORAGE);
     }
 
-    public static boolean checkSelfForStoragePermission(Activity activity) {
-        return (ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED);
+    public boolean checkSelfForLocationPermission(Context context) {
+        return checkSelfListPermission(context, PERMISSIONS_LOCATION);
     }
 
-
-    public static boolean checkSelfPermissionForLocation(Activity activity) {
-        return (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED);
+    public boolean checkSelfForRecordAudioPermission(Context context) {
+        return checkSelfListPermission(context, PERMISSIONS_RECORD_AUDIO);
     }
 
-    public static boolean checkSelfPermissionForAudioRecording(Activity activity) {
-        return (ActivityCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED);
+    public boolean checkSelfForCaptureImagePermission(Context context) {
+        return checkSelfListPermission(context, PERMISSION_CAPTURE_IMAGE);
     }
 
-    public static boolean checkSelfForCallPermission(Activity activity) {
-        return (ActivityCompat.checkSelfPermission(activity, Manifest.permission.CALL_PHONE)
-                != PackageManager.PERMISSION_GRANTED);
+    public boolean checkSelfForCaptureVideoPermission(Context context) {
+        return checkSelfListPermission(context, PERMISSION_CAPTURE_VIDEO);
     }
 
-    public static boolean checkSelfForCameraPermission(Activity activity) {
-        return (ActivityCompat.checkSelfPermission(activity, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED);
+    public boolean checkSelfForContactPermission(Context context) {
+        return checkSelfListPermission(context, PERMISSION_CONTACT);
     }
 
-    public static boolean checkSelfForContactPermission(Activity activity) {
-        return (ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_CONTACTS)
-                != PackageManager.PERMISSION_GRANTED);
+    public boolean checkSelfListPermission(Context context, String[] permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    public static void requestPermissions(Activity activity, String[] permissions, int requestCode) {
-        ActivityCompat.requestPermissions(activity, permissions, requestCode);
-    }
-
-    public static boolean isAudioRecordingPermissionGranted(Context context) {
-        String permission = "android.permission.RECORD_AUDIO";
-        int res = context.checkCallingOrSelfPermission(permission);
-        return (res == PackageManager.PERMISSION_GRANTED);
-    }
-
-    public static boolean isCameraPermissionGranted(Context context) {
-        int res = context.checkCallingOrSelfPermission(Manifest.permission.CAMERA);
-        return (res == PackageManager.PERMISSION_GRANTED);
-    }
-
-    public static boolean isCallPermissionGranted(Context context) {
-        int res = context.checkCallingOrSelfPermission(Manifest.permission.CALL_PHONE);
-        return (res == PackageManager.PERMISSION_GRANTED);
-    }
-
-    public static boolean checkPermissionForCameraAndMicrophone(Context context) {
-        int resultCamera = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA);
-        int resultMic = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO);
-        return (!(resultCamera == PackageManager.PERMISSION_GRANTED &&
-                resultMic == PackageManager.PERMISSION_GRANTED));
-    }
-
-    public static boolean isStoragePermissionGranted(Context context) {
-        int resWrite = context.checkCallingOrSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        int resRead = context.checkCallingOrSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-        return (resWrite == PackageManager.PERMISSION_GRANTED && resRead == PackageManager.PERMISSION_GRANTED);
+    public boolean shouldShowRequestListPermissionRationale(Activity activity, String[] permissions) {
+        for (String permission : permissions) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

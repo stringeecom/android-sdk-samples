@@ -3,7 +3,7 @@ package com.stringee.chat.ui.kit.commons;
 public class Constant {
 
     public static final int CONVERSATIONS_COUNT = 15;
-    public static final int MESSAGES_COUNT = 15;
+    public static final int MESSAGES_COUNT = 100;
 
     public static final int TYPE_CONTACT_HEADER = -1;
 

@@ -23,8 +23,9 @@
             android:id="@+id/btn_back"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:clickable="true"
+            android:focusable="true"
             android:padding="12dp"
             android:src="@drawable/ic_back" />
 
@@ -32,12 +33,12 @@
             android:id="@+id/tv_room_name"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_toLeftOf="@id/btn_switch"
-            android:layout_toRightOf="@id/btn_back"
+            android:layout_toStartOf="@id/btn_switch"
+            android:layout_toEndOf="@id/btn_back"
             android:ellipsize="marquee"
             android:gravity="center_vertical"
             android:marqueeRepeatLimit="marquee_forever"
-            android:paddingRight="10dp"
+            android:layout_marginEnd="10dp"
             android:scrollHorizontally="true"
             android:singleLine="true"
             android:textColor="@android:color/white"
@@ -47,9 +48,10 @@
             android:id="@+id/btn_switch"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:background="@drawable/btn_transparent_selectable"
             android:clickable="true"
+            android:focusable="true"
             android:padding="12dp"
             android:src="@drawable/ic_switch_camera" />
     </RelativeLayout>
@@ -58,9 +60,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/v_title"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_marginHorizontal="10dp"
-        android:gravity="right"
+        android:gravity="end"
         android:orientation="vertical">
 
         <ImageView
@@ -70,6 +72,7 @@
             android:layout_marginBottom="10dp"
             android:background="@drawable/btn_transparent_selectable"
             android:clickable="true"
+            android:focusable="true"
             android:padding="12dp"
             android:src="@drawable/ic_visibility" />
 
@@ -80,6 +83,7 @@
             android:layout_marginBottom="10dp"
             android:background="@drawable/btn_transparent_selectable"
             android:clickable="true"
+            android:focusable="true"
             android:padding="12dp"
             android:src="@drawable/ic_participant" />
 
@@ -87,7 +91,7 @@
             android:id="@+id/rv_participant"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="right"
+            android:layout_gravity="end"
             android:background="@android:color/white"
             android:paddingBottom="10dp"
             android:visibility="gone" />
@@ -98,7 +102,7 @@
             android:layout_height="100dp"
             android:background="@android:color/white"
             android:gravity="center"
-            android:text="No participant avaiable"
+            android:text="No participant available"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -174,6 +178,7 @@
                 android:layout_height="50dp"
                 android:background="@drawable/btn_blue_oval_selectable"
                 android:clickable="true"
+                android:focusable="true"
                 android:padding="12dp"
                 android:src="@drawable/ic_cam_on" />
 
@@ -181,9 +186,10 @@
                 android:id="@+id/btn_mic"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_marginLeft="20dp"
+                android:layout_marginStart="20dp"
                 android:background="@drawable/btn_transparent_selectable"
                 android:clickable="true"
+                android:focusable="true"
                 android:padding="12dp"
                 android:src="@drawable/ic_mic_on" />
 
@@ -191,9 +197,10 @@
                 android:id="@+id/btn_leave"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_marginLeft="20dp"
+                android:layout_marginStart="20dp"
                 android:background="@drawable/btn_red_oval_selectable"
                 android:clickable="true"
+                android:focusable="true"
                 android:padding="12dp"
                 android:src="@drawable/ic_end_call" />
         </LinearLayout>

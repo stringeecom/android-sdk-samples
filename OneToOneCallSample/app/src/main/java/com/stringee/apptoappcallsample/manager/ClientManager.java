@@ -19,16 +19,15 @@ import org.json.JSONObject;
 
 public class ClientManager {
     private static volatile ClientManager instance;
-    private static final Object lock = new Object();
-    private Context context;
+    private final Context context;
 
     public ClientManager(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
     }
 
     public static ClientManager getInstance(Context context) {
         if (instance == null) {
-            synchronized (lock) {
+            synchronized (ClientManager.class) {
                 if (instance == null) {
                     instance = new ClientManager(context);
                 }
@@ -39,7 +38,7 @@ public class ClientManager {
 
     private StringeeClient stringeeClient;
     private OnConnectionListener listener;
-    private String token = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDEyNTUwODAiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNzAzODQ3MDgwLCJ1c2VySWQiOiJhbmRyb2lkMSJ9.bkt-aG1sNWCJirKO_soJs-IBELdqq1K1GuPRjJZ_zV4";
+    private static final String TOKEN = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDM0MzY2MDEiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjEiLCJleHAiOjE3NDA0Nzk0MzZ9.wXG_s5uFBuxA19JO64IjtjwSfBGY2qPe_wVCAxHTuCI";
     public boolean isInCall = false;
     public boolean isPermissionGranted = true;
 
@@ -58,119 +57,120 @@ public class ClientManager {
 //            List<SocketAddress> socketAddressList = new ArrayList<>();
 //            socketAddressList.add(new SocketAddress("YOUR_IP", YOUR_PORT));
 //            stringeeClient.setHost(socketAddressList);
-        }
-        stringeeClient.setConnectionListener(new StringeeConnectionListener() {
-            @Override
-            public void onConnectionConnected(final StringeeClient stringeeClient, boolean isReconnecting) {
-                Utils.runOnUiThread(() -> {
-                    Log.d(Constant.TAG, "onConnectionConnected");
-                    if (listener != null) {
-                        listener.onConnect("Connected as: " + stringeeClient.getUserId());
-                    }
-                    FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-                        if (!task.isSuccessful()) {
-                            Log.d(Constant.TAG, "getInstanceId failed", task.getException());
-                            return;
+
+            stringeeClient.setConnectionListener(new StringeeConnectionListener() {
+                @Override
+                public void onConnectionConnected(final StringeeClient stringeeClient, boolean isReconnecting) {
+                    Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onConnectionConnected");
+                        if (listener != null) {
+                            listener.onConnect("Connected as: " + stringeeClient.getUserId());
                         }
-
-                        // Get new token
-                        String refreshedToken = task.getResult();
-                        stringeeClient.registerPushToken(refreshedToken, new StatusListener() {
-                            @Override
-                            public void onSuccess() {
-                                Log.d(Constant.TAG, "registerPushToken success");
+                        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+                            if (!task.isSuccessful()) {
+                                Log.d(Constant.TAG, "getInstanceId failed", task.getException());
+                                return;
                             }
 
-                            @Override
-                            public void onError(StringeeError error) {
-                                Log.d(Constant.TAG, "registerPushToken error: " + error.getMessage());
-                            }
+                            // Get new token
+                            String refreshedToken = task.getResult();
+                            stringeeClient.registerPushToken(refreshedToken, new StatusListener() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.d(Constant.TAG, "registerPushToken success");
+                                }
+
+                                @Override
+                                public void onError(StringeeError error) {
+                                    Log.d(Constant.TAG, "registerPushToken error: " + error.getMessage());
+                                }
+                            });
                         });
                     });
-                });
-            }
+                }
 
-            @Override
-            public void onConnectionDisconnected(StringeeClient stringeeClient, boolean isReconnecting) {
-                Utils.runOnUiThread(() -> {
-                    Log.d(Constant.TAG, "onConnectionDisconnected");
-                    if (listener != null) {
-                        listener.onConnect("Disconnected");
-                    }
-                });
-            }
+                @Override
+                public void onConnectionDisconnected(StringeeClient stringeeClient, boolean isReconnecting) {
+                    Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onConnectionDisconnected");
+                        if (listener != null) {
+                            listener.onConnect("Disconnected");
+                        }
+                    });
+                }
 
-            @Override
-            public void onIncomingCall(final StringeeCall stringeeCall) {
-                Utils.runOnUiThread(() -> {
-                    Log.d(Constant.TAG, "onIncomingCall: callId - " + stringeeCall.getCallId());
-                    if (isInCall) {
-                        stringeeCall.reject(new StatusListener() {
-                            @Override
-                            public void onSuccess() {
+                @Override
+                public void onIncomingCall(final StringeeCall stringeeCall) {
+                    Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onIncomingCall: callId - " + stringeeCall.getCallId());
+                        if (isInCall) {
+                            stringeeCall.reject(new StatusListener() {
+                                @Override
+                                public void onSuccess() {
 
-                            }
-                        });
-                    } else {
-                        CallManager.getInstance(context).initializedIncomingCall(stringeeCall);
-                        CallManager.getInstance(context).initAnswer();
-                        NotificationUtils.getInstance(context).showIncomingCallNotification(stringeeCall.getFrom(), true, stringeeCall.isVideoCall());
-                    }
-                });
-            }
+                                }
+                            });
+                        } else {
+                            CallManager.getInstance(context).initializedIncomingCall(stringeeCall);
+                            CallManager.getInstance(context).initAnswer();
+                            NotificationUtils.getInstance(context).showIncomingCallNotification(stringeeCall.getFrom(), true, stringeeCall.isVideoCall());
+                        }
+                    });
+                }
 
-            @Override
-            public void onIncomingCall2(StringeeCall2 stringeeCall2) {
-                Utils.runOnUiThread(() -> {
-                    Log.d(Constant.TAG, "onIncomingCall2: callId - " + stringeeCall2.getCallId());
-                    if (isInCall) {
-                        stringeeCall2.reject(new StatusListener() {
-                            @Override
-                            public void onSuccess() {
+                @Override
+                public void onIncomingCall2(StringeeCall2 stringeeCall2) {
+                    Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onIncomingCall2: callId - " + stringeeCall2.getCallId());
+                        if (isInCall) {
+                            stringeeCall2.reject(new StatusListener() {
+                                @Override
+                                public void onSuccess() {
 
-                            }
-                        });
-                    } else {
-                        CallManager.getInstance(context).initializedIncomingCall(stringeeCall2);
-                        CallManager.getInstance(context).initAnswer();
-                        NotificationUtils.getInstance(context).showIncomingCallNotification(stringeeCall2.getFrom(), false, stringeeCall2.isVideoCall());
-                    }
-                });
-            }
+                                }
+                            });
+                        } else {
+                            CallManager.getInstance(context).initializedIncomingCall(stringeeCall2);
+                            CallManager.getInstance(context).initAnswer();
+                            NotificationUtils.getInstance(context).showIncomingCallNotification(stringeeCall2.getFrom(), false, stringeeCall2.isVideoCall());
+                        }
+                    });
+                }
 
-            @Override
-            public void onConnectionError(StringeeClient stringeeClient, final StringeeError stringeeError) {
-                Utils.runOnUiThread(() -> {
-                    Log.d(Constant.TAG, "onConnectionError: " + stringeeError.getMessage());
-                    if (listener != null) {
-                        listener.onConnect(stringeeError.getMessage());
-                    }
-                });
-            }
+                @Override
+                public void onConnectionError(StringeeClient stringeeClient, final StringeeError stringeeError) {
+                    Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onConnectionError: " + stringeeError.getMessage());
+                        if (listener != null) {
+                            listener.onConnect(stringeeError.getMessage());
+                        }
+                    });
+                }
 
-            @Override
-            public void onRequestNewToken(StringeeClient stringeeClient) {
-                // Get new token here and connect to Stringe server
-                Utils.runOnUiThread(() -> {
-                    Log.d(Constant.TAG, "onRequestNewToken");
-                    if (listener != null) {
-                        listener.onConnect("Request new token");
-                    }
-                });
-            }
+                @Override
+                public void onRequestNewToken(StringeeClient stringeeClient) {
+                    // Get new token here and connect to Stringe server
+                    Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onRequestNewToken");
+                        if (listener != null) {
+                            listener.onConnect("Request new token");
+                        }
+                    });
+                }
 
-            @Override
-            public void onCustomMessage(String from, JSONObject msg) {
-                Utils.runOnUiThread(() -> Log.d(Constant.TAG, "onCustomMessage: from - " + from + " - msg - " + msg));
-            }
+                @Override
+                public void onCustomMessage(String from, JSONObject msg) {
+                    Utils.runOnUiThread(() -> Log.d(Constant.TAG, "onCustomMessage: from - " + from + " - msg - " + msg));
+                }
 
-            @Override
-            public void onTopicMessage(String from, JSONObject msg) {
+                @Override
+                public void onTopicMessage(String from, JSONObject msg) {
 
-            }
-        });
+                }
+            });
+        }
         if (!stringeeClient.isConnected()) {
-            stringeeClient.connect(token);
+            stringeeClient.connect(TOKEN);
         }
     }
 }

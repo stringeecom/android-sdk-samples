@@ -66,11 +66,11 @@ public class CusKeyboardController implements CusRelativeLayout.IKeyboardChanged
         registerKeyboardHeightChange();
 
         // menu tren chat bar
-        etChat = (EditText) keyboardWidget.findViewById(R.id.messageEditText);
+        etChat = (EditText) keyboardWidget.findViewById(R.id.et_msg);
         stickerButton = keyboardWidget.findViewById(R.id.stickerButton);
-        attachButton = keyboardWidget.findViewById(R.id.attachButton);
-        sendMessageButton = keyboardWidget.findViewById(R.id.sendMessageButton);
-        recordButton = keyboardWidget.findViewById(R.id.recordButton);
+        attachButton = keyboardWidget.findViewById(R.id.btn_attach);
+        sendMessageButton = keyboardWidget.findViewById(R.id.btn_send_msg);
+        recordButton = keyboardWidget.findViewById(R.id.btn_record);
 
         attachButton.setColorFilter(Color.parseColor("#929395"), PorterDuff.Mode.SRC_IN);
         stickerButton.setColorFilter(Color.parseColor("#929395"), PorterDuff.Mode.SRC_IN);
@@ -363,7 +363,7 @@ public class CusKeyboardController implements CusRelativeLayout.IKeyboardChanged
 
     @Override
     public boolean onTouch(View v, MotionEvent arg1) {
-        if (v.getId() == R.id.messageEditText) {
+        if (v.getId() == R.id.et_msg) {
             stickerButton.setImageResource(R.drawable.ic_sticker);
             Utils.showSoftKeyboard(activity, etChat);
             etChat.postDelayed(new Runnable() {

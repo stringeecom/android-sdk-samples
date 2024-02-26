@@ -4,8 +4,9 @@
     android:layout_height="wrap_content"
     android:background="@drawable/item_white_selectable"
     android:clickable="true"
+    android:focusable="true"
     android:orientation="vertical"
-    android:paddingLeft="10dp">
+    android:paddingHorizontal="10dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -16,17 +17,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toLeftOf="@+id/iv_status"
-            android:paddingRight="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_toStartOf="@+id/iv_status"
             android:textColor="@android:color/black" />
 
         <ImageView
             android:id="@+id/iv_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:src="@drawable/ic_cast" />
     </RelativeLayout>
 

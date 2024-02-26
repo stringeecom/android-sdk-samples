@@ -9,14 +9,14 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.stringee.StringeeClient;
 import com.stringee.call.StringeeCall;
+import com.stringee.call.StringeeCall2;
 import com.stringee.chat.ui.kit.commons.Notify;
+import com.stringee.chat.ui.kit.commons.utils.PermissionsUtils;
 import com.stringee.chat.ui.kit.notification.NotificationService;
+import com.stringee.common.SocketAddress;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.listener.StringeeConnectionListener;
@@ -37,15 +37,22 @@ import com.stringee.stringeechatuikit.common.Utils;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BaseActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ProgressDialog prLoading;
-    public final String accessToken = "PUT_YOUR_TOKEN_HERE";
+//        public final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDM5MTczMjIiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjEiLCJleHAiOjE3NDA0Nzk5MTd9.EF5Q7F5GvciEghyg1YRSWoqJc8vS44o5EUohaEztuwk";
+//    public final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDQwNTU5OTEiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjIiLCJleHAiOjE3NDA0ODAwNTV9.xUY_8dSNuoZf2dHj77jNWQWjjvqpDv-kafTNm3JL2yY";
+    public final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDQwODQxNTYiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjMiLCJleHAiOjE3NDA0ODAwODN9.sOdOw7D8NDran5Qxyi3flAuzpfB8rgqYlSRnwdYvHZ4";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initAndConnectStringee(accessToken);
+
+        PermissionsUtils.getInstance().requestPermissions(this, PermissionsUtils.PERMISSIONS_LOCATION, PermissionsUtils.REQUEST_LOCATION);
     }
 
     public void showProgress(String text) {
@@ -68,35 +75,29 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     public void initAndConnectStringee(String token) {
         if (Common.client == null) {
             Common.client = new StringeeClient(this);
+//            List<SocketAddress> socketAddressList = new ArrayList<>();
+//            socketAddressList.add(new SocketAddress("vn-release-s1.stringeetest.com", 31120));
+//            socketAddressList.add(new SocketAddress("vn-release-s2.stringeetest.com", 31120));
+//            socketAddressList.add(new SocketAddress("vn-release-s3.stringeetest.com", 31120));
+//            Common.client.setHost(socketAddressList);
+//            Common.client.setBaseAPIUrl("https://vn-release-api.stringeetest.com");
+//            Common.client.setStringeeXBaseUrl("https://vn-release-portal.stringeextest.com");
             Common.client.setConnectionListener(new StringeeConnectionListener() {
                 @Override
                 public void onConnectionConnected(final StringeeClient client, boolean isReconnecting) {
                     if (!isReconnecting && !PrefUtils.getBoolean(Constant.PREF_REGISTERED_PUSH_TOKEN, false)) {
-                        FirebaseInstanceId.getInstance().getInstanceId()
-                                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                                    @Override
-                                    public void onComplete(Task<InstanceIdResult> task) {
-                                        if (!task.isSuccessful()) {
-                                            Log.d("Stringee", "getInstanceId failed", task.getException());
-                                            return;
-                                        }
+                        FirebaseMessaging.getInstance().getToken().addOnSuccessListener(deviceToken -> Common.client.registerPushToken(deviceToken, new StatusListener() {
+                            @Override
+                            public void onSuccess() {
+                                PrefUtils.putBoolean(Constant.PREF_REGISTERED_PUSH_TOKEN, true);
+                                PrefUtils.putString(Constant.PREF_PUSH_TOKEN, deviceToken);
+                            }
 
-                                        // Get new Instance ID token
-                                        final String refreshedToken = task.getResult().getToken();
-                                        Common.client.registerPushToken(refreshedToken, new StatusListener() {
-                                            @Override
-                                            public void onSuccess() {
-                                                PrefUtils.putBoolean(Constant.PREF_REGISTERED_PUSH_TOKEN, true);
-                                                PrefUtils.putString(Constant.PREF_PUSH_TOKEN, refreshedToken);
-                                            }
-
-                                            @Override
-                                            public void onError(StringeeError error) {
-                                                Log.e("Stringee", error.getMessage());
-                                            }
-                                        });
-                                    }
-                                });
+                            @Override
+                            public void onError(StringeeError error) {
+                                Log.e("Stringee", error.getMessage());
+                            }
+                        }));
                     }
                     LocalBroadcastManager.getInstance(BaseActivity.this).sendBroadcast(new Intent(Notify.CONNECTION_CONNECTED.getValue()));
                 }
@@ -108,15 +109,10 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onIncomingCall(StringeeCall stringeeCall) {
-                    String callId = stringeeCall.getCallId();
-                    Common.callsMap.put(callId, stringeeCall);
-                    Intent intent = new Intent(BaseActivity.this, IncomingCallActivity.class);
-                    intent.putExtra("call_id", callId);
-                    startActivity(intent);
                 }
 
                 @Override
-                public void onIncomingCall2(com.stringee.call.StringeeCall2 stringeeCall2) {
+                public void onIncomingCall2(StringeeCall2 stringeeCall2) {
 
                 }
 
@@ -206,11 +202,46 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
             Common.client.getConversation(message.getConversationId(), new CallbackListener<Conversation>() {
                 @Override
                 public void onSuccess(final Conversation conversation) {
-                    context.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            NotificationService.showNotification(context, conversation.getId(), conversation.getName(), finalSenderName, conversation.isGroup(), message.getText());
+                    context.runOnUiThread(() -> {
+                        String notificationText = message.getText();
+                        Message.Type type = message.getType();
+                        switch (type) {
+                            case TEXT:
+                            case LINK:
+                                notificationText = message.getText();
+                                break;
+                            case CREATE_CONVERSATION:
+                                notificationText = context.getString(R.string.create_conversation, message.getSenderName());
+                                break;
+                            case LOCATION:
+                                notificationText = context.getString(R.string.location);
+                                break;
+                            case AUDIO:
+                                notificationText = context.getString(R.string.audio);
+                                break;
+                            case FILE:
+                                notificationText = context.getString(R.string.file);
+                                break;
+                            case PHOTO:
+                                notificationText = context.getString(R.string.photo);
+                                break;
+                            case VIDEO:
+                                notificationText = context.getString(R.string.video);
+                                break;
+                            case CONTACT:
+                                notificationText = context.getString(R.string.contact);
+                                break;
+                            case STICKER:
+                                notificationText = context.getString(R.string.sticker);
+                                break;
+                            case NOTIFICATION:
+                                notificationText = Utils.getNotificationText(context, conversation, message.getText());
+                                break;
+                            case RATING:
+                                notificationText = Utils.getRatingText(context, conversation, message);
+                                break;
                         }
+                        NotificationService.showNotification(context, conversation.getId(), conversation.getName(), finalSenderName, conversation.isGroup(), notificationText);
                     });
                 }
             });
@@ -220,6 +251,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     public void changeEvent(StringeeChange change) {
         StringeeObject.Type objectType = change.getObjectType();
         StringeeChange.Type changeType = change.getChangeType();
+        Log.d("Stringee", "changeEvent: " + objectType + " - " + changeType);
         if (objectType == StringeeObject.Type.CONVERSATION) {
             Conversation conversation = (Conversation) change.getObject();
             switch (changeType) {

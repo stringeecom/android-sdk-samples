@@ -7,7 +7,6 @@
     android:orientation="vertical"
     android:weightSum="1">
 
-
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -30,7 +29,7 @@
             android:weightSum="1">
 
             <ImageButton
-                android:id="@+id/audio_mic_imageview"
+                android:id="@+id/btn_audio_mic"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
@@ -39,46 +38,43 @@
                 android:src="@drawable/stringee_audio_normal" />
 
             <TextView
-                android:id="@+id/txtcount"
+                android:id="@+id/tv_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/audio_mic_imageview"
+                android:layout_below="@+id/btn_audio_mic"
                 android:layout_centerHorizontal="true"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="55dp"
-                android:phoneNumber="false"
                 android:text="00:00:00"
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:textSize="30sp" />
 
             <TextView
-                android:id="@+id/audio_recording_text"
+                android:id="@+id/tv_audio_recording"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/audio_mic_imageview"
+                android:layout_below="@+id/btn_audio_mic"
                 android:layout_centerHorizontal="true"
                 android:text="@string/start" />
 
             <Button
-                android:id="@+id/audio_cancel"
+                android:id="@+id/btn_audio_cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_gravity="start|bottom"
                 android:background="@color/stringee_transparent_color"
                 android:text="@string/cancel" />
 
             <Button
-                android:id="@+id/audio_send"
+                android:id="@+id/btn_audio_send"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignTop="@+id/audio_cancel"
+                android:layout_alignTop="@+id/btn_audio_cancel"
                 android:layout_gravity="end|bottom"
-                android:layout_toEndOf="@+id/audio_mic_imageview"
-                android:layout_toRightOf="@+id/audio_mic_imageview"
+                android:layout_toEndOf="@+id/btn_audio_mic"
                 android:background="@color/stringee_transparent_color"
                 android:text="@string/send" />
         </RelativeLayout>

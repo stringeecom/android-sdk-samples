@@ -13,6 +13,9 @@ import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.stringee.chat.ui.kit.adapter.ParticipantAdapter;
@@ -86,7 +89,7 @@ public class ConversationInfoActivity extends BaseActivity {
         tvMembers.setText(convName);
         tvMembers.setText(String.valueOf(mConversation.getParticipants().size()) + " " + getString(R.string.members));
 
-        participantListview = findViewById(R.id.participantList);
+        participantListview = findViewById(R.id.rv_participant);
         androidx.recyclerview.widget.LinearLayoutManager linearLayoutManager = new androidx.recyclerview.widget.LinearLayoutManager(this);
         participantListview.setLayoutManager(linearLayoutManager);
         participantListview.setHasFixedSize(true);
@@ -113,9 +116,7 @@ public class ConversationInfoActivity extends BaseActivity {
                     popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                     popupWindow.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
                     popupWindow.setOutsideTouchable(true);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        popupWindow.setElevation(20);
-                    }
+                    popupWindow.setElevation(20);
                 }
                 popupWindow.showAsDropDown(btnMore);
                 break;
@@ -124,14 +125,14 @@ public class ConversationInfoActivity extends BaseActivity {
                 break;
             case R.id.tv_add_member:
                 popupWindow.dismiss();
-                androidx.fragment.app.FragmentManager supportFragmentManager = getSupportFragmentManager();
+                FragmentManager supportFragmentManager = getSupportFragmentManager();
                 AddParticipantsFragment fragment = new AddParticipantsFragment();
                 Bundle args = new Bundle();
                 args.putSerializable("conversation", mConversation);
                 fragment.setArguments(args);
-                androidx.fragment.app.FragmentTransaction fragmentTransaction = supportFragmentManager
+                FragmentTransaction fragmentTransaction = supportFragmentManager
                         .beginTransaction();
-                androidx.fragment.app.Fragment prev = getSupportFragmentManager().findFragmentByTag("AddParticipantsDialogFragment");
+                Fragment prev = getSupportFragmentManager().findFragmentByTag("AddParticipantsDialogFragment");
                 if (prev != null) {
                     fragmentTransaction.remove(prev);
                 }

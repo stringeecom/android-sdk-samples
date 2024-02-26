@@ -27,6 +27,7 @@ import com.stringee.messaging.listeners.CallbackListener;
 import com.stringee.stringeechatuikit.R;
 import com.stringee.stringeechatuikit.common.Common;
 import com.stringee.stringeechatuikit.common.PrefUtils;
+import com.stringee.stringeechatuikit.common.Utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,8 +42,6 @@ public class ConversationListFragment extends Fragment {
 
     private RecyclerView conversationListView;
     private LinearLayoutManager linearLayoutManager;
-    private ProgressBar prLoading;
-
     private boolean isLoading;
     private boolean isLast;
     private boolean isTouched;
@@ -64,8 +63,7 @@ public class ConversationListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_conversations, container, false);
 
-        prLoading = view.findViewById(R.id.prLoading);
-        conversationListView = view.findViewById(R.id.conversationList);
+        conversationListView = view.findViewById(R.id.rv_conversation);
         linearLayoutManager = new LinearLayoutManager(getActivity());
         conversationListView.setLayoutManager(linearLayoutManager);
         conversationListView.setHasFixedSize(true);
@@ -89,20 +87,19 @@ public class ConversationListFragment extends Fragment {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 if (!recyclerView.canScrollVertically(1) && !isLoading && !isLast && isTouched) {
-                    prLoading.setVisibility(View.VISIBLE);
                     long lastUpdate = conversationList.get(0).getUpdateAt();
                     Common.client.getConversationsBefore(lastUpdate, Constant.CONVERSATIONS_COUNT, new CallbackListener<List<Conversation>>() {
                         @Override
                         public void onSuccess(final List<Conversation> conversations) {
+                            if (getActivity() == null) {
+                                return;
+                            }
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     isLoading = false;
-                                    prLoading.setVisibility(View.GONE);
-                                    if (conversations.size() < Constant.CONVERSATIONS_COUNT) {
-                                        isLast = true;
-                                    }
-                                    if (conversations.size() > 0 && getActivity() != null) {
+                                    isLast = Utils.isListEmpty(conversations);
+                                    if (!Utils.isListEmpty(conversations)) {
                                         merge(conversations);
                                         adapter.notifyDataSetChanged();
                                     }
@@ -116,39 +113,41 @@ public class ConversationListFragment extends Fragment {
 
         getLatestConversations();
 
-//        Common.client.getLocalConversations(PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""), new CallbackListener<List<Conversation>>() {
-//            @Override
-//            public void onSuccess(final List<Conversation> conversations) {
-//                if (getActivity() != null) {
-//                    getActivity().runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            conversationList.clear();
-//                            conversationList.addAll(conversations);
-//                            adapter.notifyDataSetChanged();
-//
-//                            // Get latest conversations from server
-//                            getLatestConversations();
-//                        }
-//                    });
-//                }
-//            }
-//
-//            @Override
-//            public void onError(StringeeError stringeeError) {
-//                super.onError(stringeeError);
-//                if (getActivity() != null) {
-//                    getActivity().runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            // Get latest conversations from server
-//                            getLatestConversations();
-//                        }
-//                    });
-//                }
-//
-//            }
-//        });
+        Common.client.getLocalConversations(PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""), new CallbackListener<List<Conversation>>() {
+            @Override
+            public void onSuccess(final List<Conversation> conversations) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            conversationList.clear();
+                            if (!Utils.isListEmpty(conversations)) {
+                                conversationList.addAll(conversations);
+                                adapter.notifyDataSetChanged();
+                            }
+
+                            // Get latest conversations from server
+                            getLatestConversations();
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onError(StringeeError stringeeError) {
+                super.onError(stringeeError);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Get latest conversations from server
+                            getLatestConversations();
+                        }
+                    });
+                }
+
+            }
+        });
 
         return view;
     }
@@ -157,19 +156,20 @@ public class ConversationListFragment extends Fragment {
         Common.client.getLastConversations(Constant.CONVERSATIONS_COUNT, new CallbackListener<List<Conversation>>() {
             @Override
             public void onSuccess(final List<Conversation> conversations) {
-                Log.d("Stringee", "Size: " + conversations.size());
-                if (conversations.size() < Constant.CONVERSATIONS_COUNT) {
-                    isLast = true;
+                if (getActivity() == null) {
+                    return;
                 }
-                if (conversations.size() > 0 && getActivity() != null) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        isLast = Utils.isListEmpty(conversations);
+                        conversationList.clear();
+                        if (!Utils.isListEmpty(conversations)) {
                             merge(conversations);
                             adapter.notifyDataSetChanged();
                         }
-                    });
-                }
+                    }
+                });
             }
         });
     }

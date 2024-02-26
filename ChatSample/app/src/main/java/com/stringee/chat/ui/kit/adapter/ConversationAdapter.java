@@ -4,11 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
-
-import androidx.appcompat.app.AlertDialog.Builder;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.RecyclerView.Adapter;
-
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,11 +11,18 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog.Builder;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.Adapter;
+
 import com.stringee.chat.ui.kit.activity.ConversationActivity;
+import com.stringee.chat.ui.kit.adapter.ConversationAdapter.ConversationViewHolder;
 import com.stringee.chat.ui.kit.commons.utils.AlphaNumberColorUtil;
 import com.stringee.listener.StatusListener;
 import com.stringee.messaging.Conversation;
-import com.stringee.messaging.Message;
 import com.stringee.messaging.User;
 import com.stringee.messaging.listeners.CallbackListener;
 import com.stringee.stringeechatuikit.R;
@@ -34,12 +36,12 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class ConversationAdapter extends Adapter {
+public class ConversationAdapter extends Adapter<ConversationViewHolder> {
 
-    private LayoutInflater mInflater;
-    private List<Conversation> conversationList;
-    private Context context;
-    private Map<String, Conversation> selectedMap = new HashMap<>();
+    private final LayoutInflater mInflater;
+    private final List<Conversation> conversationList;
+    private final Context context;
+    private final Map<String, Conversation> selectedMap = new HashMap<>();
 
     public ConversationAdapter(Context context, List<Conversation> conversations) {
         this.context = context;
@@ -47,25 +49,24 @@ public class ConversationAdapter extends Adapter {
         conversationList = conversations;
     }
 
-    @androidx.annotation.NonNull
+    @NonNull
     @Override
-    public androidx.recyclerview.widget.RecyclerView.ViewHolder onCreateViewHolder(@androidx.annotation.NonNull ViewGroup parent, int viewType) {
+    public ConversationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = mInflater.inflate(R.layout.conversation_row, parent, false);
         return new ConversationViewHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(@androidx.annotation.NonNull androidx.recyclerview.widget.RecyclerView.ViewHolder holder, int position) {
-        ConversationViewHolder viewHolder = (ConversationViewHolder) holder;
+    public void onBindViewHolder(@NonNull ConversationViewHolder holder, int position) {
         final Conversation conversation = conversationList.get(position);
         String text = conversation.getText();
         switch (conversation.getLastMsgType()) {
             case TEXT:
-                viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_conv_time));
+                holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_conv_time));
                 text = conversation.getText();
                 break;
             case CREATE_CONVERSATION:
-                viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_conv_time));
+                holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_conv_time));
                 if (conversation.isGroup()) {
                     text = context.getString(R.string.create_conversation, Utils.getCreator(conversation));
                 } else {
@@ -74,69 +75,69 @@ public class ConversationAdapter extends Adapter {
                 break;
             case LOCATION:
                 text = context.getString(R.string.location);
-                viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
+                holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
             case AUDIO:
                 text = context.getString(R.string.audio);
-                viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
+                holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
             case FILE:
                 text = context.getString(R.string.file);
-                viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
+                holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
             case PHOTO:
                 text = context.getString(R.string.photo);
-                viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
+                holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
             case VIDEO:
                 text = context.getString(R.string.video);
-                viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
+                holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
             case CONTACT:
                 text = context.getString(R.string.contact);
-                viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
+                holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
             case STICKER:
                 text = context.getString(R.string.sticker);
-                viewHolder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
+                holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_colorPrimary));
                 break;
             case NOTIFICATION:
                 text = Utils.getNotificationText(context, conversation, conversation.getText());
         }
         String datetime = Utils.getFormattedDateAndTime(conversation.getUpdateAt());
 
-        viewHolder.alphabeticTextView.setVisibility(View.VISIBLE);
-        viewHolder.avatarImageView.setVisibility(View.GONE);
+        holder.alphabeticTextView.setVisibility(View.VISIBLE);
+        holder.avatarImageView.setVisibility(View.GONE);
         int pos = position % 10;
-        GradientDrawable bgShape = (GradientDrawable) viewHolder.alphabeticTextView.getBackground();
+        GradientDrawable bgShape = (GradientDrawable) holder.alphabeticTextView.getBackground();
         bgShape.setColor(context.getResources().getColor(AlphaNumberColorUtil.alphabetBackgroundColorMap.get(String.valueOf(pos))));
         String convName = Utils.getConversationName(context, conversation);
         String[] chars = convName.trim().split(" ");
         String avaText = "";
         if (chars.length > 1) {
-            avaText = String.valueOf(chars[0].charAt(0)) + String.valueOf(chars[1].charAt(0));
+            avaText = String.valueOf(chars[0].charAt(0)) + chars[1].charAt(0);
         } else if (chars.length > 0) {
             avaText = String.valueOf(chars[0].charAt(0));
         }
-        viewHolder.alphabeticTextView.setText(avaText.toUpperCase());
+        holder.alphabeticTextView.setText(avaText.toUpperCase());
 
-        viewHolder.titleTextView.setText(convName);
-        viewHolder.subTitleTextView.setText(text);
-        viewHolder.timeTextView.setText(datetime);
+        holder.titleTextView.setText(convName);
+        holder.subTitleTextView.setText(text);
+        holder.timeTextView.setText(datetime);
 
         int totalUnread = conversation.getTotalUnread();
         if (totalUnread > 0) {
-            viewHolder.unReadTextView.setVisibility(View.VISIBLE);
-            viewHolder.unReadTextView.setText(String.valueOf(totalUnread));
+            holder.unReadTextView.setVisibility(View.VISIBLE);
+            holder.unReadTextView.setText(String.valueOf(totalUnread));
         } else {
-            viewHolder.unReadTextView.setVisibility(View.GONE);
+            holder.unReadTextView.setVisibility(View.GONE);
         }
 
         Conversation selectedConv = selectedMap.get(conversation.getId());
         if (selectedConv != null) {
-            viewHolder.vSelect.setVisibility(View.VISIBLE);
+            holder.vSelect.setVisibility(View.VISIBLE);
         } else {
-            viewHolder.vSelect.setVisibility(View.GONE);
+            holder.vSelect.setVisibility(View.GONE);
         }
     }
 
@@ -150,7 +151,7 @@ public class ConversationAdapter extends Adapter {
         return conversationList.size();
     }
 
-    class ConversationViewHolder extends androidx.recyclerview.widget.RecyclerView.ViewHolder implements View.OnClickListener {
+    class ConversationViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         RelativeLayout rootView;
         TextView titleTextView, subTitleTextView, timeTextView, alphabeticTextView, unReadTextView;
         CircleImageView avatarImageView;
@@ -159,14 +160,14 @@ public class ConversationAdapter extends Adapter {
         public ConversationViewHolder(View view) {
             super(view);
 
-            rootView = view.findViewById(R.id.rootView);
-            avatarImageView = (CircleImageView) view.findViewById(R.id.avatarImage);
-            titleTextView = (TextView) view.findViewById(R.id.title);
+            rootView = view.findViewById(R.id.v_root);
+            avatarImageView = view.findViewById(R.id.avatarImage);
+            titleTextView = view.findViewById(R.id.title);
             titleTextView.setTypeface(Common.boldType);
-            subTitleTextView = (TextView) view.findViewById(R.id.subTitle);
-            timeTextView = (TextView) view.findViewById(R.id.datetime);
-            alphabeticTextView = (TextView) view.findViewById(R.id.alphabeticImage);
-            unReadTextView = (TextView) view.findViewById(R.id.totalUnread);
+            subTitleTextView = view.findViewById(R.id.subTitle);
+            timeTextView = view.findViewById(R.id.datetime);
+            alphabeticTextView = view.findViewById(R.id.alphabeticImage);
+            unReadTextView = view.findViewById(R.id.totalUnread);
             vSelect = view.findViewById(R.id.v_select);
 
             rootView.setOnClickListener(this);
@@ -221,59 +222,56 @@ public class ConversationAdapter extends Adapter {
                     return true;
                 }
                 final Conversation conversation = conversationList.get(position);
-                switch (item.getItemId()) {
-                    case 0:
-                        Builder builder = new Builder(context);
-                        builder.setMessage(R.string.confirm_delete_conversations);
-                        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                if (conversation.isGroup()) {
-                                    List<User> participants = new ArrayList<>();
-                                    participants.add(new User(Common.client.getUserId()));
-                                    conversation.removeParticipants(Common.client, participants, new CallbackListener<List<User>>() {
-                                        @Override
-                                        public void onSuccess(List<User> users) {
-                                            conversation.delete(Common.client, new StatusListener() {
-                                                @Override
-                                                public void onSuccess() {
-                                                    ((ConversationActivity) context).runOnUiThread(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            conversationList.remove(position);
-                                                            notifyDataSetChanged();
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
-                                    });
-                                } else {
-                                    conversation.delete(Common.client, new StatusListener() {
-                                        @Override
-                                        public void onSuccess() {
-                                            ((ConversationActivity) context).runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    conversationList.remove(position);
-                                                    notifyDataSetChanged();
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
+                if (item.getItemId() == 0) {
+                    Builder builder = new Builder(context);
+                    builder.setMessage(R.string.confirm_delete_conversations);
+                    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            if (conversation.isGroup()) {
+                                List<User> participants = new ArrayList<>();
+                                participants.add(new User(Common.client.getUserId()));
+                                conversation.removeParticipants(Common.client, participants, new CallbackListener<List<User>>() {
+                                    @Override
+                                    public void onSuccess(List<User> users) {
+                                        conversation.delete(Common.client, new StatusListener() {
+                                            @Override
+                                            public void onSuccess() {
+                                                ((ConversationActivity) context).runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        conversationList.remove(position);
+                                                        notifyDataSetChanged();
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            } else {
+                                conversation.delete(Common.client, new StatusListener() {
+                                    @Override
+                                    public void onSuccess() {
+                                        ((ConversationActivity) context).runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                conversationList.remove(position);
+                                                notifyDataSetChanged();
+                                            }
+                                        });
+                                    }
+                                });
                             }
-                        });
-                        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialogInterface.dismiss();
-                            }
-                        });
-                        androidx.appcompat.app.AlertDialog dialog = builder.create();
-                        dialog.show();
-                        break;
-                    default:
+                        }
+                    });
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
                 }
                 return true;
             }

@@ -14,6 +14,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog.Builder;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.Adapter;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -51,7 +52,7 @@ public class ParticipantAdapter extends Adapter {
 
     @androidx.annotation.NonNull
     @Override
-    public androidx.recyclerview.widget.RecyclerView.ViewHolder onCreateViewHolder(@androidx.annotation.NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@androidx.annotation.NonNull ViewGroup parent, int viewType) {
         LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (mInflater == null) {
             return null;
@@ -62,7 +63,7 @@ public class ParticipantAdapter extends Adapter {
     }
 
     @Override
-    public void onBindViewHolder(@androidx.annotation.NonNull androidx.recyclerview.widget.RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@androidx.annotation.NonNull RecyclerView.ViewHolder holder, int position) {
         ParticipantViewHolder viewHolder = (ParticipantViewHolder) holder;
         User user = participants.get(position);
         String name = user.getName();
@@ -120,7 +121,7 @@ public class ParticipantAdapter extends Adapter {
         return participants.size();
     }
 
-    class ParticipantViewHolder extends androidx.recyclerview.widget.RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
+    class ParticipantViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
         RelativeLayout rootView;
         TextView tvTitle, tvAlphabet;
         CircleImageView imAvatar;
@@ -128,9 +129,9 @@ public class ParticipantAdapter extends Adapter {
         public ParticipantViewHolder(View itemView) {
             super(itemView);
 
-            rootView = itemView.findViewById(R.id.rootView);
+            rootView = itemView.findViewById(R.id.v_root);
             tvTitle = itemView.findViewById(R.id.tv_title);
-            tvAlphabet = itemView.findViewById(R.id.tv_alphbet);
+            tvAlphabet = itemView.findViewById(R.id.tv_alphabet);
             imAvatar = itemView.findViewById(R.id.im_avatar);
 
             rootView.setOnCreateContextMenuListener(this);
@@ -146,6 +147,9 @@ public class ParticipantAdapter extends Adapter {
                 return;
             }
             User user = participants.get(position);
+            if (user.getUserId().equals(Common.client.getUserId())) {
+                return;
+            }
             String name = user.getName();
             if (name == null || name.length() == 0) {
                 name = user.getUserId();
@@ -199,7 +203,6 @@ public class ParticipantAdapter extends Adapter {
                                             }
                                         });
                                     }
-
                                 });
                             }
                         });

@@ -86,11 +86,7 @@ public class StickerIconAdapter extends Adapter {
                     int position = getLayoutPosition();
                     for (int i = 0; i < categories.size(); i++) {
                         StickerCategory category = categories.get(i);
-                        if (i == position) {
-                            category.setSelected(true);
-                        } else {
-                            category.setSelected(false);
-                        }
+                        category.setSelected(i == position);
                     }
                     notifyDataSetChanged();
 
