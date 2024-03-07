@@ -2,6 +2,7 @@ package com.stringee.kotlin_onetoonecallsample.common
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 
 
 object Utils {
@@ -20,6 +21,10 @@ object Utils {
         } else {
             true
         }
+    }
+
+    fun <T> reportException(clazz: Class<T>, exception: Exception?) {
+        Log.e("Stringee exception", clazz.getName(), exception)
     }
 }
 

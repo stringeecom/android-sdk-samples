@@ -20,11 +20,41 @@
         android:background="@android:color/black"
         android:visibility="gone">
 
-        <FrameLayout
-            android:id="@+id/v_remote"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/v_remote"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <LinearLayout
+                android:id="@+id/v_share"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:paddingBottom="120dp"
+                android:visibility="gone">
+
+                <FrameLayout
+                    android:id="@+id/v_local_share"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+                <FrameLayout
+                    android:id="@+id/v_remote_share"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
 
         <FrameLayout
             android:id="@+id/v_local"
@@ -97,6 +127,21 @@
                     android:layout_gravity="center"
                     android:background="@drawable/btn_ic_selected_selector"
                     android:src="@drawable/ic_switch" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/v_share_btn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <ImageButton
+                    android:id="@+id/btn_share"
+                    android:layout_width="65dp"
+                    android:layout_height="65dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/btn_ic_selected_selector"
+                    android:src="@drawable/ic_share" />
             </FrameLayout>
 
             <FrameLayout

@@ -13,20 +13,27 @@ import com.stringee.kotlin_onetoonecallsample.R.drawable
 import com.stringee.kotlin_onetoonecallsample.R.id
 import com.stringee.kotlin_onetoonecallsample.common.CallStatus
 import com.stringee.kotlin_onetoonecallsample.common.Constant
+import com.stringee.kotlin_onetoonecallsample.common.NotificationUtils
 import com.stringee.kotlin_onetoonecallsample.common.SensorManagerUtils
 import com.stringee.kotlin_onetoonecallsample.databinding.ActivityVideoCallBinding
 import com.stringee.kotlin_onetoonecallsample.databinding.ActivityVoiceCallBinding
 import com.stringee.kotlin_onetoonecallsample.databinding.LayoutIncomingCallBinding
 import com.stringee.kotlin_onetoonecallsample.listener.OnCallListener
 import com.stringee.kotlin_onetoonecallsample.manager.CallManager
+import com.stringee.video.StringeeVideoTrack
+import org.webrtc.RendererCommon
 
 
+@Suppress("DEPRECATION")
 class CallActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var videoCallBinding: ActivityVideoCallBinding
     private lateinit var voiceCallBinding: ActivityVoiceCallBinding
     private lateinit var incomingCallBinding: LayoutIncomingCallBinding
-    private var callManager: CallManager? = null
+    private lateinit var callManager: CallManager
     private var sensorManagerUtils: SensorManagerUtils? = null
+    private val remoteShareTrackList: MutableList<StringeeVideoTrack> = ArrayList()
+    private var localShareTrack: StringeeVideoTrack? = null
+    private var remoteShareTrack: StringeeVideoTrack? = null
     private var isVideoCall = false
     private var isIncomingCall = false
     private var isStringeeCall = false
@@ -34,7 +41,6 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         window.addFlags(
             WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                    or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                     or WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                     or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
         )
@@ -49,6 +55,8 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
         incomingCallBinding =
             if (isVideoCall) videoCallBinding.vIncomingCall else voiceCallBinding.vIncomingCall
 
+        NotificationUtils.getInstance(this).cancelNotification(Constant.INCOMING_CALL_ID)
+
         val callback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
 
@@ -59,6 +67,7 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
         isIncomingCall = intent.getBooleanExtra(Constant.PARAM_IS_INCOMING_CALL, false)
         isStringeeCall = intent.getBooleanExtra(Constant.PARAM_IS_STRINGEE_CALL, false)
         callManager = CallManager.getInstance(this)
+        callManager.initializeScreenCapture(this)
         sensorManagerUtils = SensorManagerUtils.getInstance(this).initialize(localClassName)
         if (!isVideoCall) {
             sensorManagerUtils!!.turnOn()
@@ -74,26 +83,31 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
             videoCallBinding.btnMute.setOnClickListener(this)
             videoCallBinding.btnCamera.setOnClickListener(this)
             videoCallBinding.btnSwitch.setOnClickListener(this)
+            videoCallBinding.btnShare.setOnClickListener(this)
         }
+
         incomingCallBinding.root.visibility =
-            if (callManager!!.callStatus != CallStatus.INCOMING) View.GONE else View.VISIBLE
+            if (callManager.callStatus != CallStatus.INCOMING) View.GONE else View.VISIBLE
         if (isVideoCall) {
             videoCallBinding.vInCall.visibility =
-                if (callManager!!.callStatus != CallStatus.INCOMING) View.VISIBLE else View.GONE
+                if (callManager.callStatus != CallStatus.INCOMING) View.VISIBLE else View.GONE
         } else {
             voiceCallBinding.vInCall.visibility =
-                if (callManager!!.callStatus != CallStatus.INCOMING) View.VISIBLE else View.GONE
+                if (callManager.callStatus != CallStatus.INCOMING) View.VISIBLE else View.GONE
         }
         initCall()
+        if (isVideoCall) {
+            videoCallBinding.vShareBtn.visibility =
+                if (isStringeeCall) View.GONE else View.VISIBLE
+        }
     }
 
     override fun onPause() {
         super.onPause()
         runOnUiThread {
-            if (callManager!!.callStatus == CallStatus.STARTED || callManager!!.callStatus == CallStatus.CALLING || callManager!!.callStatus == CallStatus.RINGING) {
+            if (callManager.callStatus == CallStatus.STARTED || callManager.callStatus == CallStatus.CALLING || callManager.callStatus == CallStatus.RINGING) {
                 window.clearFlags(
                     WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-                            or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                             or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                             or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                 )
@@ -113,10 +127,9 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         runOnUiThread {
-            if (callManager!!.callStatus == CallStatus.STARTED || callManager!!.callStatus == CallStatus.CALLING || callManager!!.callStatus == CallStatus.RINGING) {
+            if (callManager.callStatus == CallStatus.STARTED || callManager.callStatus == CallStatus.CALLING || callManager.callStatus == CallStatus.RINGING) {
                 window.addFlags(
                     WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                            or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                             or WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                             or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                 )
@@ -134,11 +147,11 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun initCall() {
-        callManager!!.registerEvent(object : OnCallListener {
-            override fun onCallStatus(status: CallStatus?) {
+        callManager.registerEvent(object : OnCallListener {
+            override fun onCallStatus(status: CallStatus) {
                 runOnUiThread {
                     if (!isVideoCall) {
-                        voiceCallBinding.tvStatus.text = status!!.value
+                        voiceCallBinding.tvStatus.text = status.value
                     }
                     incomingCallBinding.root.visibility =
                         if (status != CallStatus.INCOMING) View.GONE else View.VISIBLE
@@ -168,8 +181,8 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
                         )
                         childParams.gravity = Gravity.CENTER
                         videoCallBinding.vLocal.removeAllViews()
-                        videoCallBinding.vLocal.addView(callManager!!.localView, childParams)
-                        callManager!!.renderLocalView()
+                        videoCallBinding.vLocal.addView(callManager.localView, childParams)
+                        callManager.renderLocalView()
                     }
                 }
             }
@@ -183,8 +196,8 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
                         )
                         childParams.gravity = Gravity.CENTER
                         videoCallBinding.vRemote.removeAllViews()
-                        videoCallBinding.vRemote.addView(callManager!!.remoteView, childParams)
-                        callManager!!.renderRemoteView()
+                        videoCallBinding.vRemote.addView(callManager.remoteView, childParams)
+                        callManager.renderRemoteView()
                     }
                 }
             }
@@ -215,11 +228,103 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
                 }
             }
 
-            override fun onTimer(duration: String?) {
+            override fun onSharing(isSharing: Boolean) {
+                runOnUiThread {
+                    videoCallBinding.btnShare.setBackgroundResource(if (isSharing) drawable.btn_ic_selector else drawable.btn_ic_selected_selector)
+                    videoCallBinding.btnShare.setImageResource(if (isSharing) drawable.ic_share_off else drawable.ic_share)
+                }
+            }
+
+            override fun onTimer(duration: String) {
                 runOnUiThread {
                     if (!isVideoCall) {
                         voiceCallBinding.tvTime.text = duration
+                    } else {
+                        videoCallBinding.tvTime.text = duration
                     }
+                }
+            }
+
+            override fun onVideoTrackAdded(stringeeVideoTrack: StringeeVideoTrack) {
+                runOnUiThread {
+                    if (!isStringeeCall && isVideoCall) {
+                        if (stringeeVideoTrack.isLocal) {
+                            videoCallBinding.vShare.visibility = View.VISIBLE
+                            videoCallBinding.vLocalShare.visibility = View.VISIBLE
+                            localShareTrack = stringeeVideoTrack
+                            val childParams = FrameLayout.LayoutParams(
+                                FrameLayout.LayoutParams.WRAP_CONTENT,
+                                FrameLayout.LayoutParams.WRAP_CONTENT
+                            )
+                            childParams.gravity = Gravity.CENTER
+                            videoCallBinding.vLocalShare.removeAllViews()
+                            videoCallBinding.vLocalShare.addView(
+                                localShareTrack?.getView2(this@CallActivity),
+                                childParams
+                            )
+                            localShareTrack?.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                        } else {
+                            videoCallBinding.vShare.visibility = View.VISIBLE
+                            videoCallBinding.vRemoteShare.visibility = View.VISIBLE
+                            if (remoteShareTrack == null) {
+                                remoteShareTrack = stringeeVideoTrack
+                                val childParams = FrameLayout.LayoutParams(
+                                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                                    FrameLayout.LayoutParams.WRAP_CONTENT
+                                )
+                                childParams.gravity = Gravity.CENTER
+                                videoCallBinding.vRemoteShare.removeAllViews()
+                                videoCallBinding.vRemoteShare.addView(
+                                    remoteShareTrack?.getView2(this@CallActivity),
+                                    childParams
+                                )
+                                remoteShareTrack?.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                            }
+                            remoteShareTrackList
+                            remoteShareTrackList.add(stringeeVideoTrack)
+                        }
+                    }
+                }
+            }
+
+            override fun onVideoTrackRemoved(stringeeVideoTrack: StringeeVideoTrack) {
+                if (!isStringeeCall && isVideoCall) {
+                    if (stringeeVideoTrack.isLocal) {
+                        videoCallBinding.vLocalShare.visibility = View.GONE
+                        videoCallBinding.vLocalShare.removeAllViews()
+                        localShareTrack = null
+                    } else {
+                        for (i in remoteShareTrackList.indices) {
+                            val videoTrack = remoteShareTrackList[i]
+                            if (videoTrack.id == stringeeVideoTrack.id || videoTrack.localId == stringeeVideoTrack.localId) {
+                                remoteShareTrackList.removeAt(i)
+                                break
+                            }
+                        }
+                        if (remoteShareTrack != null) {
+                            videoCallBinding.vRemoteShare.removeAllViews()
+                            if (remoteShareTrackList.isEmpty()) {
+                                remoteShareTrack = null
+                            } else {
+                                remoteShareTrack = remoteShareTrackList[0]
+                                val childParams = FrameLayout.LayoutParams(
+                                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                                    FrameLayout.LayoutParams.WRAP_CONTENT
+                                )
+                                childParams.gravity = Gravity.CENTER
+                                videoCallBinding.vRemoteShare.removeAllViews()
+                                videoCallBinding.vRemoteShare.addView(
+                                    remoteShareTrack?.getView2(this@CallActivity),
+                                    childParams
+                                )
+                                remoteShareTrack?.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+                            }
+                        }
+                    }
+                    videoCallBinding.vShare.visibility =
+                        if (localShareTrack != null || remoteShareTrackList.isNotEmpty()) View.VISIBLE else View.GONE
+                    videoCallBinding.vRemoteShare.visibility =
+                        if (remoteShareTrackList.isNotEmpty()) View.VISIBLE else View.GONE
                 }
             }
         })
@@ -228,17 +333,17 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
             if (!isVideoCall) {
                 voiceCallBinding.tvUser1.text = to
             }
-            callManager!!.initializedOutgoingCall(to, isVideoCall, isStringeeCall)
-            callManager!!.makeCall()
+            callManager.initializedOutgoingCall(to, isVideoCall, isStringeeCall)
+            callManager.makeCall()
         } else {
-            incomingCallBinding.tvUser.text = callManager!!.from
+            incomingCallBinding.tvUser.text = callManager.from
             if (!isVideoCall) {
-                voiceCallBinding.tvUser1.text = callManager!!.from
+                voiceCallBinding.tvUser1.text = callManager.from
             }
             val isAnswerFromPush =
                 intent.getBooleanExtra(Constant.PARAM_ACTION_ANSWER_FROM_PUSH, false)
             if (isAnswerFromPush) {
-                callManager!!.answer()
+                callManager.answer()
             }
         }
     }
@@ -246,38 +351,42 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
     override fun onClick(view: View) {
         when (view.id) {
             id.btn_answer -> {
-                callManager!!.answer()
+                callManager.answer()
             }
 
             id.btn_reject -> {
-                callManager!!.endCall(false)
+                callManager.endCall(false)
             }
 
             id.btn_end -> {
-                callManager!!.endCall(true)
+                callManager.endCall(true)
             }
 
             id.btn_mute -> {
-                callManager!!.mute()
+                callManager.mute()
             }
 
             id.btn_speaker -> {
-                callManager!!.changeSpeaker()
+                callManager.changeSpeaker()
             }
 
             id.btn_camera -> {
-                callManager!!.enableVideo()
+                callManager.enableVideo()
             }
 
             id.btn_switch -> {
-                callManager!!.switchCamera()
+                callManager.switchCamera()
+            }
+
+            id.btn_share -> {
+                callManager.shareScreen()
             }
         }
     }
 
     private fun dismiss() {
         sensorManagerUtils!!.releaseSensor()
-        callManager!!.release()
+        callManager.release()
         window.clearFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                     or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
