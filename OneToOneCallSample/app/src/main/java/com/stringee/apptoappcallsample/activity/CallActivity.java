@@ -13,12 +13,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.stringee.apptoappcallsample.R;
 import com.stringee.apptoappcallsample.common.CallStatus;
 import com.stringee.apptoappcallsample.common.Constant;
+import com.stringee.apptoappcallsample.common.NotificationUtils;
 import com.stringee.apptoappcallsample.common.SensorManagerUtils;
 import com.stringee.apptoappcallsample.databinding.ActivityVideoCallBinding;
 import com.stringee.apptoappcallsample.databinding.ActivityVoiceCallBinding;
 import com.stringee.apptoappcallsample.databinding.LayoutIncomingCallBinding;
 import com.stringee.apptoappcallsample.listener.OnCallListener;
 import com.stringee.apptoappcallsample.manager.CallManager;
+import com.stringee.video.StringeeVideoTrack;
+
+import org.webrtc.RendererCommon;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CallActivity extends AppCompatActivity implements View.OnClickListener {
     private ActivityVideoCallBinding videoCallBinding;
@@ -26,6 +33,9 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
     private LayoutIncomingCallBinding incomingCallBinding;
     private CallManager callManager;
     private SensorManagerUtils sensorManagerUtils;
+    private final List<StringeeVideoTrack> remoteShareTrackList = new ArrayList<>();
+    private StringeeVideoTrack localShareTrack;
+    private StringeeVideoTrack remoteShareTrack;
     private boolean isVideoCall;
     private boolean isIncomingCall;
     private boolean isStringeeCall;
@@ -34,7 +44,6 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                 | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
@@ -50,6 +59,8 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(isVideoCall ? videoCallBinding.getRoot() : voiceCallBinding.getRoot());
         incomingCallBinding = isVideoCall ? videoCallBinding.vIncomingCall : voiceCallBinding.vIncomingCall;
 
+        NotificationUtils.getInstance(this).cancelNotification(Constant.INCOMING_CALL_ID);
+
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -60,6 +71,7 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
         isStringeeCall = getIntent().getBooleanExtra(Constant.PARAM_IS_STRINGEE_CALL, false);
 
         callManager = CallManager.getInstance(this);
+        callManager.initializeScreenCapture(this);
         sensorManagerUtils = SensorManagerUtils.getInstance(this).initialize(getLocalClassName());
 
         if (!isVideoCall) {
@@ -77,6 +89,7 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
             videoCallBinding.btnMute.setOnClickListener(this);
             videoCallBinding.btnCamera.setOnClickListener(this);
             videoCallBinding.btnSwitch.setOnClickListener(this);
+            videoCallBinding.btnShare.setOnClickListener(this);
         }
 
         incomingCallBinding.getRoot().setVisibility(callManager.getCallStatus() != CallStatus.INCOMING ? View.GONE : View.VISIBLE);
@@ -87,6 +100,9 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         initCall();
+        if (isVideoCall) {
+            videoCallBinding.vShareBtn.setVisibility(isStringeeCall ? View.GONE : View.VISIBLE);
+        }
     }
 
     @Override
@@ -94,7 +110,9 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
         super.onPause();
         runOnUiThread(() -> {
             if (callManager.getCallStatus() == CallStatus.STARTED || callManager.getCallStatus() == CallStatus.CALLING || callManager.getCallStatus() == CallStatus.RINGING) {
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                        | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                        | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
                 sensorManagerUtils = SensorManagerUtils.getInstance(this).initialize(getLocalClassName());
                 if (!isVideoCall) {
@@ -114,7 +132,9 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
         super.onResume();
         runOnUiThread(() -> {
             if (callManager.getCallStatus() == CallStatus.STARTED || callManager.getCallStatus() == CallStatus.CALLING || callManager.getCallStatus() == CallStatus.RINGING) {
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                        | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                        | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
                 sensorManagerUtils = SensorManagerUtils.getInstance(this).initialize(getLocalClassName());
                 if (!isVideoCall) {
@@ -212,12 +232,89 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
+            public void onSharing(boolean isSharing) {
+                runOnUiThread(() -> {
+                    videoCallBinding.btnShare.setBackgroundResource(isSharing ? R.drawable.btn_ic_selector : R.drawable.btn_ic_selected_selector);
+                    videoCallBinding.btnShare.setImageResource(isSharing ? R.drawable.ic_share_off : R.drawable.ic_share);
+                });
+            }
+
+            @Override
             public void onTimer(String duration) {
                 runOnUiThread(() -> {
                     if (!isVideoCall) {
                         voiceCallBinding.tvTime.setText(duration);
+                    } else {
+                        videoCallBinding.tvTime.setText(duration);
                     }
                 });
+            }
+
+            @Override
+            public void onVideoTrackAdded(StringeeVideoTrack stringeeVideoTrack) {
+                runOnUiThread(() -> {
+                    if (!isStringeeCall && isVideoCall) {
+                        if (stringeeVideoTrack.isLocal()) {
+                            videoCallBinding.vShare.setVisibility(View.VISIBLE);
+                            videoCallBinding.vLocalShare.setVisibility(View.VISIBLE);
+                            localShareTrack = stringeeVideoTrack;
+                            FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                            childParams.gravity = Gravity.CENTER;
+
+                            videoCallBinding.vLocalShare.removeAllViews();
+                            videoCallBinding.vLocalShare.addView(localShareTrack.getView2(CallActivity.this), childParams);
+                            localShareTrack.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+                        } else {
+                            videoCallBinding.vShare.setVisibility(View.VISIBLE);
+                            videoCallBinding.vRemoteShare.setVisibility(View.VISIBLE);
+                            if (remoteShareTrack == null) {
+                                remoteShareTrack = stringeeVideoTrack;
+                                FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                                childParams.gravity = Gravity.CENTER;
+
+                                videoCallBinding.vRemoteShare.removeAllViews();
+                                videoCallBinding.vRemoteShare.addView(remoteShareTrack.getView2(CallActivity.this), childParams);
+                                remoteShareTrack.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+                            }
+                            remoteShareTrackList.add(stringeeVideoTrack);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onVideoTrackRemoved(StringeeVideoTrack stringeeVideoTrack) {
+                if (!isStringeeCall && isVideoCall) {
+                    if (stringeeVideoTrack.isLocal()) {
+                        videoCallBinding.vLocalShare.setVisibility(View.GONE);
+                        videoCallBinding.vLocalShare.removeAllViews();
+                        localShareTrack = null;
+                    } else {
+                        for (int i = 0; i < remoteShareTrackList.size(); i++) {
+                            StringeeVideoTrack videoTrack = remoteShareTrackList.get(i);
+                            if (videoTrack.getId().equals(stringeeVideoTrack.getId()) || videoTrack.getLocalId().equals(stringeeVideoTrack.getLocalId())) {
+                                remoteShareTrackList.remove(i);
+                                break;
+                            }
+                        }
+                        if (remoteShareTrack != null) {
+                            videoCallBinding.vRemoteShare.removeAllViews();
+                            if (remoteShareTrackList.isEmpty()) {
+                                remoteShareTrack = null;
+                            } else {
+                                remoteShareTrack = remoteShareTrackList.get(0);
+                                FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                                childParams.gravity = Gravity.CENTER;
+
+                                videoCallBinding.vRemoteShare.removeAllViews();
+                                videoCallBinding.vRemoteShare.addView(remoteShareTrack.getView2(CallActivity.this), childParams);
+                                remoteShareTrack.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+                            }
+                        }
+                    }
+                    videoCallBinding.vShare.setVisibility(localShareTrack != null || !remoteShareTrackList.isEmpty() ? View.VISIBLE : View.GONE);
+                    videoCallBinding.vRemoteShare.setVisibility(!remoteShareTrackList.isEmpty() ? View.VISIBLE : View.GONE);
+                }
             }
         });
         if (!isIncomingCall) {
@@ -256,6 +353,8 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
             callManager.enableVideo();
         } else if (vId == R.id.btn_switch) {
             callManager.switchCamera();
+        } else if (vId == R.id.btn_share) {
+            callManager.shareScreen();
         }
     }
 

@@ -9,6 +9,7 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.stringee.apptoappcallsample.common.AudioManagerUtils;
 import com.stringee.apptoappcallsample.common.Constant;
 import com.stringee.apptoappcallsample.common.NotificationUtils;
+import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.apptoappcallsample.manager.ClientManager;
 import com.stringee.listener.StatusListener;
 
@@ -32,7 +33,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.d(Constant.TAG, remoteMessage.getData().toString());
-        if (remoteMessage.getData().size() > 0) {
+        if (!remoteMessage.getData().isEmpty()) {
             String pushFromStringee = remoteMessage.getData().get("stringeePushNotification");
             if (pushFromStringee != null) {
                 String data = remoteMessage.getData().get("data");
@@ -48,7 +49,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                             AudioManagerUtils.getInstance(this).stopRinging();
                         }
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Utils.reportException(MyFirebaseMessagingService.class, e);
                     }
                 }
             }

@@ -22,7 +22,7 @@ class ClientManager private constructor(private val applicationContext: Context)
         private set
     private var listener: OnConnectionListener? = null
     private val token =
-        "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDM0NjM4NDMiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjIiLCJleHAiOjE3NDA0Nzk0NjN9.3JhD309k8kVtDVwvZ29D_J6pi-N165BSUfjLd7av0ZA"
+        "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS3JTaWZRWlVJa3ZPY2Q0RHdZT2c1Y2lpQUJma01kTTJOLTE3MDk3OTMwMzMwMzYiLCJpc3MiOiJTS3JTaWZRWlVJa3ZPY2Q0RHdZT2c1Y2lpQUJma01kTTJOIiwidXNlcklkIjoidXNlcjIiLCJleHAiOjE3NDEzMjkwMzJ9.FbWVRai78WuOsJiruaNBlwdQyTmr-94jiHx_Bah_fNM"
     var isInCall = false
     var isPermissionGranted = true
 
