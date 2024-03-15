@@ -240,9 +240,11 @@ public class CallManager {
                                 break;
                             case BUSY:
                                 callStatus = CallStatus.BUSY;
+                                release();
                                 break;
                             case ENDED:
                                 callStatus = CallStatus.ENDED;
+                                release();
                                 break;
                         }
                         if (listener != null) {
@@ -438,6 +440,7 @@ public class CallManager {
             release();
             return;
         }
+        NotificationUtils.getInstance(context).cancelNotification(Constant.INCOMING_CALL_ID);
         if (isStringeeCall) {
             stringeeCall.answer(new StatusListener() {
                 @Override
@@ -652,10 +655,8 @@ public class CallManager {
     private boolean isCallNotInitialized() {
         boolean isCallNotInitialized;
         if (isStringeeCall) {
-            Log.d(Constant.TAG, "isCallNotInitialized1: " + stringeeCall);
             isCallNotInitialized = stringeeCall == null;
         } else {
-            Log.d(Constant.TAG, "isCallNotInitialized2: " + stringeeCall2);
             isCallNotInitialized = stringeeCall2 == null;
         }
         if (isCallNotInitialized) {
@@ -667,7 +668,6 @@ public class CallManager {
     }
 
     public void release() {
-        Log.d(Constant.TAG, "release callManager");
         clientManager.isInCall = false;
         audioManagerUtils.stopAudioManager();
         audioManagerUtils.stopRinging();
@@ -710,6 +710,7 @@ public class CallManager {
     public void renderLocalView() {
         if (isStringeeCall) {
             stringeeCall.renderLocalView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+            stringeeCall.getLocalView2().setMirror(false);
         } else {
             stringeeCall2.renderLocalView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
         }
@@ -724,22 +725,24 @@ public class CallManager {
     }
 
     private void startTimer() {
-        long startTime = System.currentTimeMillis();
+        if (timer == null) {
+            long startTime = System.currentTimeMillis();
 
-        timer = new Timer();
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                Utils.runOnUiThread(() -> {
-                    if (listener != null) {
-                        long time = System.currentTimeMillis() - startTime;
-                        SimpleDateFormat format = new SimpleDateFormat("mm:ss", Locale.getDefault());
-                        format.setTimeZone(TimeZone.getTimeZone("GMT"));
-                        listener.onTimer(format.format(new Date(time)));
-                    }
-                });
-            }
-        };
-        timer.schedule(timerTask, 0, 1000);
+            timer = new Timer();
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    Utils.runOnUiThread(() -> {
+                        if (listener != null) {
+                            long time = System.currentTimeMillis() - startTime;
+                            SimpleDateFormat format = new SimpleDateFormat("mm:ss", Locale.getDefault());
+                            format.setTimeZone(TimeZone.getTimeZone("GMT"));
+                            listener.onTimer(format.format(new Date(time)));
+                        }
+                    });
+                }
+            };
+            timer.schedule(timerTask, 0, 1000);
+        }
     }
 }

@@ -219,6 +219,8 @@ class CallActivity : AppCompatActivity(), View.OnClickListener {
                 runOnUiThread {
                     if (!isVideoCall) {
                         voiceCallBinding.tvTime.text = duration
+                    } else {
+                        videoCallBinding.tvTime.text = duration
                     }
                 }
             }

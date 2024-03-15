@@ -32,7 +32,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.d(Constant.TAG, remoteMessage.getData().toString());
-        if (remoteMessage.getData().size() > 0) {
+        if (!remoteMessage.getData().isEmpty()) {
             String pushFromStringee = remoteMessage.getData().get("stringeePushNotification");
             if (pushFromStringee != null) {
                 String data = remoteMessage.getData().get("data");

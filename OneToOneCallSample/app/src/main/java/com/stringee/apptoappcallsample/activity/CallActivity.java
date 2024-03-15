@@ -216,6 +216,8 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
                 runOnUiThread(() -> {
                     if (!isVideoCall) {
                         voiceCallBinding.tvTime.setText(duration);
+                    } else {
+                        videoCallBinding.tvTime.setText(duration);
                     }
                 });
             }

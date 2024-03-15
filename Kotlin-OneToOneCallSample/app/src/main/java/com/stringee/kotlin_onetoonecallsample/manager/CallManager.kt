@@ -244,8 +244,15 @@ class CallManager private constructor(private val applicationContext: Context) {
                                 }
                             }
 
-                            StringeeCall2.SignalingState.BUSY -> callStatus = CallStatus.BUSY
-                            StringeeCall2.SignalingState.ENDED -> callStatus = CallStatus.ENDED
+                            StringeeCall2.SignalingState.BUSY -> {
+                                callStatus = CallStatus.BUSY
+                                release()
+                            }
+
+                            StringeeCall2.SignalingState.ENDED -> {
+                                callStatus = CallStatus.ENDED
+                                release()
+                            }
                         }
                         listener?.onCallStatus(callStatus)
                     }
@@ -426,6 +433,8 @@ class CallManager private constructor(private val applicationContext: Context) {
             release()
             return
         }
+        NotificationUtils.getInstance(this.applicationContext)
+            .cancelNotification(Constant.INCOMING_CALL_ID)
         if (isStringeeCall) {
             stringeeCall?.answer(object : StatusListener() {
                 override fun onSuccess() {
@@ -660,6 +669,7 @@ class CallManager private constructor(private val applicationContext: Context) {
     fun renderLocalView() {
         if (isStringeeCall) {
             stringeeCall?.renderLocalView2(ScalingType.SCALE_ASPECT_FIT)
+            stringeeCall?.localView2!!.setMirror(false)
         } else {
             stringeeCall2?.renderLocalView2(ScalingType.SCALE_ASPECT_FIT)
         }
@@ -674,20 +684,22 @@ class CallManager private constructor(private val applicationContext: Context) {
     }
 
     private fun startTimer() {
-        val startTime = System.currentTimeMillis()
-        timer = Timer()
-        val timerTask: TimerTask = object : TimerTask() {
-            override fun run() {
-                Utils.runOnUiThread {
-                    val time: Long = System.currentTimeMillis() - startTime
-                    val format =
-                        SimpleDateFormat("mm:ss", Locale.getDefault())
-                    format.timeZone = TimeZone.getTimeZone("GMT")
-                    listener?.onTimer(format.format(Date(time)))
+        if (timer == null) {
+            val startTime = System.currentTimeMillis()
+            timer = Timer()
+            val timerTask: TimerTask = object : TimerTask() {
+                override fun run() {
+                    Utils.runOnUiThread {
+                        val time: Long = System.currentTimeMillis() - startTime
+                        val format =
+                            SimpleDateFormat("mm:ss", Locale.getDefault())
+                        format.timeZone = TimeZone.getTimeZone("GMT")
+                        listener?.onTimer(format.format(Date(time)))
+                    }
                 }
             }
+            timer?.schedule(timerTask, 0, 1000)
         }
-        timer?.schedule(timerTask, 0, 1000)
     }
 
     companion object {
