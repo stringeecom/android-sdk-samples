@@ -2,12 +2,9 @@ package com.stringee.kotlin_onetoonecallsample.manager
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
-import android.os.Build
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ServiceCompat
 import com.stringee.call.StringeeCall
 import com.stringee.call.StringeeCall2
 import com.stringee.common.StringeeAudioManager
@@ -121,7 +118,7 @@ class CallManager private constructor(private val applicationContext: Context) {
 
     private fun registerCallEvent() {
         if (isStringeeCall) {
-            stringeeCall?.setCallListener(object : StringeeCall.StringeeCallListener {
+            stringeeCall?.callListener = object : StringeeCall.StringeeCallListener {
                 override fun onSignalingStateChange(
                     stringeeCall: StringeeCall,
                     signalingState: StringeeCall.SignalingState,
@@ -227,9 +224,9 @@ class CallManager private constructor(private val applicationContext: Context) {
                         )
                     }
                 }
-            })
+            }
         } else {
-            stringeeCall2?.setCallListener(object : StringeeCall2.StringeeCallListener {
+            stringeeCall2?.callListener = object : StringeeCall2.StringeeCallListener {
                 override fun onSignalingStateChange(
                     stringeeCall2: StringeeCall2,
                     signalingState: StringeeCall2.SignalingState,
@@ -379,7 +376,7 @@ class CallManager private constructor(private val applicationContext: Context) {
                     stringeeVideoTrack: StringeeVideoTrack
                 ) {
                 }
-            })
+            }
         }
     }
 
@@ -678,35 +675,21 @@ class CallManager private constructor(private val applicationContext: Context) {
 
     fun startCapture(mediaProjectionService: MyMediaProjectionService?) {
         this.mediaProjectionService = mediaProjectionService
-        val notification =
-            NotificationUtils.getInstance(mediaProjectionService!!).createMediaNotification()
-        var type = 0
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            type = ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
-        }
-        try {
-            ServiceCompat.startForeground(
-                mediaProjectionService,
-                Constant.MEDIA_SERVICE_ID,
-                notification,
-                type
-            )
-        } catch (e: Exception) {
-            Utils.reportException(CallManager::class.java, e)
-        }
-        if (stringeeCall2 != null) {
-            stringeeCall2!!.startCaptureScreen(screenCapture, object : StatusListener() {
-                override fun onSuccess() {}
-                override fun onError(stringeeError: StringeeError) {
-                    super.onError(stringeeError)
-                    isSharing = false
-                    if (listener != null) {
-                        listener!!.onSharing(false)
+        Utils.postDelay({
+            if (stringeeCall2 != null) {
+                stringeeCall2!!.startCaptureScreen(screenCapture, object : StatusListener() {
+                    override fun onSuccess() {}
+                    override fun onError(stringeeError: StringeeError) {
+                        super.onError(stringeeError)
+                        isSharing = false
+                        if (listener != null) {
+                            listener!!.onSharing(false)
+                        }
+                        mediaProjectionService?.stopService()
                     }
-                    mediaProjectionService.stopService()
-                }
-            })
-        }
+                })
+            }
+        }, 500)
     }
 
     fun release() {
@@ -778,20 +761,22 @@ class CallManager private constructor(private val applicationContext: Context) {
     }
 
     private fun startTimer() {
-        val startTime = System.currentTimeMillis()
-        timer = Timer()
-        val timerTask: TimerTask = object : TimerTask() {
-            override fun run() {
-                Utils.runOnUiThread {
-                    val time: Long = System.currentTimeMillis() - startTime
-                    val format =
-                        SimpleDateFormat("mm:ss", Locale.getDefault())
-                    format.timeZone = TimeZone.getTimeZone("GMT")
-                    listener?.onTimer(format.format(Date(time)))
+        if (timer == null) {
+            val startTime = System.currentTimeMillis()
+            timer = Timer()
+            val timerTask: TimerTask = object : TimerTask() {
+                override fun run() {
+                    Utils.runOnUiThread {
+                        val time: Long = System.currentTimeMillis() - startTime
+                        val format =
+                            SimpleDateFormat("mm:ss", Locale.getDefault())
+                        format.timeZone = TimeZone.getTimeZone("GMT")
+                        listener?.onTimer(format.format(Date(time)))
+                    }
                 }
             }
+            timer?.schedule(timerTask, 0, 1000)
         }
-        timer?.schedule(timerTask, 0, 1000)
     }
 
     companion object {

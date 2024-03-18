@@ -154,7 +154,7 @@ public class NotificationUtils {
         builder.setContentTitle("Capturing screen");
         builder.setContentIntent(pendingIntent);
         builder.setOngoing(true);
-
+        builder.setCategory(NotificationCompat.CATEGORY_SERVICE);
         return builder.build();
     }
 }
