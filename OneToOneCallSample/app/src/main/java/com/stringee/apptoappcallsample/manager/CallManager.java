@@ -729,36 +729,28 @@ public class CallManager {
 
     public void startCapture(MyMediaProjectionService mediaProjectionService) {
         this.mediaProjectionService = mediaProjectionService;
-        Notification notification = NotificationUtils.getInstance(mediaProjectionService).createMediaNotification();
-        int type = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            type = ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION;
-        }
-        try {
-            ServiceCompat.startForeground(mediaProjectionService, Constant.MEDIA_SERVICE_ID, notification, type);
-        } catch (Exception e) {
-            Utils.reportException(CallManager.class, e);
-        }
-        if (stringeeCall2 != null) {
-            stringeeCall2.startCaptureScreen(screenCapture, new StatusListener() {
-                @Override
-                public void onSuccess() {
+        Utils.postDelay(() -> {
+            if (stringeeCall2 != null) {
+                stringeeCall2.startCaptureScreen(screenCapture, new StatusListener() {
+                    @Override
+                    public void onSuccess() {
 
-                }
+                    }
 
-                @Override
-                public void onError(StringeeError stringeeError) {
-                    super.onError(stringeeError);
-                    isSharing = false;
-                    if (listener != null) {
-                        listener.onSharing(false);
+                    @Override
+                    public void onError(StringeeError stringeeError) {
+                        super.onError(stringeeError);
+                        isSharing = false;
+                        if (listener != null) {
+                            listener.onSharing(false);
+                        }
+                        if (mediaProjectionService != null) {
+                            mediaProjectionService.stopService();
+                        }
                     }
-                    if (mediaProjectionService != null) {
-                        mediaProjectionService.stopService();
-                    }
-                }
-            });
-        }
+                });
+            }
+        }, 500);
     }
 
     public void release() {
@@ -837,22 +829,24 @@ public class CallManager {
     }
 
     private void startTimer() {
-        long startTime = System.currentTimeMillis();
+        if (timer == null) {
+            long startTime = System.currentTimeMillis();
 
-        timer = new Timer();
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                Utils.runOnUiThread(() -> {
-                    if (listener != null) {
-                        long time = System.currentTimeMillis() - startTime;
-                        SimpleDateFormat format = new SimpleDateFormat("mm:ss", Locale.getDefault());
-                        format.setTimeZone(TimeZone.getTimeZone("GMT"));
-                        listener.onTimer(format.format(new Date(time)));
-                    }
-                });
-            }
-        };
-        timer.schedule(timerTask, 0, 1000);
+            timer = new Timer();
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    Utils.runOnUiThread(() -> {
+                        if (listener != null) {
+                            long time = System.currentTimeMillis() - startTime;
+                            SimpleDateFormat format = new SimpleDateFormat("mm:ss", Locale.getDefault());
+                            format.setTimeZone(TimeZone.getTimeZone("GMT"));
+                            listener.onTimer(format.format(new Date(time)));
+                        }
+                    });
+                }
+            };
+            timer.schedule(timerTask, 0, 1000);
+        }
     }
 }

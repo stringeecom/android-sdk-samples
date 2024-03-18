@@ -158,6 +158,7 @@ class NotificationUtils private constructor(private val applicationContext: Cont
         builder.setContentTitle("Capturing screen")
         builder.setContentIntent(pendingIntent)
         builder.setOngoing(true)
+        builder.setCategory(NotificationCompat.CATEGORY_SERVICE)
         return builder.build()
     }
 

@@ -6,9 +6,14 @@ import android.util.Log
 
 
 object Utils {
-    fun runOnUiThread(runnable: Runnable?) {
+    fun runOnUiThread(runnable: Runnable) {
         val handler = Handler(Looper.getMainLooper())
-        handler.post(runnable!!)
+        handler.post(runnable)
+    }
+
+    fun postDelay(runnable: Runnable, millis: Long) {
+        val handler = Handler(Looper.getMainLooper())
+        handler.postDelayed(runnable, millis)
     }
 
     fun isStringEmpty(text: CharSequence?): Boolean {

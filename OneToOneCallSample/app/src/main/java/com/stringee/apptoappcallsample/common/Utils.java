@@ -13,6 +13,11 @@ public class Utils {
         handler.post(runnable);
     }
 
+    public static void postDelay(Runnable runnable, long millis) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(runnable, millis);
+    }
+
     public static boolean isStringEmpty(@Nullable CharSequence text) {
         if (text != null) {
             if (text.toString().equalsIgnoreCase("null")) {
