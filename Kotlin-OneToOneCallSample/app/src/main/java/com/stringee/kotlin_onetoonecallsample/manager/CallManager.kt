@@ -118,7 +118,7 @@ class CallManager private constructor(private val applicationContext: Context) {
 
     private fun registerCallEvent() {
         if (isStringeeCall) {
-            stringeeCall?.callListener = object : StringeeCall.StringeeCallListener {
+            stringeeCall?.setCallListener(object : StringeeCall.StringeeCallListener {
                 override fun onSignalingStateChange(
                     stringeeCall: StringeeCall,
                     signalingState: StringeeCall.SignalingState,
@@ -224,9 +224,9 @@ class CallManager private constructor(private val applicationContext: Context) {
                         )
                     }
                 }
-            }
+            })
         } else {
-            stringeeCall2?.callListener = object : StringeeCall2.StringeeCallListener {
+            stringeeCall2?.setCallListener(object : StringeeCall2.StringeeCallListener {
                 override fun onSignalingStateChange(
                     stringeeCall2: StringeeCall2,
                     signalingState: StringeeCall2.SignalingState,
@@ -376,7 +376,7 @@ class CallManager private constructor(private val applicationContext: Context) {
                     stringeeVideoTrack: StringeeVideoTrack
                 ) {
                 }
-            }
+            })
         }
     }
 
