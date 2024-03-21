@@ -251,8 +251,15 @@ class CallManager private constructor(private val applicationContext: Context) {
                                 }
                             }
 
-                            StringeeCall2.SignalingState.BUSY -> callStatus = CallStatus.BUSY
-                            StringeeCall2.SignalingState.ENDED -> callStatus = CallStatus.ENDED
+                            StringeeCall2.SignalingState.BUSY -> {
+                                callStatus = CallStatus.BUSY
+                                release()
+                            }
+
+                            StringeeCall2.SignalingState.ENDED -> {
+                                callStatus = CallStatus.ENDED
+                                release()
+                            }
                         }
                         listener?.onCallStatus(callStatus)
                     }
@@ -455,6 +462,8 @@ class CallManager private constructor(private val applicationContext: Context) {
             release()
             return
         }
+        NotificationUtils.getInstance(this.applicationContext)
+            .cancelNotification(Constant.INCOMING_CALL_ID)
         if (isStringeeCall) {
             stringeeCall?.answer(object : StatusListener() {
                 override fun onSuccess() {
@@ -747,6 +756,7 @@ class CallManager private constructor(private val applicationContext: Context) {
     fun renderLocalView() {
         if (isStringeeCall) {
             stringeeCall?.renderLocalView2(ScalingType.SCALE_ASPECT_FIT)
+            stringeeCall?.localView2!!.setMirror(false)
         } else {
             stringeeCall2?.renderLocalView2(ScalingType.SCALE_ASPECT_FIT)
         }
