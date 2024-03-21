@@ -11,15 +11,11 @@ import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.apptoappcallsample.listener.OnConnectionListener;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
-import com.stringee.common.SocketAddress;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.listener.StringeeConnectionListener;
 
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ClientManager {
     private static volatile ClientManager instance;

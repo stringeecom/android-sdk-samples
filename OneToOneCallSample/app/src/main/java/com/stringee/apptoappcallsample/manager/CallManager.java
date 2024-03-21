@@ -248,9 +248,11 @@ public class CallManager {
                                 break;
                             case BUSY:
                                 callStatus = CallStatus.BUSY;
+                                release();
                                 break;
                             case ENDED:
                                 callStatus = CallStatus.ENDED;
+                                release();
                                 break;
                         }
                         if (listener != null) {
@@ -460,6 +462,7 @@ public class CallManager {
             release();
             return;
         }
+        NotificationUtils.getInstance(context).cancelNotification(Constant.INCOMING_CALL_ID);
         if (isStringeeCall) {
             stringeeCall.answer(new StatusListener() {
                 @Override
@@ -674,10 +677,8 @@ public class CallManager {
     private boolean isCallNotInitialized() {
         boolean isCallNotInitialized;
         if (isStringeeCall) {
-            Log.d(Constant.TAG, "isCallNotInitialized1: " + stringeeCall);
             isCallNotInitialized = stringeeCall == null;
         } else {
-            Log.d(Constant.TAG, "isCallNotInitialized2: " + stringeeCall2);
             isCallNotInitialized = stringeeCall2 == null;
         }
         if (isCallNotInitialized) {
@@ -811,6 +812,7 @@ public class CallManager {
     public void renderLocalView() {
         if (isStringeeCall) {
             stringeeCall.renderLocalView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+            stringeeCall.getLocalView2().setMirror(false);
         } else {
             stringeeCall2.renderLocalView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
         }
