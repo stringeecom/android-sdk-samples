@@ -1,14 +1,12 @@
 package com.stringee.kotlin_onetoonecallsample.common
 
 import android.annotation.SuppressLint
-import android.app.KeyguardManager.KeyguardLock
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.PowerManager
-
 
 class SensorManagerUtils private constructor(private val applicationContext: Context) : SensorEventListener {
     private var mSensorManager: SensorManager? = null

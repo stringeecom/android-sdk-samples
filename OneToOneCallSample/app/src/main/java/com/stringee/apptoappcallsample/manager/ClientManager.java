@@ -11,11 +11,15 @@ import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.apptoappcallsample.listener.OnConnectionListener;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
+import com.stringee.common.SocketAddress;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.listener.StringeeConnectionListener;
 
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClientManager {
     private static volatile ClientManager instance;
@@ -38,7 +42,7 @@ public class ClientManager {
 
     private StringeeClient stringeeClient;
     private OnConnectionListener listener;
-    private static final String TOKEN = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS3JTaWZRWlVJa3ZPY2Q0RHdZT2c1Y2lpQUJma01kTTJOLTE3MDk3OTMwNTczMDUiLCJpc3MiOiJTS3JTaWZRWlVJa3ZPY2Q0RHdZT2c1Y2lpQUJma01kTTJOIiwidXNlcklkIjoidXNlcjEiLCJleHAiOjE3NDEzMjkwNTd9.ejPhieeB4PvkD2GQmYoGjGtLG9ABamMdChC-v6zXAAw";
+    private static final String TOKEN = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MTA5ODgyNjU2MjUiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjMiLCJleHAiOjE3NDI1MjQyNjV9.Z--CKOqKL37dw4_S3ybDwkfdNVKES1G_XJqu-ArGIbE";
     public boolean isInCall = false;
     public boolean isPermissionGranted = true;
 
