@@ -11,9 +11,10 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="20dp"
-        android:paddingLeft="20dp"
-        android:paddingTop="20dp">
+        android:paddingStart="20dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="0dp"
+        android:paddingBottom="20dp">
 
         <ImageView
             android:id="@+id/im_avatar"
@@ -22,18 +23,16 @@
             android:scaleType="centerCrop"
             android:src="@drawable/default_avatar" />
 
-
         <TextView
             android:id="@+id/tv_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
             android:layout_marginTop="20dp"
             android:textColor="@color/text_dark"
             android:textSize="@dimen/stringee_text_size_20" />
 
     </LinearLayout>
-
 
     <LinearLayout
         android:id="@+id/v_settings"
@@ -41,7 +40,8 @@
         android:layout_height="70dp"
         android:background="@drawable/item_selectable"
         android:gravity="center_vertical"
-        android:paddingLeft="20dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="0dp">
 
         <ImageView
             android:layout_width="wrap_content"
@@ -51,7 +51,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
             android:text="@string/settings"
             android:textColor="@color/text_dark"
             android:textSize="@dimen/stringee_text_size_18" />
@@ -63,7 +63,8 @@
         android:layout_height="70dp"
         android:background="@drawable/item_selectable"
         android:gravity="center_vertical"
-        android:paddingLeft="20dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="0dp">
 
         <ImageView
             android:layout_width="wrap_content"
@@ -73,7 +74,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
             android:text="@string/logout"
             android:textColor="#ff2b2b"
             android:textSize="@dimen/stringee_text_size_18" />

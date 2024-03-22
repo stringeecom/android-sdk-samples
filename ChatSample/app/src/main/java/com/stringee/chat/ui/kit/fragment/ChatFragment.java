@@ -15,8 +15,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build.VERSION;
-import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
@@ -33,7 +31,6 @@ import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -88,7 +85,6 @@ import com.stringee.messaging.Message.MsgType;
 import com.stringee.messaging.User;
 import com.stringee.messaging.listeners.CallbackListener;
 import com.stringee.stringeechatuikit.BaseActivity;
-import com.stringee.stringeechatuikit.OutgoingCallActivity;
 import com.stringee.stringeechatuikit.R;
 import com.stringee.stringeechatuikit.R.id;
 import com.stringee.stringeechatuikit.common.CallBack;
@@ -102,6 +98,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -130,7 +127,6 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     private RecyclerView messagesRecyclerView;
     private MessageAdapter adapter;
     private LinearLayoutManager linearLayoutManager;
-    private ProgressBar prLoading;
     private boolean isLoading;
     private boolean isTop = false;
     private boolean isTouched;
@@ -161,16 +157,13 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     }
 
     @Override
-    public View onCreateView(@androidx.annotation.NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@androidx.annotation.NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
-
-        prLoading = view.findViewById(id.prLoading);
 
         tvNoMessage = view.findViewById(id.tv_no_message);
 
-        attachButton = view.findViewById(id.attachButton);
-        messageEditText = view.findViewById(id.messageEditText);
+        attachButton = view.findViewById(id.btn_attach);
+        messageEditText = view.findViewById(id.et_msg);
 
         messagesRecyclerView = view.findViewById(id.messagesRecyclerView);
         linearLayoutManager = new LinearLayoutManager(getActivity());
@@ -206,12 +199,11 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                 if (!recyclerView.canScrollVertically(-1) && !isLoading && !isTop && isTouched) {
                     final int lastItem = linearLayoutManager.findLastVisibleItemPosition();
                     isLoading = true;
-                    prLoading.setVisibility(View.VISIBLE);
                     // Scroll to the top
                     long seq = 0;
                     for (int i = 0; i < messages.size(); i++) {
                         Message message = messages.get(i);
-                        if (message.getType() == com.stringee.messaging.Message.Type.TEMP_DATE) {
+                        if (message.getType() == Message.Type.TEMP_DATE) {
                             continue;
                         } else {
                             seq = message.getSequence();
@@ -227,12 +219,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (lstMessages.size() < Constant.MESSAGES_COUNT) {
-                                        isTop = true;
-                                    } else {
-                                        isTop = false;
-                                    }
-                                    prLoading.setVisibility(View.GONE);
+                                    isTop = Utils.isListEmpty(lstMessages);
                                     if (lstMessages.size() > 0) {
                                         addTempDate(lstMessages, false);
                                         for (int i = 0; i < messages.size(); i++) {
@@ -261,10 +248,10 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             }
         });
 
-        stickersRecyclerView = view.findViewById(id.stickersRecyclerView);
+        stickersRecyclerView = view.findViewById(id.rv_stickers);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
         stickersRecyclerView.setLayoutManager(layoutManager);
-        stickersGridView = view.findViewById(id.stickersGridView);
+        stickersGridView = view.findViewById(id.gv_stickers);
         stickersGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -273,13 +260,11 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             }
         });
 
-        stickersListView = view.findViewById(id.stickersListView);
+        stickersListView = view.findViewById(id.lv_stickers);
 
-        rootView = view.findViewById(id.rootView);
+        rootView = view.findViewById(id.v_root);
         keyboardWidget = view.findViewById(id.drawer);
-        keyboardController = new CusKeyboardController((BaseActivity) getActivity(), rootView,
-                keyboardWidget, this, this);
-
+        keyboardController = new CusKeyboardController((BaseActivity) getActivity(), rootView, keyboardWidget, this, this);
 
         loadStickers();
 
@@ -342,7 +327,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             if (messages.size() > 0) {
                 Message lstMessage = messages.get(messages.size() - 1);
                 if (lstMessage != null && lstMessage.getMsgType() == MsgType.RECEIVE && lstMessage.getState().getValue() < Message.State.READ.getValue()) {
-                    lstMessage.markAsRead(Common.client, new StatusListener() {
+                    conversation.markAllAsRead(Common.client, new StatusListener() {
                         @Override
                         public void onSuccess() {
 
@@ -356,13 +341,6 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-//        if (conversation.isGroup()) {
-            menu.findItem(id.menu_voice_call).setVisible(false);
-            menu.findItem(id.menu_video_call).setVisible(false);
-//        } else {
-//            menu.findItem(id.menu_voice_call).setVisible(true);
-//            menu.findItem(id.menu_video_call).setVisible(true);
-//        }
         menu.findItem(id.menu_info).setVisible(conversation.getChannelType() == ChannelType.NORMAL);
         menu.findItem(id.menu_end_chat).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
         menu.findItem(id.menu_rate).setVisible(conversation.getChannelType() != ChannelType.NORMAL);
@@ -373,29 +351,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        if (itemId == id.menu_voice_call) {
-            if (!conversation.isGroup()) {
-                String callee = getCallee();
-                if (callee.length() > 0) {
-                    Intent intent = new Intent(getActivity(), OutgoingCallActivity.class);
-                    intent.putExtra("from", PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""));
-                    intent.putExtra("to", callee);
-                    intent.putExtra("is_video_call", false);
-                    startActivity(intent);
-                }
-            }
-        } else if (itemId == id.menu_video_call) {
-            if (!conversation.isGroup()) {
-                String callee = getCallee();
-                if (callee.length() > 0) {
-                    Intent intent = new Intent(getActivity(), OutgoingCallActivity.class);
-                    intent.putExtra("from", PrefUtils.getString(com.stringee.stringeechatuikit.common.Constant.PREF_USER_ID, ""));
-                    intent.putExtra("to", callee);
-                    intent.putExtra("is_video_call", true);
-                    startActivity(intent);
-                }
-            }
-        } else if (itemId == id.menu_info) {
+        if (itemId == id.menu_info) {
             Intent intent = new Intent(getActivity(), ConversationInfoActivity.class);
             intent.putExtra("conversation", conversation);
             startActivity(intent);
@@ -482,7 +438,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                             if (!filename.equals("icon.png") && (filename.endsWith(".png") || filename.endsWith(".jpg") || filename.endsWith(".jpeg"))) {
                                 Sticker sticker = new Sticker();
                                 sticker.setCatId(dir.getName());
-                                 sticker.setName(filename);
+                                sticker.setName(filename);
                                 sticker.setPath("file://" + dir.getAbsolutePath() + "/" + filename);
                                 lstStickers.add(sticker);
                                 Collections.sort(lstStickers);
@@ -671,7 +627,6 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                     @Override
                     public void run() {
                         if (messageList.size() > 0) {
-                            prLoading.setVisibility(View.GONE);
                             tvNoMessage.setVisibility(View.GONE);
                         }
                         messages.addAll(messageList);
@@ -693,14 +648,14 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                       getLastMessages();
+                        getLastMessages();
                     }
                 });
             }
         });
     }
 
-    private void getLastMessages(){
+    private void getLastMessages() {
         conversation.getLastMessages(Common.client, Constant.MESSAGES_COUNT, new CallbackListener<List<Message>>() {
             @Override
             public void onSuccess(final List<Message> messages1) {
@@ -710,14 +665,8 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        prLoading.setVisibility(View.GONE);
-
-                        if (messages1.size() < Constant.MESSAGES_COUNT) {
-                            isTop = true;
-                        } else {
-                            isTop = false;
-                        }
-
+                        isTop = Utils.isListEmpty(messages1);
+                        messages.clear();
                         merge(messages1);
                         addTempDate(messages, false);
                         adapter.notifyDataSetChanged();
@@ -809,12 +758,10 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             }
         }
 
-        if (isTop || isLocal) {
-            if (messageList.get(0).getType() != Message.Type.TEMP_DATE) {
-                Message firstTempMessage = new Message(Message.Type.TEMP_DATE);
-                firstTempMessage.setCreatedAt(messageList.get(0).getCreatedAt());
-                messageList.add(0, firstTempMessage);
-            }
+        if (messageList.get(0).getType() != Message.Type.TEMP_DATE) {
+            Message firstTempMessage = new Message(Message.Type.TEMP_DATE);
+            firstTempMessage.setCreatedAt(messageList.get(0).getCreatedAt());
+            messageList.add(0, firstTempMessage);
         }
     }
 
@@ -830,7 +777,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         adapter.notifyDataSetChanged();
         messagesRecyclerView.scrollToPosition(messages.size() - 1);
         if (Common.isChatting && Common.currentConvId != null && Common.currentConvId.equals(message.getConversationId()) && message.getMsgType() == Message.MsgType.RECEIVE) {
-            message.markAsRead(Common.client, new StatusListener() {
+            conversation.markAllAsRead(Common.client, new StatusListener() {
                 @Override
                 public void onSuccess() {
 
@@ -949,7 +896,11 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         retriever.setDataSource(getActivity(), Uri.parse(filePath));
         String time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
         message.setDuration(Integer.parseInt(time));
-        retriever.release();
+        try {
+            retriever.release();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         conversation.sendMessage(Common.client, message, new StatusListener() {
             @Override
             public void onSuccess() {
@@ -992,7 +943,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             }
         }
         if (lastMsg != null && lastMsg.getState().getValue() < Message.State.READ.getValue()) {
-            lastMsg.markAsRead(Common.client, new StatusListener() {
+            conversation.markAllAsRead(Common.client, new StatusListener() {
                 @Override
                 public void onSuccess() {
 
@@ -1013,10 +964,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
 
     private ArrayList<Image> getAllShownImages(Activity activity) {
         ArrayList<Image> listOfAllImages = new ArrayList<>();
-        Cursor cursor = getContext().getContentResolver().query(
-                Images.Media.EXTERNAL_CONTENT_URI,
-                new String[]{Images.Media._ID, Images.Media.DATE_MODIFIED},
-                null, null, null);
+        Cursor cursor = getContext().getContentResolver().query(Images.Media.EXTERNAL_CONTENT_URI, new String[]{Images.Media._ID, Images.Media.DATE_MODIFIED}, null, null, null);
 
         if (cursor != null) {
             int column_index_id = cursor.getColumnIndexOrThrow(Images.Media._ID);
@@ -1036,10 +984,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     @SuppressLint("Recycle")
     private ArrayList<Video> getAllShownVideos(Activity activity) {
         ArrayList<Video> listOfAllVideos = new ArrayList<>();
-        Cursor cursor = getContext().getContentResolver().query(
-                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                new String[]{MediaStore.Video.Media._ID, MediaStore.Video.Media.DURATION, MediaStore.Video.Media.DATE_MODIFIED},
-                null, null, null);
+        Cursor cursor = getContext().getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, new String[]{MediaStore.Video.Media._ID, MediaStore.Video.Media.DURATION, MediaStore.Video.Media.DATE_MODIFIED}, null, null, null);
 
         if (cursor != null) {
             int column_index_id = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID);
@@ -1051,9 +996,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
                 long lDateModified = dateModified != null ? Long.parseLong(dateModified) : 0;
                 String dur = cursor.getString(column_index_duration);
                 long ldur = dateModified != null ? dur != null ? Long.parseLong(dur) : 0 : 0;
-                String videoDuration = String.format(Locale.getDefault(), "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(ldur),
-                        TimeUnit.MILLISECONDS.toMinutes(ldur) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(ldur)),
-                        TimeUnit.MILLISECONDS.toSeconds(ldur) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(ldur)));
+                String videoDuration = String.format(Locale.getDefault(), "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(ldur), TimeUnit.MILLISECONDS.toMinutes(ldur) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(ldur)), TimeUnit.MILLISECONDS.toSeconds(ldur) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(ldur)));
 
                 Video video = new Video(ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id).toString(), lDateModified, videoDuration);
                 listOfAllVideos.add(video);
@@ -1080,7 +1023,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
 
     private void revealShow(View dialogView, boolean b, final Dialog dialog) {
 
-        final View view = dialogView.findViewById(id.dialog);
+        final View view = dialogView.findViewById(id.v_dialog);
 
         int w = view.getWidth();
         int h = view.getHeight();
@@ -1089,44 +1032,22 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         int cx = (int) (attachButton.getX() + (attachButton.getWidth() >> 1) + 580);
         int cy = (int) (attachButton.getY() + (attachButton.getHeight() >> 1) + 530);
         if (b) {
-            if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                Animator revealAnimator = ViewAnimationUtils.createCircularReveal(view, cx, cy, 0, endRadius);
-                view.setVisibility(View.VISIBLE);
-                revealAnimator.setDuration(300);
-                revealAnimator.start();
-            } else {
-                Animator animator =
-                        io.codetail.animation.ViewAnimationUtils.createCircularReveal(view, cx, cy, 0, endRadius);
-                animator.setInterpolator(new AccelerateDecelerateInterpolator());
-                animator.setDuration(300);
-                animator.start();
-            }
+            Animator revealAnimator = ViewAnimationUtils.createCircularReveal(view, cx, cy, 0, endRadius);
+            view.setVisibility(View.VISIBLE);
+            revealAnimator.setDuration(300);
+            revealAnimator.start();
         } else {
-            if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                Animator anim = ViewAnimationUtils.createCircularReveal(view, cx, cy, endRadius, 0);
-                anim.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
-                        dialog.dismiss();
-                        view.setVisibility(View.INVISIBLE);
-                    }
-                });
-                anim.setDuration(300);
-                anim.start();
-            } else {
-                Animator anim = io.codetail.animation.ViewAnimationUtils.createCircularReveal(view, cx, cy, endRadius, 0);
-                anim.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
-                        dialog.dismiss();
-                        view.setVisibility(View.INVISIBLE);
-                    }
-                });
-                anim.setDuration(300);
-                anim.start();
-            }
+            Animator anim = ViewAnimationUtils.createCircularReveal(view, cx, cy, endRadius, 0);
+            anim.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    dialog.dismiss();
+                    view.setVisibility(View.INVISIBLE);
+                }
+            });
+            anim.setDuration(300);
+            anim.start();
         }
     }
 
@@ -1164,8 +1085,8 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     @Override
     public void onButtonAttachClick() {
         ((ConversationActivity) getActivity()).hideKeyboard(attachButton);
-        if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission(getActivity())) {
-            PermissionsUtils.requestPermissions(getActivity(), PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
+        if (Utils.hasMarshmallow() && !PermissionsUtils.getInstance().checkSelfForStoragePermission(getActivity())) {
+            PermissionsUtils.getInstance().requestPermissions(getActivity(), PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
         } else {
             final View dialogView = View.inflate(getContext(), R.layout.popup_window, null);
 
@@ -1173,9 +1094,9 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             dialog.setContentView(dialogView);
 
-            GridView gridView = dialog.findViewById(id.attachGrid);
+            GridView gridView = dialog.findViewById(id.gv_attach);
 
-            RecyclerView listimage = dialog.findViewById(id.imageRecyclerView);
+            RecyclerView listimage = dialog.findViewById(id.rv_image);
             LinearLayoutManager layoutManager = new LinearLayoutManager(this.getContext(), LinearLayoutManager.HORIZONTAL, false);
             listimage.setLayoutManager(layoutManager);
 

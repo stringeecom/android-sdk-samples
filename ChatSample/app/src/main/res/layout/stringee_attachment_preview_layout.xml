@@ -8,14 +8,14 @@
     android:visibility="gone">
 
     <ImageView
-        android:id="@+id/preview"
+        android:id="@+id/iv_preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
         android:scaleType="fitCenter" />
 
     <ImageView
-        android:id="@+id/video_icon"
+        android:id="@+id/iv_video_icon"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_centerInParent="true"
@@ -23,17 +23,17 @@
         android:src="@drawable/play_big" />
 
     <ProgressBar
-        android:id="@+id/progressBar"
+        android:id="@+id/pb"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:visibility="gone" />
 
     <TextView
-        android:id="@+id/previewTime"
+        android:id="@+id/tv_preview_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_margin="5dp"
         android:background="@drawable/time_bg"

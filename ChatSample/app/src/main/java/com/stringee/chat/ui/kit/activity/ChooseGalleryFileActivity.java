@@ -17,7 +17,6 @@ import com.stringee.chat.ui.kit.model.MediaFolder;
 import com.stringee.stringeechatuikit.R;
 
 public class ChooseGalleryFileActivity extends AppCompatActivity {
-    private ActionBar mActionBar;
     private MediaFolder folder;
     private GalleyFileAdapter adapter;
 
@@ -27,22 +26,19 @@ public class ChooseGalleryFileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_select_gallery_file);
 
         folder = (MediaFolder) getIntent().getSerializableExtra("folder");
-        mActionBar = getSupportActionBar();
+        ActionBar mActionBar = getSupportActionBar();
         mActionBar.setDisplayHomeAsUpEnabled(true);
         mActionBar.setTitle(folder.getName());
 
-        GridView gridView = findViewById(R.id.galleryGridFile);
+        GridView gridView = findViewById(R.id.gv_gallery_file);
         adapter = new GalleyFileAdapter(this, folder);
         gridView.setAdapter(adapter);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent();
-                DataItem dataItem = (DataItem) adapter.getItem(position);
-                intent.putExtra("media", dataItem);
-                setResult(Activity.RESULT_OK, intent);
-                finish();
-            }
+        gridView.setOnItemClickListener((parent, view, position, id) -> {
+            Intent intent = new Intent();
+            DataItem dataItem = (DataItem) adapter.getItem(position);
+            intent.putExtra("media", dataItem);
+            setResult(Activity.RESULT_OK, intent);
+            finish();
         });
     }
 

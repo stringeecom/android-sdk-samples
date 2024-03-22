@@ -22,9 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ContactActivity extends BaseActivity {
-
     private ListView lvContacts;
-
     private ContactAdapter adapter;
     private List<Contact> contacts = new ArrayList<>();
     private List<Contact> searchContacts = new ArrayList<>();

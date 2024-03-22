@@ -1,5 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootView"
+    android:id="@+id/v_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:longClickable="true"
@@ -12,13 +12,13 @@
         android:layout_width="25dp"
         android:layout_height="25dp"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="15dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="15dp"
         android:background="@drawable/list_check_bg"
         android:visibility="gone">
 
         <ImageView
-            android:id="@+id/checkImageView"
+            android:id="@+id/iv_check"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -29,7 +29,7 @@
         android:id="@+id/v_avatar_received"
         android:layout_width="40dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="4dp"
+        android:layout_marginStart="4dp"
         android:minHeight="1dp">
 
         <TextView
@@ -41,15 +41,13 @@
             android:gravity="center"
             android:text=""
             android:textColor="#ffffff"
-            android:textSize="20dp"
+            android:textSize="20sp"
             android:visibility="gone" />
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/contactImage"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_toEndOf="@+id/alphabeticImage"
-            android:layout_toRightOf="@+id/alphabeticImage"
             android:src="@drawable/stringee_ic_contact_picture"
             android:visibility="gone" />
     </FrameLayout>
@@ -57,10 +55,10 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp">
+        android:layout_marginStart="10dp">
 
         <RelativeLayout
-            android:id="@+id/mediaLayout"
+            android:id="@+id/v_media"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/stringee_received_message">
@@ -76,7 +74,7 @@
         </RelativeLayout>
 
         <LinearLayout
-            android:id="@+id/messageLayout"
+            android:id="@+id/v_msg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/stringee_received_message"
@@ -86,7 +84,7 @@
 
 
             <TextView
-                android:id="@+id/message"
+                android:id="@+id/tv_msg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:autoLink="all"
@@ -94,10 +92,10 @@
                 android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/createdAtTime"
+                android:id="@+id/tv_create_at"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
+                android:layout_gravity="end"
                 android:textColor="@color/stringee_time_received"
                 android:textSize="11sp" />
         </LinearLayout>

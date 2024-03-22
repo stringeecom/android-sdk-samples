@@ -86,10 +86,7 @@ public class FileAdapter extends BaseAdapter {
         holder.cbSelect.setChecked(file.isChecked());
 
         switch (file.getType()) {
-            case StringeeFile.TYPE_BACK: {
-                holder.imFileType.setImageResource(R.drawable.ic_type_folder);
-            }
-            break;
+            case StringeeFile.TYPE_BACK:
             case StringeeFile.TYPE_DIRECTORY: {
                 holder.imFileType.setImageResource(R.drawable.ic_type_folder);
             }

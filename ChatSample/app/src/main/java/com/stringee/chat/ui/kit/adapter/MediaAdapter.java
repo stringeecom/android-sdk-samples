@@ -21,7 +21,6 @@ import com.stringee.chat.ui.kit.model.Image;
 import com.stringee.chat.ui.kit.model.Video;
 import com.stringee.stringeechatuikit.R;
 
-import java.io.File;
 import java.util.List;
 
 public class MediaAdapter extends Adapter<ViewHolder> {
@@ -119,8 +118,8 @@ public class MediaAdapter extends Adapter<ViewHolder> {
         VideoViewHolder(View itemView) {
             super(itemView);
             rootView = itemView;
-            duration = itemView.findViewById(R.id.videoduration);
-            thumbnail = itemView.findViewById(R.id.videothumbnail);
+            duration = itemView.findViewById(R.id.tv_video_duration);
+            thumbnail = itemView.findViewById(R.id.iv_video_thumbnail);
         }
     }
 
@@ -132,7 +131,7 @@ public class MediaAdapter extends Adapter<ViewHolder> {
         ImageViewHolder(View itemView) {
             super(itemView);
             rootView = itemView;
-            imvImage = itemView.findViewById(R.id.imgHinh);
+            imvImage = itemView.findViewById(R.id.iv_img);
         }
     }
 

@@ -12,7 +12,6 @@ import androidx.core.app.ActivityCompat;
 
 public class PermissionsUtils {
     private static volatile PermissionsUtils instance;
-    private static final Object lock = new Object();
     public static final int REQUEST_PERMISSION = 1;
     public String[] permissions = {permission.RECORD_AUDIO, permission.CAMERA};
 
@@ -27,7 +26,7 @@ public class PermissionsUtils {
 
     public static PermissionsUtils getInstance() {
         if (instance == null) {
-            synchronized (lock) {
+            synchronized (PermissionsUtils.class) {
                 if (instance == null) {
                     instance = new PermissionsUtils();
                 }
@@ -55,15 +54,11 @@ public class PermissionsUtils {
 
     public boolean shouldRequestPermissionRationale(Activity activity) {
         boolean showSetting = false;
-        if (VERSION.SDK_INT >= VERSION_CODES.M) {
-            for (String perm : permissions) {
-                if (activity.checkSelfPermission(perm) != PackageManager.PERMISSION_GRANTED && !activity.shouldShowRequestPermissionRationale(perm)) {
-                    showSetting = true;
-                    break;
-                }
+        for (String perm : permissions) {
+            if (activity.checkSelfPermission(perm) != PackageManager.PERMISSION_GRANTED && !activity.shouldShowRequestPermissionRationale(perm)) {
+                showSetting = true;
+                break;
             }
-        } else {
-            showSetting = true;
         }
         return showSetting;
     }

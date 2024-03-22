@@ -21,13 +21,10 @@ import com.stringee.stringeechatuikit.common.Utils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -72,11 +69,11 @@ public class StickerCategoryAdapter extends BaseAdapter {
         if (view == null) {
             holder = new ViewHolder();
             view = mInflater.inflate(R.layout.sticker_category_row, null);
-            holder.tvName = view.findViewById(R.id.nameTextView);
-            holder.tvNumber = view.findViewById(R.id.numberTextView);
-            holder.imCover = view.findViewById(R.id.coverImageView);
-            holder.btnAdd = view.findViewById(R.id.addStickerButton);
-            holder.prLoading = view.findViewById(R.id.prLoading);
+            holder.tvName = view.findViewById(R.id.tv_name);
+            holder.tvNumber = view.findViewById(R.id.tv_number);
+            holder.imCover = view.findViewById(R.id.iv_cover);
+            holder.btnAdd = view.findViewById(R.id.tv_add_sticker);
+            holder.prLoading = view.findViewById(R.id.pb_loading);
             view.setTag(holder);
         } else {
             holder = (ViewHolder) view.getTag();
@@ -97,8 +94,8 @@ public class StickerCategoryAdapter extends BaseAdapter {
         holder.btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (Utils.hasMarshmallow() && PermissionsUtils.checkSelfForStoragePermission((Activity) mContext)) {
-                    PermissionsUtils.requestPermissions((Activity) mContext, PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
+                if (Utils.hasMarshmallow() && !PermissionsUtils.getInstance().checkSelfForStoragePermission(mContext)) {
+                    PermissionsUtils.getInstance().requestPermissions((Activity) mContext, PermissionsUtils.PERMISSIONS_STORAGE, PermissionsUtils.REQUEST_STORAGE);
                 } else {
                     holder.prLoading.setVisibility(View.VISIBLE);
                     downloadOrRemoveStickers(category, holder.prLoading);
@@ -165,12 +162,6 @@ public class StickerCategoryAdapter extends BaseAdapter {
                                 listener.onDownloadOrRemoveCategory(category);
                             }
                         });
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (ProtocolException e) {
-                        e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

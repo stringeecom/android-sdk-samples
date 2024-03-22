@@ -51,10 +51,10 @@ public class ContactAdapter extends BaseAdapter {
             holder = new ContactHolder();
             holder.vContact = view.findViewById(R.id.v_contact);
             holder.vHeader = view.findViewById(R.id.v_header);
-            holder.imAvatar = (ImageView) view.findViewById(R.id.im_avatar);
-            holder.tvName = (TextView) view.findViewById(R.id.tv_name);
-            holder.tvPhone = (TextView) view.findViewById(R.id.tv_phone);
-            holder.tvText = (TextView) view.findViewById(R.id.tv_text);
+            holder.imAvatar = view.findViewById(R.id.im_avatar);
+            holder.tvName = view.findViewById(R.id.tv_name);
+            holder.tvPhone = view.findViewById(R.id.tv_phone);
+            holder.tvText = view.findViewById(R.id.tv_text);
             holder.alphabeticTextView = view.findViewById(R.id.alphabeticImage);
             view.setTag(holder);
         } else {

@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.stringee.apptoappcallsample.R;
@@ -32,7 +33,10 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
@@ -46,6 +50,12 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(isVideoCall ? videoCallBinding.getRoot() : voiceCallBinding.getRoot());
         incomingCallBinding = isVideoCall ? videoCallBinding.vIncomingCall : voiceCallBinding.vIncomingCall;
 
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+            }
+        });
+
         isIncomingCall = getIntent().getBooleanExtra(Constant.PARAM_IS_INCOMING_CALL, false);
         isStringeeCall = getIntent().getBooleanExtra(Constant.PARAM_IS_STRINGEE_CALL, false);
 
@@ -54,8 +64,6 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
 
         if (!isVideoCall) {
             sensorManagerUtils.turnOn();
-        } else {
-            sensorManagerUtils.disableKeyguard();
         }
 
         incomingCallBinding.btnAnswer.setOnClickListener(this);
@@ -91,8 +99,6 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
                 sensorManagerUtils = SensorManagerUtils.getInstance(this).initialize(getLocalClassName());
                 if (!isVideoCall) {
                     sensorManagerUtils.turnOff();
-                } else {
-                    sensorManagerUtils.reEnableKeyguard();
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -113,8 +119,6 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
                 sensorManagerUtils = SensorManagerUtils.getInstance(this).initialize(getLocalClassName());
                 if (!isVideoCall) {
                     sensorManagerUtils.turnOn();
-                } else {
-                    sensorManagerUtils.disableKeyguard();
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -212,6 +216,8 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
                 runOnUiThread(() -> {
                     if (!isVideoCall) {
                         voiceCallBinding.tvTime.setText(duration);
+                    } else {
+                        videoCallBinding.tvTime.setText(duration);
                     }
                 });
             }

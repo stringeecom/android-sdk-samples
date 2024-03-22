@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".activity.MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,14 +26,14 @@
                 android:id="@+id/btn_voice_call"
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:text="Voice call" />
+                android:text="@string/voice_call" />
 
             <Button
                 android:id="@+id/btn_video_call"
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:text="Video Call" />
+                android:layout_marginStart="20dp"
+                android:text="@string/video_call" />
         </LinearLayout>
 
         <LinearLayout
@@ -43,25 +45,24 @@
                 android:id="@+id/btn_voice_call2"
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:text="Voice call 2" />
+                android:text="@string/voice_call_2" />
 
             <Button
                 android:id="@+id/btn_video_call2"
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:text="Video Call 2" />
+                android:layout_marginStart="20dp"
+                android:text="@string/video_call_2" />
         </LinearLayout>
 
     </LinearLayout>
 
     <TextView
-        android:id="@+id/tv_user_id"
+        android:id="@+id/tv_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:text="Connecting..."
-        android:textColor="@android:color/black"
+        android:textColor="#000000"
         android:textSize="24sp" />
 
 </RelativeLayout>

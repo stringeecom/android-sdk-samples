@@ -55,11 +55,11 @@ public class AudioMessageFragment extends DialogFragment {
         this.getDialog().setCancelable(Boolean.TRUE);
         this.getDialog().setCanceledOnTouchOutside(Boolean.FALSE);
 
-        record = (ImageButton) v.findViewById(R.id.audio_mic_imageview);
-        send = (Button) v.findViewById(R.id.audio_send);
-        cancel = (Button) v.findViewById(R.id.audio_cancel);
-        txtcount = (TextView) v.findViewById(R.id.txtcount);
-        audioRecordingText = (TextView) v.findViewById(R.id.audio_recording_text);
+        record = (ImageButton) v.findViewById(R.id.btn_audio_mic);
+        send = (Button) v.findViewById(R.id.btn_audio_send);
+        cancel = (Button) v.findViewById(R.id.btn_audio_cancel);
+        txtcount = (TextView) v.findViewById(R.id.tv_count);
+        audioRecordingText = (TextView) v.findViewById(R.id.tv_audio_recording);
 
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String audioFileName = "audio_" + timeStamp + ".m4a";

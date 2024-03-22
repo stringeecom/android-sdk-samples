@@ -15,5 +15,4 @@ public class RejectCallReceiver extends BroadcastReceiver {
         NotificationUtils.getInstance(context).cancelNotification(Constant.INCOMING_CALL_ID);
         CallManager.getInstance(context).endCall(false);
     }
-
 }

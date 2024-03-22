@@ -12,14 +12,14 @@
 
     
     <ImageView
-        android:id="@+id/imageItem"
+        android:id="@+id/iv_item"
         android:layout_gravity="center_horizontal"
         android:layout_width="54dp"
         android:layout_height="54dp"
         android:src="@drawable/attach_gallery"/>
 
     <TextView
-        android:id="@+id/stringee_multimedia_text"
+        android:id="@+id/tv_mult_imedia"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
