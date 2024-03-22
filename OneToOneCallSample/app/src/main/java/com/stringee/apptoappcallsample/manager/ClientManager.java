@@ -38,7 +38,7 @@ public class ClientManager {
 
     private StringeeClient stringeeClient;
     private OnConnectionListener listener;
-    private static final String TOKEN = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MTA5ODgyNjU2MjUiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjMiLCJleHAiOjE3NDI1MjQyNjV9.Z--CKOqKL37dw4_S3ybDwkfdNVKES1G_XJqu-ArGIbE";
+    private static final String TOKEN = "PUT_YOUR_TOKEN_HERE";
     public boolean isInCall = false;
     public boolean isPermissionGranted = true;
 
