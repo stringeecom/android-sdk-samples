@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootView"
+    android:id="@+id/v_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/item_selectable"
-    android:paddingLeft="10dp"
-    android:paddingTop="10dp">
+    android:paddingStart="10dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="0dp">
 
     <RelativeLayout
         android:id="@+id/avatar_layout"
@@ -33,7 +34,7 @@
             android:id="@+id/v_select"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:background="@drawable/list_check_bg"
             android:padding="5dp"
@@ -53,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_toRightOf="@id/avatar_layout"
+        android:layout_toEndOf="@id/avatar_layout"
         android:orientation="vertical">
 
 
@@ -66,7 +67,7 @@
                 android:id="@+id/datetime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
                 android:textColor="@color/stringee_conv_time"
@@ -76,7 +77,7 @@
                 android:id="@+id/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/datetime"
+                android:layout_toStartOf="@id/datetime"
                 android:ellipsize="end"
                 android:singleLine="true"
                 android:textColor="@color/stringee_colorPrimary"
@@ -93,7 +94,7 @@
                 android:id="@+id/totalUnread"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
                 android:background="@drawable/unread_message_background"
@@ -106,8 +107,8 @@
                 android:id="@+id/subTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="15dp"
-                android:layout_toLeftOf="@id/totalUnread"
+                android:layout_marginEnd="15dp"
+                android:layout_toStartOf="@id/totalUnread"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:singleLine="true"
@@ -121,7 +122,7 @@
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
         android:layout_below="@id/v_content"
-        android:layout_marginLeft="66dp"
+        android:layout_marginStart="66dp"
         android:layout_marginTop="10dp"
         android:background="#dadada" />
 

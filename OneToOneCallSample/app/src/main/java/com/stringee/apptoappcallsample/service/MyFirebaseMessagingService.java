@@ -32,7 +32,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.d(Constant.TAG, remoteMessage.getData().toString());
-        if (remoteMessage.getData().size() > 0) {
+        if (!remoteMessage.getData().isEmpty()) {
             String pushFromStringee = remoteMessage.getData().get("stringeePushNotification");
             if (pushFromStringee != null) {
                 String data = remoteMessage.getData().get("data");
@@ -41,9 +41,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         JSONObject jsonObject = new JSONObject(data);
                         String callStatus = jsonObject.optString("callStatus");
                         if (callStatus.equals("started")) {
-//                            if (ClientManager.getInstance(this).getStringeeClient() == null) {
-                                ClientManager.getInstance(this).connect();
-//                            }
+                            ClientManager.getInstance(this).connect();
                         }
                         if (callStatus.equals("ended") || callStatus.equals("answered") || callStatus.equals("agentEnded")) {
                             NotificationUtils.getInstance(this).cancelNotification(Constant.INCOMING_CALL_ID);

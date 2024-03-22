@@ -6,7 +6,7 @@
     android:orientation="vertical">
 
     <GridView
-        android:id="@+id/galleryGridFolder"
+        android:id="@+id/gv_gallery_folder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -14,5 +14,5 @@
         android:numColumns="2"
         android:padding="2dp"
         android:stretchMode="columnWidth"
-        android:verticalSpacing="2dp"></GridView>
+        android:verticalSpacing="2dp" />
 </LinearLayout>

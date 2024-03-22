@@ -7,17 +7,17 @@
     android:visibility="gone">
 
     <ImageView
-        android:id="@+id/static_mapview"
+        android:id="@+id/iv_static_mapview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:src="@drawable/stringee_map_offline_thumbnail" />
 
     <TextView
-        android:id="@+id/locationTime"
+        android:id="@+id/tv_location_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_margin="5dp"
         android:background="@drawable/time_bg"

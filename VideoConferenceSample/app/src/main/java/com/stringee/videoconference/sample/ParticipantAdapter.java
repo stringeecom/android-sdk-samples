@@ -1,6 +1,7 @@
 package com.stringee.videoconference.sample;
 
-import android.app.Activity;
+import static com.stringee.videoconference.sample.ParticipantAdapter.ParticipantHolder;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,50 +16,43 @@ import com.stringee.videoconference.videoconference.sample.R;
 
 import org.webrtc.RendererCommon;
 
-import java.util.Iterator;
 import java.util.List;
 
-public class ParticipantAdapter extends RecyclerView.Adapter {
-    private Context context;
-    private Activity activity;
+public class ParticipantAdapter extends RecyclerView.Adapter<ParticipantHolder> {
+    private final Context context;
     private List<VideoTrack> videoTrackList;
 
-    public ParticipantAdapter(Context context, Activity activity, List<VideoTrack> videoTrackList) {
-        this.context = context;
-        this.activity = activity;
+    public ParticipantAdapter(Context context, List<VideoTrack> videoTrackList) {
+        this.context = context.getApplicationContext();
         this.videoTrackList = videoTrackList;
     }
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ParticipantHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.participant_row, parent, false);
         return new ParticipantHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        ParticipantHolder participantHolder = (ParticipantHolder) holder;
+    public void onBindViewHolder(@NonNull ParticipantHolder holder, int position) {
         VideoTrack videoTrack = videoTrackList.get(position);
 
         if (videoTrack.getStringeeVideoTrack().getUserId() != null) {
-            participantHolder.tvPaticipant.setText(videoTrack.getStringeeVideoTrack().getUserId());
+            holder.tvParticipant.setText(videoTrack.getStringeeVideoTrack().getUserId());
         } else {
-            participantHolder.tvPaticipant.setText(MainActivity.client.getUserId());
+            holder.tvParticipant.setText(MainActivity.client.getUserId());
         }
 
         if (videoTrack.getLayout() != null) {
-            participantHolder.ivStatus.setImageResource(R.drawable.ic_casting);
+            holder.ivStatus.setImageResource(R.drawable.ic_casting);
         } else {
-            participantHolder.ivStatus.setImageResource(R.drawable.ic_cast);
+            holder.ivStatus.setImageResource(R.drawable.ic_cast);
         }
 
-        participantHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (videoTrack.getLayout() == null) {
-                    addView(videoTrack);
-                }
+        holder.itemView.setOnClickListener(view -> {
+            if (videoTrack.getLayout() == null) {
+                addView(videoTrack);
             }
         });
     }
@@ -69,12 +63,12 @@ public class ParticipantAdapter extends RecyclerView.Adapter {
     }
 
     public static class ParticipantHolder extends RecyclerView.ViewHolder {
-        private TextView tvPaticipant;
-        private ImageView ivStatus;
+        private final TextView tvParticipant;
+        private final ImageView ivStatus;
 
         public ParticipantHolder(@NonNull View itemView) {
             super(itemView);
-            tvPaticipant = itemView.findViewById(R.id.tv_participant);
+            tvParticipant = itemView.findViewById(R.id.tv_participant);
             ivStatus = itemView.findViewById(R.id.iv_status);
         }
     }
@@ -83,15 +77,13 @@ public class ParticipantAdapter extends RecyclerView.Adapter {
         VideoTrack trackInMainView = RoomActivity.mainTrack;
 
         RoomActivity.mainTrack = videoTrack;
-
         RoomActivity.mainView.removeAllViews();
         videoTrack.getStringeeVideoTrack().getView(context).setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT, RendererCommon.ScalingType.SCALE_ASPECT_FIT);
         RoomActivity.mainView.addView(videoTrack.getStringeeVideoTrack().getView(context));
         videoTrack.getStringeeVideoTrack().renderView(false);
         videoTrack.setLayout(RoomActivity.mainView);
 
-        for (Iterator<VideoTrack> videoTrackIterator = videoTrackList.iterator(); videoTrackIterator.hasNext(); ) {
-            VideoTrack track = videoTrackIterator.next();
+        for (VideoTrack track : videoTrackList) {
             if (track == trackInMainView) {
                 track.setLayout(null);
             }

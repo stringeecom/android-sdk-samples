@@ -15,7 +15,6 @@ import com.stringee.call.StringeeCall2;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.video.StringeeVideoTrack;
-import com.stringee.video.TextureViewRenderer;
 
 import org.json.JSONObject;
 import org.webrtc.RendererCommon;
@@ -29,19 +28,17 @@ import java.util.TimerTask;
 
 public class CallManager {
     private static volatile CallManager instance;
-    private static final Object lock = new Object();
-    private Context context;
+    private final Context context;
     private StringeeCall stringeeCall;
     private StringeeCall2 stringeeCall2;
-    private String userId;
     private boolean isStringeeCall;
     private boolean isVideoCall = false;
     private boolean isSpeakerOn = false;
     private boolean isVideoEnable = false;
     private boolean isMicOn = true;
-    private AudioManagerUtils audioManagerUtils;
+    private final AudioManagerUtils audioManagerUtils;
     private OnCallListener listener;
-    private ClientManager clientManager;
+    private final ClientManager clientManager;
     private StringeeCall.SignalingState callSignalingState = StringeeCall.SignalingState.CALLING;
     private StringeeCall.MediaState callMediaState = StringeeCall.MediaState.DISCONNECTED;
     private StringeeCall2.SignalingState call2SignalingState = StringeeCall2.SignalingState.CALLING;
@@ -50,7 +47,7 @@ public class CallManager {
     private Timer timer;
 
     public CallManager(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.audioManagerUtils = AudioManagerUtils.getInstance(context);
         this.audioManagerUtils.setAudioEvents(selectedAudioDevice -> Utils.runOnUiThread(() -> Log.d(Constant.TAG, "onAudioEvents: selectedAudioDevice - " + selectedAudioDevice.name())));
         this.clientManager = ClientManager.getInstance(context);
@@ -58,7 +55,7 @@ public class CallManager {
 
     public static CallManager getInstance(Context context) {
         if (instance == null) {
-            synchronized (lock) {
+            synchronized (CallManager.class) {
                 if (instance == null) {
                     instance = new CallManager(context);
                 }
@@ -80,7 +77,6 @@ public class CallManager {
             this.stringeeCall2 = new StringeeCall2(clientManager.getStringeeClient(), clientManager.getStringeeClient().getUserId(), to);
             this.stringeeCall2.setVideoCall(isVideoCall);
         }
-        this.userId = to;
         this.isStringeeCall = isStringeeCall;
         this.isVideoCall = isVideoCall;
         this.isSpeakerOn = isVideoCall;
@@ -93,7 +89,6 @@ public class CallManager {
         clientManager.isInCall = true;
         this.isStringeeCall = true;
         this.stringeeCall = stringeeCall;
-        this.userId = stringeeCall.getFrom();
         this.isVideoCall = stringeeCall.isVideoCall();
         this.isSpeakerOn = stringeeCall.isVideoCall();
         this.isVideoEnable = stringeeCall.isVideoCall();
@@ -105,7 +100,6 @@ public class CallManager {
         clientManager.isInCall = true;
         this.isStringeeCall = false;
         this.stringeeCall2 = stringeeCall2;
-        this.userId = stringeeCall2.getFrom();
         this.isVideoCall = stringeeCall2.isVideoCall();
         this.isSpeakerOn = stringeeCall2.isVideoCall();
         this.isVideoEnable = stringeeCall2.isVideoCall();
@@ -157,7 +151,7 @@ public class CallManager {
                 @Override
                 public void onError(StringeeCall stringeeCall, int code, String desc) {
                     Utils.runOnUiThread(() -> {
-                        Log.d(Constant.TAG,"onError: " + desc);
+                        Log.d(Constant.TAG, "onError: " + desc);
                         callStatus = CallStatus.ENDED;
                         if (listener != null) {
                             listener.onError(desc);
@@ -169,7 +163,7 @@ public class CallManager {
                 @Override
                 public void onHandledOnAnotherDevice(StringeeCall stringeeCall, StringeeCall.SignalingState signalingState, String desc) {
                     Utils.runOnUiThread(() -> {
-                        Log.d(Constant.TAG,"onHandledOnAnotherDevice: " + signalingState);
+                        Log.d(Constant.TAG, "onHandledOnAnotherDevice: " + signalingState);
                         if (signalingState != StringeeCall.SignalingState.RINGING) {
                             callStatus = CallStatus.ENDED;
                             if (listener != null) {
@@ -246,9 +240,11 @@ public class CallManager {
                                 break;
                             case BUSY:
                                 callStatus = CallStatus.BUSY;
+                                release();
                                 break;
                             case ENDED:
                                 callStatus = CallStatus.ENDED;
+                                release();
                                 break;
                         }
                         if (listener != null) {
@@ -338,6 +334,16 @@ public class CallManager {
 
                 @Override
                 public void onTrackMediaStateChange(String s, StringeeVideoTrack.MediaType mediaType, boolean b) {
+
+                }
+
+                @Override
+                public void onLocalTrackAdded(StringeeCall2 stringeeCall2, StringeeVideoTrack stringeeVideoTrack) {
+
+                }
+
+                @Override
+                public void onRemoteTrackAdded(StringeeCall2 stringeeCall2, StringeeVideoTrack stringeeVideoTrack) {
 
                 }
             });
@@ -434,6 +440,7 @@ public class CallManager {
             release();
             return;
         }
+        NotificationUtils.getInstance(context).cancelNotification(Constant.INCOMING_CALL_ID);
         if (isStringeeCall) {
             stringeeCall.answer(new StatusListener() {
                 @Override
@@ -646,12 +653,10 @@ public class CallManager {
     }
 
     private boolean isCallNotInitialized() {
-        boolean isCallNotInitialized = true;
+        boolean isCallNotInitialized;
         if (isStringeeCall) {
-            Log.d(Constant.TAG, "isCallNotInitialized1: " + stringeeCall);
             isCallNotInitialized = stringeeCall == null;
         } else {
-            Log.d(Constant.TAG, "isCallNotInitialized2: " + stringeeCall2);
             isCallNotInitialized = stringeeCall2 == null;
         }
         if (isCallNotInitialized) {
@@ -663,7 +668,6 @@ public class CallManager {
     }
 
     public void release() {
-        Log.d(Constant.TAG, "release callManager");
         clientManager.isInCall = false;
         audioManagerUtils.stopAudioManager();
         audioManagerUtils.stopRinging();
@@ -706,6 +710,7 @@ public class CallManager {
     public void renderLocalView() {
         if (isStringeeCall) {
             stringeeCall.renderLocalView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+            stringeeCall.getLocalView2().setMirror(false);
         } else {
             stringeeCall2.renderLocalView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
         }
@@ -720,22 +725,24 @@ public class CallManager {
     }
 
     private void startTimer() {
-        long startTime = System.currentTimeMillis();
+        if (timer == null) {
+            long startTime = System.currentTimeMillis();
 
-        timer = new Timer();
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                Utils.runOnUiThread(() -> {
-                    if (listener != null) {
-                        long time = System.currentTimeMillis() - startTime;
-                        SimpleDateFormat format = new SimpleDateFormat("mm:ss", Locale.getDefault());
-                        format.setTimeZone(TimeZone.getTimeZone("GMT"));
-                        listener.onTimer(format.format(new Date(time)));
-                    }
-                });
-            }
-        };
-        timer.schedule(timerTask, 0, 1000);
+            timer = new Timer();
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    Utils.runOnUiThread(() -> {
+                        if (listener != null) {
+                            long time = System.currentTimeMillis() - startTime;
+                            SimpleDateFormat format = new SimpleDateFormat("mm:ss", Locale.getDefault());
+                            format.setTimeZone(TimeZone.getTimeZone("GMT"));
+                            listener.onTimer(format.format(new Date(time)));
+                        }
+                    });
+                }
+            };
+            timer.schedule(timerTask, 0, 1000);
+        }
     }
 }

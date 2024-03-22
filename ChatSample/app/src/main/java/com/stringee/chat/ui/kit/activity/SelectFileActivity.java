@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SelectFileActivity extends BaseActivity implements CallBack {
-    private List<StringeeFile> files = new ArrayList<StringeeFile>();
+    private List<StringeeFile> files = new ArrayList<>();
     private ListView lvFile;
     private FileAdapter fileAdapter;
     int count = 0;
@@ -51,7 +51,7 @@ public class SelectFileActivity extends BaseActivity implements CallBack {
         } else if (count == 1) {
             initData();
         } else {
-            finish();
+            super.onBackPressed();
         }
     }
 
@@ -75,28 +75,24 @@ public class SelectFileActivity extends BaseActivity implements CallBack {
     }
 
     private void setComponentView() {
-        lvFile = (ListView) findViewById(R.id.lv_file);
+        lvFile = findViewById(R.id.lv_file);
     }
 
     private void setListenerView() {
-        lvFile.setOnItemClickListener(new OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
-                StringeeFile file = (StringeeFile) fileAdapter.getItem(position);
-                // check directory
-                if (file.getType() == StringeeFile.TYPE_BACK) {
-                    onBackPressed();
-                } else if (file.getType() == StringeeFile.TYPE_DIRECTORY) {
-                    level++;
-                    getFiles(file.getPath());
-                    count++;
-                } else {
-                    Intent intent = getIntent();
-                    intent.putExtra("path", file.getPath());
-                    setResult(RESULT_OK, intent);
-                    finish();
-                }
+        lvFile.setOnItemClickListener((arg0, arg1, position, arg3) -> {
+            StringeeFile file = (StringeeFile) fileAdapter.getItem(position);
+            // check directory
+            if (file.getType() == StringeeFile.TYPE_BACK) {
+                onBackPressed();
+            } else if (file.getType() == StringeeFile.TYPE_DIRECTORY) {
+                level++;
+                getFiles(file.getPath());
+                count++;
+            } else {
+                Intent intent = getIntent();
+                intent.putExtra("path", file.getPath());
+                setResult(RESULT_OK, intent);
+                finish();
             }
         });
     }
@@ -105,7 +101,7 @@ public class SelectFileActivity extends BaseActivity implements CallBack {
         count = 0;
         getSupportActionBar().setTitle(R.string.select_file);
 
-        files = new ArrayList<StringeeFile>();
+        files = new ArrayList<>();
         String storagePath = FileUtils.getStorage(getBaseContext());
         StringeeFile storageFile = new StringeeFile();
         storageFile.setLevel(0);
@@ -148,13 +144,13 @@ public class SelectFileActivity extends BaseActivity implements CallBack {
     @Override
     public void doWork(Object... params) {
         String folder = (String) params[1];
-        files = new ArrayList<StringeeFile>();
-        StringeeFile stringeFile = new StringeeFile();
-        stringeFile.setPath(folder);
-        stringeFile.setLevel(level);
-        stringeFile.setType(StringeeFile.TYPE_BACK);
-        stringeFile.setName("...");
-        files.add(stringeFile);
+        files = new ArrayList<>();
+        StringeeFile stringeeFile = new StringeeFile();
+        stringeeFile.setPath(folder);
+        stringeeFile.setLevel(level);
+        stringeeFile.setType(StringeeFile.TYPE_BACK);
+        stringeeFile.setName("...");
+        files.add(stringeeFile);
         List<StringeeFile> fs = FileUtils.getFiles(folder, null, 1);
         if (fs != null && fs.size() > 0)
             for (int i = 0; i < fs.size(); i++) {

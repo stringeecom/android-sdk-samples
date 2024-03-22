@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -26,7 +25,6 @@ import com.stringee.stringeechatuikit.common.PrefUtils;
 
 public class MainChatActivity extends BaseActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
-    private NavigationDrawerFragment mNavigationDrawerFragment;
     private BroadcastReceiver connectReceiver;
 
     @Override
@@ -34,23 +32,22 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_chat);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
+        NavigationDrawerFragment mNavigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
 
         // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
+        if (mNavigationDrawerFragment != null) {
+            mNavigationDrawerFragment.setUp(R.id.navigation_drawer, findViewById(R.id.drawer_layout));
+        }
 
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, new MainChatFragment())
-                .commit();
+        fragmentManager.beginTransaction().replace(R.id.container, new MainChatFragment()).commit();
 
         connectReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                getSupportActionBar().setTitle(PrefUtils.getString(Constant.PREF_NAME, Common.client.getUserId()));
+                if (getSupportActionBar() != null) {
+                    getSupportActionBar().setTitle(PrefUtils.getString(Constant.PREF_NAME, Common.client.getUserId()));
+                }
             }
         };
         LocalBroadcastManager.getInstance(this).registerReceiver(connectReceiver, new IntentFilter(Notify.CONNECTION_CONNECTED.getValue()));
@@ -59,10 +56,12 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
     @Override
     public void onResume() {
         super.onResume();
-        if (Common.client != null && Common.client.isConnected()) {
-            getSupportActionBar().setTitle(PrefUtils.getString(Constant.PREF_NAME, Common.client.getUserId()));
-        } else {
-            getSupportActionBar().setTitle(R.string.connecting);
+        if (getSupportActionBar() != null) {
+            if (Common.client != null && Common.client.isConnected()) {
+                getSupportActionBar().setTitle(PrefUtils.getString(Constant.PREF_NAME, Common.client.getUserId()));
+            } else {
+                getSupportActionBar().setTitle(R.string.connecting);
+            }
         }
     }
 
@@ -95,7 +94,9 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
                     Common.client.disconnect();
                     Common.client = null;
                 }
-                getSupportActionBar().setTitle(R.string.connecting);
+                if (getSupportActionBar() != null) {
+                    getSupportActionBar().setTitle(R.string.connecting);
+                }
                 finish();
                 break;
         }
@@ -109,8 +110,7 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
     public void chatWith(View v) {
         FragmentManager supportFragmentManager = getSupportFragmentManager();
         DialogFragment fragment = new ChatWithDialogFragment();
-        FragmentTransaction fragmentTransaction = supportFragmentManager
-                .beginTransaction();
+        FragmentTransaction fragmentTransaction = supportFragmentManager.beginTransaction();
         Fragment prev = getSupportFragmentManager().findFragmentByTag("ChatWithDialogFragment");
         if (prev != null) {
             fragmentTransaction.remove(prev);
@@ -122,8 +122,7 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
     public void createGroup(View v) {
         FragmentManager supportFragmentManager = getSupportFragmentManager();
         DialogFragment fragment = new CreateGroupFragment();
-        FragmentTransaction fragmentTransaction = supportFragmentManager
-                .beginTransaction();
+        FragmentTransaction fragmentTransaction = supportFragmentManager.beginTransaction();
         Fragment prev = getSupportFragmentManager().findFragmentByTag("CreateGroupFragment");
         if (prev != null) {
             fragmentTransaction.remove(prev);

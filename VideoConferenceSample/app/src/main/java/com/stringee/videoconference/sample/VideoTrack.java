@@ -20,10 +20,6 @@ public class VideoTrack {
         return stringeeVideoTrack;
     }
 
-    public void setStringeeVideoTrack(StringeeVideoTrack stringeeVideoTrack) {
-        this.stringeeVideoTrack = stringeeVideoTrack;
-    }
-
     public FrameLayout getLayout() {
         return layout;
     }

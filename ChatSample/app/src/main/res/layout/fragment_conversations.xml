@@ -5,18 +5,10 @@
     android:orientation="vertical">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/conversationList"
+        android:id="@+id/rv_conversation"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:cacheColorHint="@android:color/transparent"
         android:scrollbars="vertical" />
-
-    <ProgressBar
-        android:id="@+id/prLoading"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_gravity="center_horizontal"
-        android:padding="0dp"
-        android:visibility="gone" />
 </LinearLayout>

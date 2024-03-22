@@ -9,6 +9,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.stringee.common.StringeeAudioManager;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
@@ -23,23 +28,15 @@ import org.json.JSONObject;
 import org.webrtc.RendererCommon;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 public class RoomActivity extends AppCompatActivity implements View.OnClickListener {
     private TextView tvRoomName;
     private TextView tvNoParticipant;
 
-    private ImageView btnBack;
-    private ImageView btnSwitch;
     private ImageView btnCam;
     private ImageView btnMic;
-    private ImageView btnLeave;
-    private ImageView btnParticipant;
     private ImageView btnVisibility;
 
     public static FrameLayout mainView;
@@ -79,6 +76,12 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_room);
 
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+            }
+        });
+
         // Keep screen active
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (getIntent() != null) {
@@ -88,19 +91,11 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         initView();
 
         audioManager = StringeeAudioManager.create(this);
-        audioManager.start(new StringeeAudioManager.AudioManagerEvents() {
-            @Override
-            public void onAudioDeviceChanged(StringeeAudioManager.AudioDevice selectedAudioDevice, Set<StringeeAudioManager.AudioDevice> availableAudioDevices) {
-            }
+        audioManager.start((selectedAudioDevice, availableAudioDevices) -> {
         });
         audioManager.setSpeakerphoneOn(true);
 
         startConference();
-    }
-
-    @Override
-    public void onBackPressed() {
-        return;
     }
 
     private void initView() {
@@ -108,18 +103,14 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         tvRoomName.setSelected(true);
         tvNoParticipant = findViewById(R.id.tv_no_participant);
 
-        btnBack = findViewById(R.id.btn_back);
-        btnBack.setOnClickListener(this);
-        btnSwitch = findViewById(R.id.btn_switch);
-        btnSwitch.setOnClickListener(this);
+        findViewById(R.id.btn_back).setOnClickListener(this);
+        findViewById(R.id.btn_switch).setOnClickListener(this);
         btnCam = findViewById(R.id.btn_cam);
         btnCam.setOnClickListener(this);
         btnMic = findViewById(R.id.btn_mic);
         btnMic.setOnClickListener(this);
-        btnLeave = findViewById(R.id.btn_leave);
-        btnLeave.setOnClickListener(this);
-        btnParticipant = findViewById(R.id.btn_participant);
-        btnParticipant.setOnClickListener(this);
+        findViewById(R.id.btn_leave).setOnClickListener(this);
+        findViewById(R.id.btn_participant).setOnClickListener(this);
         btnVisibility = findViewById(R.id.btn_visibility);
         btnVisibility.setOnClickListener(this);
 
@@ -127,7 +118,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         rvParticipant = findViewById(R.id.rv_participant);
         rvParticipant.setHasFixedSize(true);
         rvParticipant.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ParticipantAdapter(this, this, videoTrackList);
+        adapter = new ParticipantAdapter(this, videoTrackList);
         rvParticipant.setAdapter(adapter);
 
         mainView = findViewById(R.id.main_view);
@@ -150,70 +141,55 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.main_view:
-                if (vAction.getVisibility() == View.VISIBLE) {
-                    vAction.setVisibility(View.GONE);
-                } else {
-                    vAction.setVisibility(View.VISIBLE);
-                }
-                break;
-            case R.id.view_1:
-                changeLayoutWithMain((FrameLayout) view);
-                break;
-            case R.id.view_2:
-                changeLayoutWithMain((FrameLayout) view);
-                break;
-            case R.id.view_3:
-                changeLayoutWithMain((FrameLayout) view);
-                break;
-            case R.id.btn_back:
-                onBackPressed();
-                break;
-            case R.id.btn_switch:
-                if (localVideoTrack != null) {
-                    localVideoTrack.switchCamera(null);
-                    if (mirror) {
-                        mirror = false;
-                    } else {
-                        mirror = true;
-                    }
-                    localVideoTrack.getView(this).setMirror(mirror);
-                }
-                break;
-            case R.id.btn_mic:
-                if (isMute) {
-                    btnMic.setImageResource(R.drawable.ic_mic_on);
-                } else {
-                    btnMic.setImageResource(R.drawable.ic_mic_off);
-                }
-                isMute = !isMute;
-                localVideoTrack.mute(isMute);
-                break;
-            case R.id.btn_cam:
-                if (isCamOn) {
-                    btnCam.setImageResource(R.drawable.ic_cam_off);
-                } else {
-                    btnCam.setImageResource(R.drawable.ic_cam_on);
-                }
-                isCamOn = !isCamOn;
-                localVideoTrack.enableVideo(isCamOn);
-                break;
-            case R.id.btn_leave:
-                leaveRoom();
-                break;
-            case R.id.btn_participant:
-                showParticipant();
-                break;
-            case R.id.btn_visibility:
-                if (vOtherCamera.getVisibility() == View.GONE) {
-                    vOtherCamera.setVisibility(View.VISIBLE);
-                    btnVisibility.setImageResource(R.drawable.ic_visibility);
-                } else {
-                    vOtherCamera.setVisibility(View.GONE);
-                    btnVisibility.setImageResource(R.drawable.ic_visibility_off);
-                }
-                break;
+        int vId = view.getId();
+        if (vId == R.id.main_view) {
+            if (vAction.getVisibility() == View.VISIBLE) {
+                vAction.setVisibility(View.GONE);
+            } else {
+                vAction.setVisibility(View.VISIBLE);
+            }
+        } else if (vId == R.id.view_1) {
+            changeLayoutWithMain((FrameLayout) view);
+        } else if (vId == R.id.view_2) {
+            changeLayoutWithMain((FrameLayout) view);
+        } else if (vId == R.id.view_3) {
+            changeLayoutWithMain((FrameLayout) view);
+        } else if (vId == R.id.btn_back) {
+            onBackPressed();
+        } else if (vId == R.id.btn_switch) {
+            if (localVideoTrack != null) {
+                localVideoTrack.switchCamera(null);
+                mirror = !mirror;
+                localVideoTrack.getView(this).setMirror(mirror);
+            }
+        } else if (vId == R.id.btn_mic) {
+            if (isMute) {
+                btnMic.setImageResource(R.drawable.ic_mic_on);
+            } else {
+                btnMic.setImageResource(R.drawable.ic_mic_off);
+            }
+            isMute = !isMute;
+            localVideoTrack.mute(isMute);
+        } else if (vId == R.id.btn_cam) {
+            if (isCamOn) {
+                btnCam.setImageResource(R.drawable.ic_cam_off);
+            } else {
+                btnCam.setImageResource(R.drawable.ic_cam_on);
+            }
+            isCamOn = !isCamOn;
+            localVideoTrack.enableVideo(isCamOn);
+        } else if (vId == R.id.btn_leave) {
+            leaveRoom();
+        } else if (vId == R.id.btn_participant) {
+            showParticipant();
+        } else if (vId == R.id.btn_visibility) {
+            if (vOtherCamera.getVisibility() == View.GONE) {
+                vOtherCamera.setVisibility(View.VISIBLE);
+                btnVisibility.setImageResource(R.drawable.ic_visibility);
+            } else {
+                vOtherCamera.setVisibility(View.GONE);
+                btnVisibility.setImageResource(R.drawable.ic_visibility_off);
+            }
         }
     }
 
@@ -247,7 +223,12 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         mirror = true;
 
         //create localView
-        localVideoTrack = StringeeVideo.createLocalVideoTrack(this, options);
+        localVideoTrack = StringeeVideo.createLocalVideoTrack(this, options, new StatusListener() {
+            @Override
+            public void onSuccess() {
+
+            }
+        });
         localVideoTrack.getView(this).setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT, RendererCommon.ScalingType.SCALE_ASPECT_FIT);
         mainView.removeAllViews();
         mainView.addView(localVideoTrack.getView(this));
@@ -302,12 +283,9 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String roomName = Utils.getRoomName(stringeeRoom.getLocalParticipant().getId(), stringeeRoom.getRemoteParticipants());
-                        tvRoomName.setText(roomName);
-                    }
+                runOnUiThread(() -> {
+                    String roomName = Utils.getRoomName(stringeeRoom.getLocalParticipant().getId(), stringeeRoom.getRemoteParticipants());
+                    tvRoomName.setText(roomName);
                 });
             }
 
@@ -325,124 +303,114 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onParticipantConnected(StringeeRoom stringeeRoom, RemoteParticipant remoteParticipant) {
                 Log.d("StringeeVideo", "=========onParticipantConnected=========");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        List<RemoteParticipant> remoteParticipants = new ArrayList<>();
-                        remoteParticipants.add(remoteParticipant);
-                        String roomName = Utils.getNewRoomName(tvRoomName.getText().toString(), remoteParticipant.getId(), "add");
-                        tvRoomName.setText(roomName);
-                    }
+                runOnUiThread(() -> {
+                    String roomName = Utils.getNewRoomName(tvRoomName.getText().toString(), remoteParticipant.getId(), "add");
+                    tvRoomName.setText(roomName);
                 });
             }
 
             @Override
             public void onParticipantDisconnected(StringeeRoom stringeeRoom, RemoteParticipant remoteParticipant) {
                 Log.d("StringeeVideo", "=========onParticipantDisconnected=========");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String roomName = Utils.getNewRoomName(tvRoomName.getText().toString(), remoteParticipant.getId(), "remove");
-                        tvRoomName.setText(roomName);
-                    }
+                runOnUiThread(() -> {
+                    String roomName = Utils.getNewRoomName(tvRoomName.getText().toString(), remoteParticipant.getId(), "remove");
+                    tvRoomName.setText(roomName);
                 });
             }
 
             @Override
             public void onVideoTrackAdded(StringeeRoom stringeeRoom, StringeeVideoTrack stringeeVideoTrack) {
                 Log.d("StringeeVideo", "=========onVideoTrackAdded=========");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!stringeeVideoTrack.getUserId().equals(MainActivity.client.getUserId())) {
-                            //create option, view for added videoTrack
-                            stringeeVideoTrack.setListener(videoTrackListener(stringeeVideoTrack));
-                            StringeeVideoTrack.Options opt = new StringeeVideoTrack.Options();
-                            opt.audio(true);
-                            opt.video(true);
-                            stringeeRoom.subscribe(stringeeVideoTrack, opt, new StatusListener() {
-                                @Override
-                                public void onSuccess() {
-                                    Log.d("StringeeVideo", "=========Subcrise success=========");
-                                }
+                runOnUiThread(() -> {
+                    if (!stringeeVideoTrack.getUserId().equals(MainActivity.client.getUserId())) {
+                        //create option, view for added videoTrack
+                        stringeeVideoTrack.setListener(videoTrackListener(stringeeVideoTrack));
+                        StringeeVideoTrack.Options opt = new StringeeVideoTrack.Options();
+                        opt.audio(true);
+                        opt.video(true);
+                        stringeeRoom.subscribe(stringeeVideoTrack, opt, new StatusListener() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d("StringeeVideo", "=========Subcrise success=========");
+                            }
 
-                                @Override
-                                public void onError(StringeeError errorInfo) {
-                                    super.onError(errorInfo);
-                                    Log.d("StringeeVideo", "=========Subcrise error=========");
-                                    Log.d("StringeeVideo", "error: " + errorInfo.getMessage());
-                                }
-                            });
-                        }
+                            @Override
+                            public void onError(StringeeError errorInfo) {
+                                super.onError(errorInfo);
+                                Log.d("StringeeVideo", "=========Subcrise error=========");
+                                Log.d("StringeeVideo", "error: " + errorInfo.getMessage());
+                            }
+                        });
                     }
                 });
-
             }
 
             @Override
             public void onVideoTrackRemoved(StringeeRoom stringeeRoom, StringeeVideoTrack stringeeVideoTrack) {
-//                Log.d("StringeeVideo", "=========VideoTrack removed=========");
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        for (Iterator<VideoTrack> videoTrackIterator = videoTrackList.iterator(); videoTrackIterator.hasNext(); ) {
-//                            VideoTrack videoTrack = videoTrackIterator.next();
-//                            if (videoTrack.getStringeeVideoTrack().getId().equals(stringeeVideoTrack.getId())) {
-//                                if (videoTrack.getLayout() != null) {
-//                                    //remove videoTrack parentView
-//                                    FrameLayout trackLayout = (FrameLayout) videoTrack.getLayout();
-//                                    trackLayout.removeAllViews();
-//
-//                                    StringeeVideoTrack track = videoTrack.getStringeeVideoTrack();
-//
-//                                    if (track.getView(RoomActivity.this).getParent() != null) {
-//                                        ((FrameLayout) track.getView(RoomActivity.this).getParent()).removeView(track.getView(RoomActivity.this));
-//                                    }
-//
-//                                    //if any track havent has parent yet, replace to this view
-//                                    if (trackLayout.equals(mainView)) {
-//                                        mainTrack = null;
-//                                        addOtherVideoTrack(mainView);
-//                                    }
-//                                    if (trackLayout.equals(view1)) {
-//                                        firstTrack = null;
-//                                        addOtherVideoTrack(view1);
-//                                    }
-//                                    if (trackLayout.equals(view2)) {
-//                                        secondTrack = null;
-//                                        addOtherVideoTrack(view2);
-//                                    }
-//                                    if (trackLayout.equals(view3)) {
-//                                        thirdTrack = null;
-//                                        addOtherVideoTrack(view3);
-//                                    }
-//                                }
-//                                videoTrackIterator.remove();
-//                            }
-//                        }
-//                        if (firstTrack == null) {
-//                            v1.setVisibility(View.GONE);
-//                        }
-//                        if (secondTrack == null) {
-//                            v2.setVisibility(View.GONE);
-//                        }
-//                        if (thirdTrack == null) {
-//                            v3.setVisibility(View.GONE);
-//                        }
-//
-//                        adapter.notifyDataSetChanged();
-//                        if (videoTrackList.size() == 0) {
-//                            if (rvParticipant.getVisibility() == View.VISIBLE) {
-//                                rvParticipant.setVisibility(View.GONE);
-//                                tvNoParticipant.setVisibility(View.VISIBLE);
-//                            }
-//                        }
-//                    }
-//                });
+                Log.d("StringeeVideo", "=========VideoTrack removed=========");
+                runOnUiThread(() -> {
+                    for (Iterator<VideoTrack> videoTrackIterator = videoTrackList.iterator(); videoTrackIterator.hasNext(); ) {
+                        VideoTrack videoTrack = videoTrackIterator.next();
+                        if (videoTrack.getStringeeVideoTrack().getId().equals(stringeeVideoTrack.getId())) {
+                            if (videoTrack.getLayout() != null) {
+                                //remove videoTrack parentView
+                                FrameLayout trackLayout = videoTrack.getLayout();
+                                trackLayout.removeAllViews();
+
+                                StringeeVideoTrack track = videoTrack.getStringeeVideoTrack();
+
+                                if (track.getView(RoomActivity.this).getParent() != null) {
+                                    ((FrameLayout) track.getView(RoomActivity.this).getParent()).removeView(track.getView(RoomActivity.this));
+                                }
+
+                                //if any track havent has parent yet, replace to this view
+                                if (trackLayout.equals(mainView)) {
+                                    mainTrack = null;
+                                    addOtherVideoTrack(mainView);
+                                }
+                                if (trackLayout.equals(view1)) {
+                                    firstTrack = null;
+                                    addOtherVideoTrack(view1);
+                                }
+                                if (trackLayout.equals(view2)) {
+                                    secondTrack = null;
+                                    addOtherVideoTrack(view2);
+                                }
+                                if (trackLayout.equals(view3)) {
+                                    thirdTrack = null;
+                                    addOtherVideoTrack(view3);
+                                }
+                            }
+                            videoTrackIterator.remove();
+                        }
+                    }
+                    if (firstTrack == null) {
+                        v1.setVisibility(View.GONE);
+                    }
+                    if (secondTrack == null) {
+                        v2.setVisibility(View.GONE);
+                    }
+                    if (thirdTrack == null) {
+                        v3.setVisibility(View.GONE);
+                    }
+
+                    adapter.notifyDataSetChanged();
+                    if (videoTrackList.size() == 0) {
+                        if (rvParticipant.getVisibility() == View.VISIBLE) {
+                            rvParticipant.setVisibility(View.GONE);
+                            tvNoParticipant.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
             }
 
             @Override
             public void onMessage(StringeeRoom stringeeRoom, JSONObject jsonObject, RemoteParticipant remoteParticipant) {
+
+            }
+
+            @Override
+            public void onVideoTrackNotification(RemoteParticipant remoteParticipant, StringeeVideoTrack stringeeVideoTrack, StringeeVideoTrack.MediaType mediaType) {
 
             }
         });
@@ -605,19 +573,26 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
 
     private void leaveRoom() {
         if (mStringeeRoom != null) {
+            for (int i = 0; i < videoTrackList.size(); i++) {
+                VideoTrack videoTrack = videoTrackList.get(i);
+                if (videoTrack.getStringeeVideoTrack().getId().equals(localVideoTrack.getId())) {
+                    videoTrackList.remove(i);
+                    break;
+                }
+            }
             //release localVideoTrack
             mStringeeRoom.unpublish(localVideoTrack, new StatusListener() {
                 @Override
                 public void onSuccess() {
                     localVideoTrack.release();
-                }
-            });
 
-            //leaveRoom
-            mStringeeRoom.leave(true, new StatusListener() {
-                @Override
-                public void onSuccess() {
-                    StringeeVideo.release(mStringeeRoom);
+                    //leaveRoom
+                    mStringeeRoom.leave(true, new StatusListener() {
+                        @Override
+                        public void onSuccess() {
+                            StringeeVideo.release(mStringeeRoom);
+                        }
+                    });
                 }
             });
         }

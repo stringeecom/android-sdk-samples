@@ -7,7 +7,6 @@ import android.content.SharedPreferences.Editor;
 public class PrefUtils {
     private static SharedPreferences preferences;
     private static volatile PrefUtils instance;
-    private static final Object lock = new Object();
 
     public PrefUtils(Context context) {
         preferences = context.getSharedPreferences(Constant.PREF_BASE, Context.MODE_PRIVATE);
@@ -15,7 +14,7 @@ public class PrefUtils {
 
     public static synchronized PrefUtils getInstance(Context context) {
         if (instance == null) {
-            synchronized (lock) {
+            synchronized (PrefUtils.class) {
                 if (instance == null) {
                     instance = new PrefUtils(context);
                 }
@@ -43,30 +42,30 @@ public class PrefUtils {
     public void putInt(String key, int defValue) {
         Editor editor = preferences.edit();
         editor.putInt(key, defValue);
-        editor.commit();
+        editor.apply();
     }
 
     public void putString(String key, String defValue) {
         Editor editor = preferences.edit();
         editor.putString(key, defValue);
-        editor.commit();
+        editor.apply();
     }
 
     public void putBoolean(String key, boolean defValue) {
         Editor editor = preferences.edit();
         editor.putBoolean(key, defValue);
-        editor.commit();
+        editor.apply();
     }
 
     public void putLong(String key, long defValue) {
         Editor editor = preferences.edit();
         editor.putLong(key, defValue);
-        editor.commit();
+        editor.apply();
     }
 
     public void clearData() {
         Editor editor = preferences.edit();
         editor.clear();
-        editor.commit();
+        editor.apply();
     }
 }
