@@ -125,4 +125,36 @@ public class NotificationUtils {
 
         nm.notify(Constant.INCOMING_CALL_ID, incomingCallNotification);
     }
+
+    private void createMediaServiceChannel() {
+        if (VERSION.SDK_INT >= VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(Constant.MEDIA_CHANNEL_ID, Constant.MEDIA_CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription(Constant.MEDIA_CHANNEL_DESC);
+            channel.setSound(null, null);
+            nm.createNotificationChannel(channel);
+        }
+    }
+
+    public Notification createMediaNotification() {
+        createMediaServiceChannel();
+
+        int flag = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (VERSION.SDK_INT >= VERSION_CODES.S) {
+            flag = PendingIntent.FLAG_IMMUTABLE;
+        }
+
+        Intent intent = new Intent(context, CallActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, (int) (System.currentTimeMillis() & 0xfffffff), intent, flag);
+
+        Builder builder = new Builder(context, Constant.MEDIA_CHANNEL_ID);
+        builder.setSmallIcon(R.mipmap.icon);
+        builder.setSound(null);
+        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        builder.setContentTitle("Capturing screen");
+        builder.setContentIntent(pendingIntent);
+        builder.setOngoing(true);
+        builder.setCategory(NotificationCompat.CATEGORY_SERVICE);
+        return builder.build();
+    }
 }

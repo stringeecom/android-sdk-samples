@@ -21,8 +21,7 @@ class ClientManager private constructor(private val applicationContext: Context)
     var stringeeClient: StringeeClient? = null
         private set
     private var listener: OnConnectionListener? = null
-    private val token =
-        "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDM0NjM4NDMiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjIiLCJleHAiOjE3NDA0Nzk0NjN9.3JhD309k8kVtDVwvZ29D_J6pi-N165BSUfjLd7av0ZA"
+    private val token = "PUT_YOUR_TOKEN_HERE"
     var isInCall = false
     var isPermissionGranted = true
 
@@ -33,10 +32,10 @@ class ClientManager private constructor(private val applicationContext: Context)
     fun connect() {
         if (stringeeClient == null) {
             stringeeClient = StringeeClient(applicationContext)
-            //            Set host
-//            List<SocketAddress> socketAddressList = new ArrayList<>();
-//            socketAddressList.add(new SocketAddress("YOUR_IP", YOUR_PORT));
-//            stringeeClient.setHost(socketAddressList);
+            // Set host
+            // List<SocketAddress> socketAddressList = new ArrayList<>();
+            // socketAddressList.add(new SocketAddress("YOUR_IP", YOUR_PORT));
+            // stringeeClient?.setHost(socketAddressList);
             stringeeClient?.setConnectionListener(object : StringeeConnectionListener {
                 override fun onConnectionConnected(
                     stringeeClient: StringeeClient,

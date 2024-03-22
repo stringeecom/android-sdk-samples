@@ -1,8 +1,11 @@
 package com.stringee.apptoappcallsample.manager;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.stringee.apptoappcallsample.common.AudioManagerUtils;
 import com.stringee.apptoappcallsample.common.CallStatus;
@@ -10,10 +13,12 @@ import com.stringee.apptoappcallsample.common.Constant;
 import com.stringee.apptoappcallsample.common.NotificationUtils;
 import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.apptoappcallsample.listener.OnCallListener;
+import com.stringee.apptoappcallsample.service.MyMediaProjectionService;
 import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
+import com.stringee.video.StringeeScreenCapture;
 import com.stringee.video.StringeeVideoTrack;
 
 import org.json.JSONObject;
@@ -36,6 +41,7 @@ public class CallManager {
     private boolean isSpeakerOn = false;
     private boolean isVideoEnable = false;
     private boolean isMicOn = true;
+    private boolean isSharing = false;
     private final AudioManagerUtils audioManagerUtils;
     private OnCallListener listener;
     private final ClientManager clientManager;
@@ -45,6 +51,8 @@ public class CallManager {
     private StringeeCall2.MediaState call2MediaState = StringeeCall2.MediaState.DISCONNECTED;
     private CallStatus callStatus = CallStatus.CALLING;
     private Timer timer;
+    private StringeeScreenCapture screenCapture;
+    private MyMediaProjectionService mediaProjectionService;
 
     public CallManager(Context context) {
         this.context = context.getApplicationContext();
@@ -319,12 +327,26 @@ public class CallManager {
 
                 @Override
                 public void onVideoTrackAdded(StringeeVideoTrack stringeeVideoTrack) {
-
+                    Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onVideoTrackAdded: " + stringeeVideoTrack.getId());
+                        if (stringeeVideoTrack.getTrackType() == StringeeVideoTrack.TrackType.SCREEN) {
+                            if (listener != null) {
+                                listener.onVideoTrackAdded(stringeeVideoTrack);
+                            }
+                        }
+                    });
                 }
 
                 @Override
                 public void onVideoTrackRemoved(StringeeVideoTrack stringeeVideoTrack) {
-
+                    Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onVideoTrackRemoved: " + stringeeVideoTrack.getId());
+                        if (stringeeVideoTrack.getTrackType() == StringeeVideoTrack.TrackType.SCREEN) {
+                            if (listener != null) {
+                                listener.onVideoTrackRemoved(stringeeVideoTrack);
+                            }
+                        }
+                    });
                 }
 
                 @Override
@@ -667,7 +689,87 @@ public class CallManager {
         return isCallNotInitialized;
     }
 
+    public void initializeScreenCapture(AppCompatActivity activity) {
+        if (screenCapture == null) {
+            screenCapture = new StringeeScreenCapture.Builder().buildWithAppCompatActivity(activity);
+        }
+    }
+
+    public void shareScreen() {
+        if (stringeeCall2 != null) {
+            if (!(callStatus == CallStatus.STARTED && call2MediaState != null && call2MediaState == StringeeCall2.MediaState.CONNECTED)) {
+                return;
+            }
+            if (isSharing) {
+                stringeeCall2.stopCaptureScreen(new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+                });
+                if (mediaProjectionService != null) {
+                    mediaProjectionService.stopService();
+                }
+            } else {
+                Intent intent = new Intent(context, MyMediaProjectionService.class);
+                intent.setAction(Constant.ACTION_START_FOREGROUND_SERVICE);
+                if (context != null) {
+                    context.startService(intent);
+                }
+            }
+            isSharing = !isSharing;
+        }
+        if (listener != null) {
+            listener.onSharing(isSharing);
+        }
+    }
+
+    public void startCapture(MyMediaProjectionService mediaProjectionService) {
+        this.mediaProjectionService = mediaProjectionService;
+        Utils.postDelay(() -> {
+            if (stringeeCall2 != null) {
+                stringeeCall2.startCaptureScreen(screenCapture, new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError(StringeeError stringeeError) {
+                        super.onError(stringeeError);
+                        isSharing = false;
+                        if (listener != null) {
+                            listener.onSharing(false);
+                        }
+                        if (mediaProjectionService != null) {
+                            mediaProjectionService.stopService();
+                        }
+                    }
+                });
+            }
+        }, 500);
+    }
+
     public void release() {
+        Log.d(Constant.TAG, "release callManager");
+        if (isSharing && !isStringeeCall && isVideoCall) {
+            if (stringeeCall2 != null) {
+                stringeeCall2.stopCaptureScreen(new StatusListener() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+                });
+            }
+
+            if (screenCapture != null) {
+                screenCapture = null;
+            }
+
+            if (mediaProjectionService != null) {
+                mediaProjectionService.stopService();
+            }
+        }
         clientManager.isInCall = false;
         audioManagerUtils.stopAudioManager();
         audioManagerUtils.stopRinging();

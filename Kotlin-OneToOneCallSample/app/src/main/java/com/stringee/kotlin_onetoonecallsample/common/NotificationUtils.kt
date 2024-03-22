@@ -1,5 +1,6 @@
 package com.stringee.kotlin_onetoonecallsample.common
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -121,6 +122,44 @@ class NotificationUtils private constructor(private val applicationContext: Cont
         val incomingCallNotification = notificationBuilder.build()
         AudioManagerUtils.getInstance(applicationContext).startRingtoneAndVibration()
         nm.notify(Constant.INCOMING_CALL_ID, incomingCallNotification)
+    }
+
+    private fun createMediaServiceChannel() {
+        if (VERSION.SDK_INT >= VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                Constant.MEDIA_CHANNEL_ID,
+                Constant.MEDIA_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            channel.description = Constant.MEDIA_CHANNEL_DESC
+            channel.setSound(null, null)
+            nm.createNotificationChannel(channel)
+        }
+    }
+
+    fun createMediaNotification(): Notification {
+        createMediaServiceChannel()
+        var flag = PendingIntent.FLAG_UPDATE_CURRENT
+        if (VERSION.SDK_INT >= VERSION_CODES.S) {
+            flag = PendingIntent.FLAG_IMMUTABLE
+        }
+        val intent = Intent(applicationContext, CallActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val pendingIntent = PendingIntent.getActivity(
+            applicationContext,
+            (System.currentTimeMillis() and 0xfffffffL).toInt(),
+            intent,
+            flag
+        )
+        val builder = NotificationCompat.Builder(applicationContext, Constant.MEDIA_CHANNEL_ID)
+        builder.setSmallIcon(R.mipmap.icon)
+        builder.setSound(null)
+        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        builder.setContentTitle("Capturing screen")
+        builder.setContentIntent(pendingIntent)
+        builder.setOngoing(true)
+        builder.setCategory(NotificationCompat.CATEGORY_SERVICE)
+        return builder.build()
     }
 
     companion object {
