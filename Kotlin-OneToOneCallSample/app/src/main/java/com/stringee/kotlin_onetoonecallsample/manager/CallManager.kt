@@ -1,8 +1,10 @@
 package com.stringee.kotlin_onetoonecallsample.manager
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import com.stringee.call.StringeeCall
 import com.stringee.call.StringeeCall2
 import com.stringee.common.StringeeAudioManager
@@ -13,7 +15,9 @@ import com.stringee.kotlin_onetoonecallsample.common.Constant
 import com.stringee.kotlin_onetoonecallsample.common.NotificationUtils
 import com.stringee.kotlin_onetoonecallsample.common.Utils
 import com.stringee.kotlin_onetoonecallsample.listener.OnCallListener
+import com.stringee.kotlin_onetoonecallsample.service.MyMediaProjectionService
 import com.stringee.listener.StatusListener
+import com.stringee.video.StringeeScreenCapture
 import com.stringee.video.StringeeVideoTrack
 import org.json.JSONObject
 import org.webrtc.RendererCommon.ScalingType
@@ -33,6 +37,7 @@ class CallManager private constructor(private val applicationContext: Context) {
     private var isSpeakerOn = false
     private var isVideoEnable = false
     private var isMicOn = true
+    private var isSharing = false
     private val audioManagerUtils: AudioManagerUtils =
         AudioManagerUtils.getInstance(applicationContext)
     private var listener: OnCallListener? = null
@@ -44,6 +49,8 @@ class CallManager private constructor(private val applicationContext: Context) {
     var callStatus = CallStatus.CALLING
         private set
     private var timer: Timer? = null
+    private var screenCapture: StringeeScreenCapture? = null
+    private var mediaProjectionService: MyMediaProjectionService? = null
 
     init {
         audioManagerUtils.setAudioEvents(object : AudioManagerUtils.OnAudioEvents {
@@ -321,10 +328,32 @@ class CallManager private constructor(private val applicationContext: Context) {
 
                 @Deprecated("Deprecated in Java")
                 override fun onVideoTrackAdded(stringeeVideoTrack: StringeeVideoTrack) {
+                    Utils.runOnUiThread {
+                        Log.d(
+                            Constant.TAG,
+                            "onVideoTrackAdded: " + stringeeVideoTrack.id
+                        )
+                        if (stringeeVideoTrack.trackType == StringeeVideoTrack.TrackType.SCREEN) {
+                            if (listener != null) {
+                                listener!!.onVideoTrackAdded(stringeeVideoTrack)
+                            }
+                        }
+                    }
                 }
 
                 @Deprecated("Deprecated in Java")
                 override fun onVideoTrackRemoved(stringeeVideoTrack: StringeeVideoTrack) {
+                    Utils.runOnUiThread {
+                        Log.d(
+                            Constant.TAG,
+                            "onVideoTrackRemoved: " + stringeeVideoTrack.id
+                        )
+                        if (stringeeVideoTrack.trackType == StringeeVideoTrack.TrackType.SCREEN) {
+                            if (listener != null) {
+                                listener!!.onVideoTrackRemoved(stringeeVideoTrack)
+                            }
+                        }
+                    }
                 }
 
                 override fun onCallInfo(stringeeCall2: StringeeCall2, jsonObject: JSONObject) {
@@ -625,8 +654,66 @@ class CallManager private constructor(private val applicationContext: Context) {
             return isCallNotInitialized
         }
 
+    fun initializeScreenCapture(activity: AppCompatActivity?) {
+        if (screenCapture == null) {
+            screenCapture = StringeeScreenCapture.Builder().buildWithAppCompatActivity(activity)
+        }
+    }
+
+    fun shareScreen() {
+        if (stringeeCall2 != null) {
+            if (!(callStatus === CallStatus.STARTED && call2MediaState == StringeeCall2.MediaState.CONNECTED)) {
+                return
+            }
+            if (isSharing) {
+                stringeeCall2!!.stopCaptureScreen(object : StatusListener() {
+                    override fun onSuccess() {}
+                })
+                mediaProjectionService?.stopService()
+            } else {
+                val intent = Intent(applicationContext, MyMediaProjectionService::class.java)
+                intent.setAction(Constant.ACTION_START_FOREGROUND_SERVICE)
+                applicationContext.startService(intent)
+            }
+            isSharing = !isSharing
+        }
+        if (listener != null) {
+            listener!!.onSharing(isSharing)
+        }
+    }
+
+    fun startCapture(mediaProjectionService: MyMediaProjectionService?) {
+        this.mediaProjectionService = mediaProjectionService
+        Utils.postDelay({
+            if (stringeeCall2 != null) {
+                stringeeCall2!!.startCaptureScreen(screenCapture, object : StatusListener() {
+                    override fun onSuccess() {}
+                    override fun onError(stringeeError: StringeeError) {
+                        super.onError(stringeeError)
+                        isSharing = false
+                        if (listener != null) {
+                            listener!!.onSharing(false)
+                        }
+                        mediaProjectionService?.stopService()
+                    }
+                })
+            }
+        }, 500)
+    }
+
     fun release() {
         Log.d(Constant.TAG, "release callManager")
+        if (isSharing && !isStringeeCall && isVideoCall) {
+            if (stringeeCall2 != null) {
+                stringeeCall2!!.stopCaptureScreen(object : StatusListener() {
+                    override fun onSuccess() {}
+                })
+            }
+            if (screenCapture != null) {
+                screenCapture = null
+            }
+            mediaProjectionService?.stopService()
+        }
         clientManager.isInCall = false
         audioManagerUtils.stopAudioManager()
         audioManagerUtils.stopRinging()

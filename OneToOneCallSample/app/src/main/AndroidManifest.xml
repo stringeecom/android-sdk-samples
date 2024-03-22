@@ -49,6 +49,10 @@
         android:glEsVersion="0x00020000"
         android:required="true" />
 
+    <!--Foreground service-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
     <application
         android:allowBackup="false"
         android:hardwareAccelerated="true"
@@ -97,6 +101,10 @@
                 <action android:name="com.stringee.action_reject" />
             </intent-filter>
         </receiver>
+        <service
+            android:name=".service.MyMediaProjectionService"
+            android:exported="false"
+            android:enabled="true"
+            android:foregroundServiceType="mediaProjection" />
     </application>
-
 </manifest>

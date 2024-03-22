@@ -1,6 +1,5 @@
 package com.stringee.apptoappcallsample.common;
 
-import android.app.KeyguardManager;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioAttributes.Builder;
@@ -9,18 +8,13 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 
-import androidx.annotation.RequiresApi;
-
 import com.stringee.common.StringeeAudioManager;
 import com.stringee.common.StringeeAudioManager.AudioDevice;
-
-import java.util.List;
 
 public class AudioManagerUtils {
     private static volatile AudioManagerUtils instance;

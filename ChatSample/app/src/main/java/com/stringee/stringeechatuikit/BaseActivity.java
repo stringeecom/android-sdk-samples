@@ -43,9 +43,7 @@ import java.util.List;
 public class BaseActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ProgressDialog prLoading;
-//        public final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDM5MTczMjIiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjEiLCJleHAiOjE3NDA0Nzk5MTd9.EF5Q7F5GvciEghyg1YRSWoqJc8vS44o5EUohaEztuwk";
-//    public final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDQwNTU5OTEiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjIiLCJleHAiOjE3NDA0ODAwNTV9.xUY_8dSNuoZf2dHj77jNWQWjjvqpDv-kafTNm3JL2yY";
-    public final String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDg5NDQwODQxNTYiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoidXNlcjMiLCJleHAiOjE3NDA0ODAwODN9.sOdOw7D8NDran5Qxyi3flAuzpfB8rgqYlSRnwdYvHZ4";
+    public final String accessToken = "PUT_YOUR_TOKEN_HERE";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -75,13 +73,12 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     public void initAndConnectStringee(String token) {
         if (Common.client == null) {
             Common.client = new StringeeClient(this);
-//            List<SocketAddress> socketAddressList = new ArrayList<>();
-//            socketAddressList.add(new SocketAddress("vn-release-s1.stringeetest.com", 31120));
-//            socketAddressList.add(new SocketAddress("vn-release-s2.stringeetest.com", 31120));
-//            socketAddressList.add(new SocketAddress("vn-release-s3.stringeetest.com", 31120));
-//            Common.client.setHost(socketAddressList);
-//            Common.client.setBaseAPIUrl("https://vn-release-api.stringeetest.com");
-//            Common.client.setStringeeXBaseUrl("https://vn-release-portal.stringeextest.com");
+            // Set host
+            // List<SocketAddress> socketAddressList = new ArrayList<>();
+            // socketAddressList.add(new SocketAddress("YOUR_IP", YOUR_PORT));
+            // Common.client.setHost(socketAddressList);
+            // Common.client.setBaseAPIUrl("YOUR_BASE_API_URL");
+            // Common.client.setStringeeXBaseUrl("YOUR_STRINGEE_X_BASE_URL");
             Common.client.setConnectionListener(new StringeeConnectionListener() {
                 @Override
                 public void onConnectionConnected(final StringeeClient client, boolean isReconnecting) {

@@ -9,6 +9,7 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.stringee.apptoappcallsample.common.AudioManagerUtils;
 import com.stringee.apptoappcallsample.common.Constant;
 import com.stringee.apptoappcallsample.common.NotificationUtils;
+import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.apptoappcallsample.manager.ClientManager;
 import com.stringee.listener.StatusListener;
 
@@ -48,7 +49,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                             AudioManagerUtils.getInstance(this).stopRinging();
                         }
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Utils.reportException(MyFirebaseMessagingService.class, e);
                     }
                 }
             }
