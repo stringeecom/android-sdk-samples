@@ -1,5 +1,7 @@
 package com.stringee.apptoappcallsample.activity;
 
+import android.content.Intent;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -8,6 +10,8 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.stringee.apptoappcallsample.R;
@@ -20,6 +24,7 @@ import com.stringee.apptoappcallsample.databinding.ActivityVoiceCallBinding;
 import com.stringee.apptoappcallsample.databinding.LayoutIncomingCallBinding;
 import com.stringee.apptoappcallsample.listener.OnCallListener;
 import com.stringee.apptoappcallsample.manager.CallManager;
+import com.stringee.apptoappcallsample.service.MyMediaProjectionService;
 import com.stringee.video.StringeeVideoTrack;
 
 import org.webrtc.RendererCommon;
@@ -39,6 +44,7 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
     private boolean isVideoCall;
     private boolean isIncomingCall;
     private boolean isStringeeCall;
+    private ActivityResultLauncher<Intent> activityResultLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +77,19 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
         isStringeeCall = getIntent().getBooleanExtra(Constant.PARAM_IS_STRINGEE_CALL, false);
 
         callManager = CallManager.getInstance(this);
-        callManager.initializeScreenCapture(this);
+
+        activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == AppCompatActivity.RESULT_OK && result.getData() != null) {
+                Intent intent = new Intent(this, MyMediaProjectionService.class);
+                intent.setAction(Constant.ACTION_START_FOREGROUND_SERVICE);
+                intent.putExtras(result.getData());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent);
+                } else {
+                    startService(intent);
+                }
+            }
+        });
         sensorManagerUtils = SensorManagerUtils.getInstance(this).initialize(getLocalClassName());
 
         if (!isVideoCall) {
@@ -354,7 +372,11 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
         } else if (vId == R.id.btn_switch) {
             callManager.switchCamera();
         } else if (vId == R.id.btn_share) {
-            callManager.shareScreen();
+            if (callManager.isSharing()) {
+                callManager.stopSharing();
+            } else {
+                callManager.prepareShareScreen(this, activityResultLauncher, getSystemService(MediaProjectionManager.class));
+            }
         }
     }
 

@@ -40,7 +40,7 @@ public class MyMediaProjectionService extends Service {
                     } catch (Exception e) {
                         Utils.reportException(CallManager.class, e);
                     }
-                    callManager.startCapture(this);
+                    callManager.startCapture(this, intent);
                 }
             }
         }
