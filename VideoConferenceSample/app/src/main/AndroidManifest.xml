@@ -1,77 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!--Internet-->
+    <!-- Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-
-    <!--Record-->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
-    <!--Audio-->
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-
-    <!--Camera-->
-    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" /> <!-- Record -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> <!-- Audio -->
+    <uses-permission android:name="android.permission.CAMERA" /><!-- Camera -->
 
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
-    <uses-feature android:name="android.hardware.camera.autofocus" />
-
-    <!--Bluetooth-->
+    <uses-feature android:name="android.hardware.camera.autofocus" /> <!-- Bluetooth -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> <!--Require for android 12 or higher-->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> <!-- Require for android 12 or higher -->
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="false" />
     <uses-feature
         android:name="android.hardware.bluetooth_le"
-        android:required="false" />
-
-    <!--Disable keyguard-->
-    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
-
-    <!--Wake lock-->
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <!--Vibrate-->
-    <uses-permission android:name="android.permission.VIBRATE" />
-
-    <!--Notification-->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!--Require for android 13 or higher-->
-
-    <!--Graphic-->
+        android:required="false" /> <!-- Disable keyguard -->
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" /> <!-- Wake lock -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- Vibrate -->
+    <uses-permission android:name="android.permission.VIBRATE" /> <!-- Notification -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> <!-- For show notification over other app -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Require for android 13 or higher -->
+    <!-- Graphic -->
     <uses-feature
         android:glEsVersion="0x00020000"
-        android:required="true" />
+        android:required="true" /> <!-- Foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
     <application
-        android:allowBackup="false"
+        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/Theme.App.Starting">
         <activity
-            android:name="com.stringee.videoconference.sample.MainActivity"
+            android:name=".main.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:windowSoftInputMode="adjustPan">
+            android:theme="@style/Base.Theme.VideoConferenceSample"
+            android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name="com.stringee.videoconference.sample.RoomActivity"
-            android:configChanges="keyboardHidden|screenSize|orientation"
-            android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:name=".stringee_wrapper.ui.activity.CheckDeviceActivity"
+            android:exported="false"
+            android:theme="@style/Base.Theme.VideoConferenceSample"
             android:windowSoftInputMode="stateAlwaysHidden" />
+        <activity
+            android:name=".stringee_wrapper.ui.activity.ConferenceActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            android:theme="@style/Base.Theme.VideoConferenceSample"
+            android:turnScreenOn="true"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+        <service
+            android:name=".stringee_wrapper.service.MyMediaProjectionService"
+            android:exported="false"
+            android:enabled="true"
+            android:foregroundServiceType="mediaProjection" />
     </application>
-
 </manifest>

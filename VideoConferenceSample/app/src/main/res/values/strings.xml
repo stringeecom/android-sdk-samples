@@ -1,8 +1,11 @@
 <resources>
-    <string name="app_name">Video Sample</string>
-    <string name="enter_user_id">Enter user id</string>
+    <string name="app_name">VideoConferenceSample</string>
+    <string name="back_to_connect_client">Back to connect client</string>
+    <string name="video_conference_sample">Video Conference Sample</string>
     <string name="connect">Connect</string>
-    <string name="join_room">Join room</string>
-    <string name="connecting">Connecting</string>
-    <string name="connected_as">Connected as: %1$s</string>
+    <string name="create_room">Create room</string>
+    <string name="connect_room">Connect room</string>
+    <string name="room_token">Room token</string>
+    <string name="user_id">User id</string>
+    <string name="start">Start</string>
 </resources>

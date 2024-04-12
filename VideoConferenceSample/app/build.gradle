@@ -1,37 +1,54 @@
-apply plugin: 'com.android.application'
+plugins {
+    alias(libs.plugins.androidApplication)
+}
 
 android {
+    namespace 'com.stringee.video_conference_sample'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.stringee.videoconference.sample"
-        minSdkVersion 24
-        targetSdkVersion 34
+        applicationId "com.stringee.video_conference_sample"
+        minSdk 24
+        targetSdk 34
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    buildFeatures {
+        viewBinding true
+        dataBinding true
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    namespace 'com.stringee.videoconference.videoconference.sample'
 }
 
 dependencies {
-    implementation fileTree(dir: "libs", include: ["*.jar","*.aar"])
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.android.volley:volley:1.2.1'
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'com.stringee.sdk.android:stringee-android-sdk:2.1.2'
+    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.core.splashscreen
+    implementation libs.annotation
+    implementation libs.java.jwt
+    implementation libs.core
+    implementation libs.constraintlayout
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.volley
+    implementation libs.flexbox
+    implementation libs.circleindicator
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
 }
