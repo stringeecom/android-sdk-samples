@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.stringee.apptoappcallsample.common.AudioManagerUtils;
 import com.stringee.apptoappcallsample.common.CallStatus;
@@ -46,6 +45,7 @@ public class CallManager {
     private boolean isVideoEnable = false;
     private boolean isMicOn = true;
     private boolean isSharing = false;
+    private boolean isSwitching = false;
     private final AudioManagerUtils audioManagerUtils;
     private OnCallListener listener;
     private final ClientManager clientManager;
@@ -643,16 +643,22 @@ public class CallManager {
             release();
             return;
         }
+        if (isSwitching) {
+            return;
+        }
+        isSwitching = true;
         if (isStringeeCall) {
             stringeeCall.switchCamera(new StatusListener() {
                 @Override
                 public void onSuccess() {
+                    isSwitching = false;
                     handleResponse("switchCamera", true, null);
                 }
 
                 @Override
                 public void onError(StringeeError stringeeError) {
                     super.onError(stringeeError);
+                    isSwitching = false;
                     handleResponse("switchCamera", false, stringeeError.getMessage());
                 }
             });
@@ -660,12 +666,14 @@ public class CallManager {
             stringeeCall2.switchCamera(new StatusListener() {
                 @Override
                 public void onSuccess() {
+                    isSwitching = false;
                     handleResponse("switchCamera", true, null);
                 }
 
                 @Override
                 public void onError(StringeeError stringeeError) {
                     super.onError(stringeeError);
+                    isSwitching = false;
                     handleResponse("switchCamera", false, stringeeError.getMessage());
                 }
             });
@@ -698,87 +706,90 @@ public class CallManager {
     }
 
     public void stopSharing() {
+        if (!isSharing){
+            return;
+        }
+        if (!(callStatus == CallStatus.STARTED && call2MediaState != null && call2MediaState == StringeeCall2.MediaState.CONNECTED)) {
+            return;
+        }
         if (stringeeCall2 != null) {
-            if (!(callStatus == CallStatus.STARTED && call2MediaState != null && call2MediaState == StringeeCall2.MediaState.CONNECTED)) {
-                return;
-            }
-            if (isSharing) {
-                stringeeCall2.stopCaptureScreen(new StatusListener() {
-                    @Override
-                    public void onSuccess() {
+            stringeeCall2.stopCaptureScreen(new StatusListener() {
+                @Override
+                public void onSuccess() {
 
-                    }
-                });
-                if (mediaProjectionService != null) {
-                    mediaProjectionService.stopService();
                 }
-                isSharing = false;
+            });
+            if (mediaProjectionService != null) {
+                mediaProjectionService.stopService();
             }
         }
+        isSharing = false;
         if (listener != null) {
-            listener.onSharing(isSharing);
+            listener.onSharing(false);
         }
     }
 
     public void prepareShareScreen(Activity activity, ActivityResultLauncher<Intent> activityResultLauncher, MediaProjectionManager manager) {
+        if (isSharing) {
+            return;
+        }
         if (stringeeCall2 != null) {
             if (!(callStatus == CallStatus.STARTED && call2MediaState != null && call2MediaState == StringeeCall2.MediaState.CONNECTED)) {
                 return;
             }
-            if (!isSharing) {
-                screenCapture = new StringeeScreenCapture(activity);
-                activityResultLauncher.launch(manager.createScreenCaptureIntent());
-            }
+            screenCapture = new StringeeScreenCapture(activity);
+            activityResultLauncher.launch(manager.createScreenCaptureIntent());
         }
     }
 
     public void startCapture(MyMediaProjectionService mediaProjectionService, Intent mediaProjectionPermissionResultData) {
+        if (isSharing){
+            return;
+        }
+        if (!(callStatus == CallStatus.STARTED && call2MediaState != null && call2MediaState == StringeeCall2.MediaState.CONNECTED)) {
+            return;
+        }
         this.mediaProjectionService = mediaProjectionService;
         if (stringeeCall2 != null) {
-            if (!(callStatus == CallStatus.STARTED && call2MediaState != null && call2MediaState == StringeeCall2.MediaState.CONNECTED)) {
-                return;
-            }
-            if (!isSharing) {
-                screenCapture.createCapture(mediaProjectionPermissionResultData, new CallbackListener<StringeeVideoTrack>() {
-                    @Override
-                    public void onSuccess(StringeeVideoTrack stringeeVideoTrack) {
-                        stringeeCall2.startCaptureScreen(screenCapture, new StatusListener() {
-                            @Override
-                            public void onSuccess() {
-                                isSharing = true;
-                                if (listener != null) {
-                                    listener.onSharing(true);
-                                }
+            screenCapture.createCapture(mediaProjectionPermissionResultData, new CallbackListener<StringeeVideoTrack>() {
+                @Override
+                public void onSuccess(StringeeVideoTrack stringeeVideoTrack) {
+                    stringeeCall2.startCaptureScreen(screenCapture, new StatusListener() {
+                        @Override
+                        public void onSuccess() {
+                            isSharing = true;
+                            if (listener != null) {
+                                listener.onSharing(true);
                             }
+                        }
 
-                            @Override
-                            public void onError(StringeeError stringeeError) {
-                                super.onError(stringeeError);
-                                isSharing = false;
-                                if (listener != null) {
-                                    listener.onSharing(false);
-                                }
-                                if (mediaProjectionService != null) {
-                                    mediaProjectionService.stopService();
-                                }
+                        @Override
+                        public void onError(StringeeError stringeeError) {
+                            super.onError(stringeeError);
+                            isSharing = false;
+                            if (listener != null) {
+                                listener.onSharing(false);
                             }
-                        });
-
-                    }
-
-                    @Override
-                    public void onError(StringeeError errorInfo) {
-                        super.onError(errorInfo);
-                        isSharing = false;
-                        if (listener != null) {
-                            listener.onSharing(false);
+                            if (mediaProjectionService != null) {
+                                mediaProjectionService.stopService();
+                            }
                         }
-                        if (mediaProjectionService != null) {
-                            mediaProjectionService.stopService();
-                        }
+                    });
+
+                }
+
+                @Override
+                public void onError(StringeeError errorInfo) {
+                    super.onError(errorInfo);
+                    isSharing = false;
+                    if (listener != null) {
+                        listener.onSharing(false);
                     }
-                });
-            }
+                    if (mediaProjectionService != null) {
+                        mediaProjectionService.stopService();
+                    }
+                }
+            });
         }
     }
 
