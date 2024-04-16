@@ -13,13 +13,8 @@ import com.stringee.video_conference_sample.stringee_wrapper.ui.base.MyViewModel
 import com.stringee.video_conference_sample.stringee_wrapper.wrapper.StringeeWrapper;
 
 public class CheckDeviceViewModel extends MyViewModel {
-    private final MutableLiveData<String> roomName = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isVideoOn = new MutableLiveData<>(true);
     private final MutableLiveData<Boolean> isMicOn = new MutableLiveData<>(true);
-
-    public MutableLiveData<String> getRoomName() {
-        return roomName;
-    }
 
     public MutableLiveData<Boolean> getIsVideoOn() {
         return isVideoOn;
@@ -53,7 +48,7 @@ public class CheckDeviceViewModel extends MyViewModel {
     }
 
     public void releaseTrack(Context context) {
-        StringeeWrapper.getInstance(context).getConferenceWrapper().release();
+        StringeeWrapper.getInstance(context).getConferenceWrapper().releaseLocalTrack();
     }
 
     public void displayLocalTrack(Context context, FrameLayout flPreview) {

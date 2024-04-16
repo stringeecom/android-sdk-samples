@@ -34,7 +34,6 @@ public class CheckDeviceActivity extends AppCompatActivity {
 
     private void setUpViewModel() {
         checkDeviceViewModel = new ViewModelProvider(this).get(CheckDeviceViewModel.class);
-        checkDeviceViewModel.getRoomName().setValue(getIntent().getStringExtra("room_name"));
         checkDeviceViewModel.displayLocalTrack(this, binding.flPreview);
         binding.setCheckDeviceViewModel(checkDeviceViewModel);
         binding.setLifecycleOwner(this);

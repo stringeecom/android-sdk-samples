@@ -32,6 +32,9 @@ public class ConferenceWrapper implements StringeeRoomListener {
     private final String roomToken;
     private final Context context;
     private boolean isLeaving;
+    private boolean isSwitching;
+    private boolean isFrontCamera = true;
+
     private StringeeVideoTrack localVideoTrack;
     private StringeeVideoTrack localShareTrack;
     private StringeeAudioManager audioManager;
@@ -75,7 +78,7 @@ public class ConferenceWrapper implements StringeeRoomListener {
         }
         flPreview.addView(view, layoutParams);
         stringeeVideoTrack.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-        view.setMirror(true);
+        view.setMirror(isFrontCamera);
     }
 
     public StringeeVideoTrack createLocalVideoTrack() {
@@ -105,13 +108,28 @@ public class ConferenceWrapper implements StringeeRoomListener {
         return localVideoTrack;
     }
 
-    public void release() {
+    public void releaseLocalTrack() {
         if (localVideoTrack != null) {
             localVideoTrack.release();
         }
-        if (stringeeRoom != null) {
-            StringeeVideo.release(stringeeRoom);
+        StringeeVideo.release(context, null);
+        if (audioManager != null) {
+            audioManager.stop();
+            audioManager = null;
         }
+    }
+
+    public void release() {
+        if (mediaProjectionService != null) {
+            mediaProjectionService.stopService();
+        }
+
+        if (audioManager != null) {
+            audioManager.stop();
+            audioManager = null;
+        }
+
+        isLeaving = false;
     }
 
     public void enableVideo(boolean enable) {
@@ -127,11 +145,23 @@ public class ConferenceWrapper implements StringeeRoomListener {
     }
 
     public void switchCamera() {
+        if (isSwitching) {
+            return;
+        }
+        isSwitching = true;
         if (localVideoTrack != null) {
             localVideoTrack.switchCamera(new StatusListener() {
                 @Override
                 public void onSuccess() {
+                    isSwitching = false;
+                    isFrontCamera = !isFrontCamera;
+                    localVideoTrack.getView2(context).setMirror(isFrontCamera);
+                }
 
+                @Override
+                public void onError(StringeeError stringeeError) {
+                    super.onError(stringeeError);
+                    isSwitching = false;
                 }
             });
         }
@@ -144,7 +174,6 @@ public class ConferenceWrapper implements StringeeRoomListener {
         isLeaving = true;
         if (stringeeRoom != null) {
             if (localVideoTrack != null) {
-                localVideoTrack.release();
                 stringeeRoom.unpublish(localVideoTrack, new StatusListener() {
                     @Override
                     public void onSuccess() {
@@ -158,8 +187,8 @@ public class ConferenceWrapper implements StringeeRoomListener {
                     }
                 });
             }
+
             if (localShareTrack != null) {
-                localShareTrack.release();
                 stringeeRoom.unpublish(localShareTrack, new StatusListener() {
                     @Override
                     public void onSuccess() {
@@ -173,7 +202,6 @@ public class ConferenceWrapper implements StringeeRoomListener {
                     }
                 });
             }
-
             stringeeRoom.leave(isLeaveAll, new StatusListener() {
                 @Override
                 public void onSuccess() {
@@ -187,17 +215,18 @@ public class ConferenceWrapper implements StringeeRoomListener {
                 }
             });
         }
-        if (mediaProjectionService != null) {
-            mediaProjectionService.stopService();
-        }
-
-        if (audioManager != null) {
-            audioManager.stop();
-            audioManager = null;
-        }
-
+        releaseAllLocalTrack();
         if (conferenceListener != null) {
             conferenceListener.onLeaveRoom();
+        }
+    }
+
+    private void releaseAllLocalTrack() {
+        if (localVideoTrack != null) {
+            localVideoTrack.release();
+        }
+        if (localShareTrack != null) {
+            localShareTrack.release();
         }
     }
 
@@ -373,6 +402,7 @@ public class ConferenceWrapper implements StringeeRoomListener {
                     return;
                 }
                 isLeaving = true;
+                releaseAllLocalTrack();
                 if (conferenceListener != null) {
                     conferenceListener.onLeaveRoom();
                 }
@@ -384,7 +414,7 @@ public class ConferenceWrapper implements StringeeRoomListener {
     public void onVideoTrackAdded(StringeeRoom stringeeRoom, StringeeVideoTrack stringeeVideoTrack) {
         Utils.runOnUiThread(() -> {
             Log.d("Stringee", "onVideoTrackAdded: " + stringeeRoom.getId() + " - " + stringeeVideoTrack.getId());
-            if (!stringeeVideoTrack.getUserId().equals(stringeeClient.getUserId())) {
+            if (!stringeeVideoTrack.isLocal()) {
                 subscribeTrack(stringeeVideoTrack);
             }
         });
@@ -394,14 +424,7 @@ public class ConferenceWrapper implements StringeeRoomListener {
     public void onVideoTrackRemoved(StringeeRoom stringeeRoom, StringeeVideoTrack stringeeVideoTrack) {
         Utils.runOnUiThread(() -> {
             Log.d("Stringee", "onVideoTrackRemoved: " + stringeeRoom.getId() + " - " + stringeeVideoTrack.getId());
-            boolean isParticipantTrack = true;
-            if (localVideoTrack != null && localVideoTrack.getLocalId().equals(stringeeVideoTrack.getLocalId())) {
-                isParticipantTrack = false;
-            } else if (localShareTrack != null && localShareTrack.getLocalId().equals(stringeeVideoTrack.getLocalId())) {
-                isParticipantTrack = false;
-            }
-
-            if (isParticipantTrack) {
+            if (!stringeeVideoTrack.isLocal()) {
                 stringeeRoom.unsubscribe(stringeeVideoTrack, new StatusListener() {
                     @Override
                     public void onSuccess() {
@@ -422,15 +445,12 @@ public class ConferenceWrapper implements StringeeRoomListener {
     }
 
     @Override
-    public void onMessage(StringeeRoom stringeeRoom, JSONObject jsonObject, RemoteParticipant
-            remoteParticipant) {
+    public void onMessage(StringeeRoom stringeeRoom, JSONObject jsonObject, RemoteParticipant remoteParticipant) {
         Utils.runOnUiThread(() -> Log.d("Stringee", "onMessage: " + stringeeRoom.getId() + " - " + remoteParticipant.getId() + " - " + jsonObject.toString()));
     }
 
     @Override
-    public void onVideoTrackNotification(RemoteParticipant
-                                                 remoteParticipant, StringeeVideoTrack stringeeVideoTrack, StringeeVideoTrack.MediaType
-                                                 mediaType) {
+    public void onVideoTrackNotification(RemoteParticipant remoteParticipant, StringeeVideoTrack stringeeVideoTrack, StringeeVideoTrack.MediaType mediaType) {
         Utils.runOnUiThread(() -> Log.d("Stringee", "onVideoTrackNotification: " + remoteParticipant.getId() + " - " + stringeeVideoTrack.getId() + " - " + mediaType));
     }
 }

@@ -2,6 +2,7 @@ package com.stringee.video_conference_sample.main;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
@@ -76,22 +77,34 @@ public class MainViewModel extends MyViewModel {
         StringeeWrapper.getInstance(context).setConnectionListener(new ConnectionListener() {
             @Override
             public void onConnected(String userId) {
-                Utils.runOnUiThread(() -> connectStatus.setValue("Connected as " + userId));
+                Utils.runOnUiThread(() -> {
+                    Log.d("Stringee", "onConnected: "+ userId);
+                    connectStatus.setValue("Connected as " + userId);
+                });
             }
 
             @Override
             public void onDisconnected() {
-                Utils.runOnUiThread(() -> connectStatus.setValue("Disconnected"));
+                Utils.runOnUiThread(() -> {
+                    Log.d("Stringee", "Disconnected");
+                    connectStatus.setValue("Disconnected");
+                });
             }
 
             @Override
             public void onConnectionError(String error) {
-                Utils.runOnUiThread(() -> connectStatus.setValue("Connection error: " + error));
+                Utils.runOnUiThread(() -> {
+                    Log.d("Stringee", "onConnectionError: " + error);
+                    connectStatus.setValue("Connection error: " + error);
+                });
             }
 
             @Override
             public void onRequestNewToken() {
-                Utils.runOnUiThread(() -> connectStatus.setValue("Request new token"));
+                Utils.runOnUiThread(() -> {
+                    Log.d("Stringee", "onRequestNewToken");
+                    connectStatus.setValue("Request new token");
+                });
             }
         });
         StringeeWrapper.getInstance(context).connect(accessToken);
@@ -99,6 +112,10 @@ public class MainViewModel extends MyViewModel {
     }
 
     public void createRoom(Context context) {
+        if (!StringeeWrapper.getInstance(context).isConnected()) {
+            msg.setValue("Please disconnect before creating room");
+            return;
+        }
         roomName = "android-" + System.currentTimeMillis();
         TokenUtils.getInstance().createRoom(context, roomName, new CallbackListener<String>() {
             @Override
@@ -115,6 +132,11 @@ public class MainViewModel extends MyViewModel {
     }
 
     public void connectRoom(Context context) {
+        if (!StringeeWrapper.getInstance(context).isConnected()) {
+            msg.setValue("Please disconnect before connecting room");
+            return;
+        }
+
         if (Utils.isStringEmpty(roomToken.getValue())) {
             msg.setValue("Room token is empty");
             return;
