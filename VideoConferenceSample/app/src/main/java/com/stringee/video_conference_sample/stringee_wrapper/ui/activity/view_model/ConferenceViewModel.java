@@ -5,15 +5,14 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.android.flexbox.FlexboxLayoutManager;
 import com.stringee.video.StringeeVideoTrack;
-import com.stringee.video.TextureViewRenderer;
 import com.stringee.video_conference_sample.stringee_wrapper.common.Utils;
 import com.stringee.video_conference_sample.stringee_wrapper.ui.base.MyViewModel;
 import com.stringee.video_conference_sample.stringee_wrapper.wrapper.StringeeWrapper;
@@ -137,6 +136,7 @@ public class ConferenceViewModel extends MyViewModel {
             @Override
             public void onTrackAdded(StringeeVideoTrack stringeeVideoTrack) {
                 Utils.runOnUiThread(() -> {
+                    Log.d("Stringee", "onTrackAdded: " + stringeeVideoTrack.getId());
                     videoTracks.add(stringeeVideoTrack);
                     int newTotalPage = getTotalPage();
                     if (newTotalPage > totalPages.getValue()) {
@@ -149,6 +149,7 @@ public class ConferenceViewModel extends MyViewModel {
             @Override
             public void onTrackRemoved(StringeeVideoTrack stringeeVideoTrack) {
                 Utils.runOnUiThread(() -> {
+                    Log.d("Stringee", "onTrackRemoved: " + stringeeVideoTrack.getId());
                     if (videoTracks.isEmpty()) {
                         return;
                     }
@@ -171,6 +172,7 @@ public class ConferenceViewModel extends MyViewModel {
             @Override
             public void onLeaveRoom() {
                 Utils.runOnUiThread(() -> {
+                    Log.d("Stringee", "onLeaveRoom");
                     StringeeWrapper.getInstance(context).releaseRoom();
                     finishActivity.setValue(true);
                 });
@@ -178,12 +180,16 @@ public class ConferenceViewModel extends MyViewModel {
 
             @Override
             public void onSharingScreen(boolean onSharing) {
-                Utils.runOnUiThread(() -> isSharing.setValue(onSharing));
+                Utils.runOnUiThread(() -> {
+                    Log.d("Stringee", "onSharingScreen: " + onSharing);
+                    isSharing.setValue(onSharing);
+                });
             }
         });
     }
 
     private int getTotalPage() {
-        return videoTracks.size() % 6 == 0 ? videoTracks.size() / 6 : videoTracks.size() / 6 + 1;
+        int total = videoTracks.size() % 6 == 0 ? videoTracks.size() / 6 : videoTracks.size() / 6 + 1;
+        return total == 0 ? 1 : total;
     }
 }

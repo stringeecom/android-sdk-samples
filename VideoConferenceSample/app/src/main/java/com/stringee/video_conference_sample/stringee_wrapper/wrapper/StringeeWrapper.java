@@ -7,13 +7,11 @@ import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeConnectionListener;
+import com.stringee.video.StringeeVideo;
 import com.stringee.video_conference_sample.stringee_wrapper.common.Utils;
 import com.stringee.video_conference_sample.stringee_wrapper.wrapper.listener.ConnectionListener;
 
 import org.json.JSONObject;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 public class StringeeWrapper {
     private static volatile StringeeWrapper instance;
@@ -21,7 +19,6 @@ public class StringeeWrapper {
     private ConnectionListener connectionListener;
     private StringeeClient stringeeClient;
     private ConferenceWrapper conferenceWrapper;
-    private final ScheduledExecutorService executor;
 
     public void setConnectionListener(ConnectionListener connectionListener) {
         this.connectionListener = connectionListener;
@@ -29,7 +26,6 @@ public class StringeeWrapper {
 
     public StringeeWrapper(Context context) {
         this.context = context.getApplicationContext();
-        this.executor = Executors.newSingleThreadScheduledExecutor();
     }
 
     public static StringeeWrapper getInstance(Context context) {
@@ -41,10 +37,6 @@ public class StringeeWrapper {
             }
         }
         return instance;
-    }
-
-    public ScheduledExecutorService getExecutor() {
-        return executor;
     }
 
     public void connect(String token) {
@@ -127,6 +119,11 @@ public class StringeeWrapper {
         if (conferenceWrapper == null) {
             return;
         }
+        conferenceWrapper.release();
         conferenceWrapper = null;
+    }
+
+    public boolean isConnected() {
+        return stringeeClient != null && stringeeClient.isConnected();
     }
 }

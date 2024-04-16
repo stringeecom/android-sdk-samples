@@ -39,6 +39,7 @@ public class TokenUtils {
 
 
     public String genAccessToken(String userId) {
+        userId = userId.trim().replace(" ", "_");
         try {
             Algorithm algorithmHS = Algorithm.HMAC256(KEY_SECRET);
 

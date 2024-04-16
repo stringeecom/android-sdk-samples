@@ -28,7 +28,9 @@
     <!-- Graphic -->
     <uses-feature
         android:glEsVersion="0x00020000"
-        android:required="true" /> <!-- Foreground service -->
+        android:required="true" />
+
+    <!-- Foreground service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
