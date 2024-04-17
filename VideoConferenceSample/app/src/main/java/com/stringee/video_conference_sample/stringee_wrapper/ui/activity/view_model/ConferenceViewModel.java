@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
 import android.util.Log;
-import android.view.Gravity;
 import android.widget.FrameLayout;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -120,11 +119,11 @@ public class ConferenceViewModel extends MyViewModel {
                 .setTitle("Leave the room")
                 .setMessage("Leave the room at this device or all devices")
                 .setPositiveButton("Leave the room on this device", (dialog, which) -> {
-                    StringeeWrapper.getInstance(context).getConferenceWrapper().leaveRoom(false);
+                    StringeeWrapper.getInstance(context).getConferenceWrapper().leaveRoom(false, true);
                     dialog.dismiss();
                 })
                 .setNegativeButton("Leave the room on all devices", (dialog, which) -> {
-                    StringeeWrapper.getInstance(context).getConferenceWrapper().leaveRoom(true);
+                    StringeeWrapper.getInstance(context).getConferenceWrapper().leaveRoom(true, true);
                     dialog.dismiss();
                 })
                 .show();

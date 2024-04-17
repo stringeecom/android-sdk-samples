@@ -78,7 +78,7 @@ public class MainViewModel extends MyViewModel {
             @Override
             public void onConnected(String userId) {
                 Utils.runOnUiThread(() -> {
-                    Log.d("Stringee", "onConnected: "+ userId);
+                    Log.d("Stringee", "onConnected: " + userId);
                     connectStatus.setValue("Connected as " + userId);
                 });
             }
@@ -137,8 +137,8 @@ public class MainViewModel extends MyViewModel {
             return;
         }
 
-        if (Utils.isStringEmpty(roomToken.getValue())) {
-            msg.setValue("Room token is empty");
+        if (Utils.isStringEmpty(roomToken.getValue()) || TokenUtils.getInstance().isRoomTokenInvalid(roomToken.getValue())) {
+            msg.setValue("Room token is empty or invalid");
             return;
         }
 
