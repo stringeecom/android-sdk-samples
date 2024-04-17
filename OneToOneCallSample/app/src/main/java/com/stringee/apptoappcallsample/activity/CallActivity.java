@@ -39,7 +39,6 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
     private CallManager callManager;
     private SensorManagerUtils sensorManagerUtils;
     private final List<StringeeVideoTrack> remoteShareTrackList = new ArrayList<>();
-    private StringeeVideoTrack localShareTrack;
     private StringeeVideoTrack remoteShareTrack;
     private boolean isVideoCall;
     private boolean isIncomingCall;
@@ -272,26 +271,14 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
             public void onVideoTrackAdded(StringeeVideoTrack stringeeVideoTrack) {
                 runOnUiThread(() -> {
                     if (!isStringeeCall && isVideoCall) {
-                        if (stringeeVideoTrack.isLocal()) {
-                            videoCallBinding.vShare.setVisibility(View.VISIBLE);
-                            videoCallBinding.vLocalShare.setVisibility(View.VISIBLE);
-                            localShareTrack = stringeeVideoTrack;
-                            FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                            childParams.gravity = Gravity.CENTER;
-
-                            videoCallBinding.vLocalShare.removeAllViews();
-                            videoCallBinding.vLocalShare.addView(localShareTrack.getView2(CallActivity.this), childParams);
-                            localShareTrack.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-                        } else {
-                            videoCallBinding.vShare.setVisibility(View.VISIBLE);
-                            videoCallBinding.vRemoteShare.setVisibility(View.VISIBLE);
+                        if (!stringeeVideoTrack.isLocal()) {
                             if (remoteShareTrack == null) {
                                 remoteShareTrack = stringeeVideoTrack;
                                 FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
                                 childParams.gravity = Gravity.CENTER;
 
-                                videoCallBinding.vRemoteShare.removeAllViews();
-                                videoCallBinding.vRemoteShare.addView(remoteShareTrack.getView2(CallActivity.this), childParams);
+                                videoCallBinding.vRemote.removeAllViews();
+                                videoCallBinding.vRemote.addView(remoteShareTrack.getView2(CallActivity.this), childParams);
                                 remoteShareTrack.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
                             }
                             remoteShareTrackList.add(stringeeVideoTrack);
@@ -302,37 +289,38 @@ public class CallActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onVideoTrackRemoved(StringeeVideoTrack stringeeVideoTrack) {
-                if (!isStringeeCall && isVideoCall) {
-                    if (stringeeVideoTrack.isLocal()) {
-                        videoCallBinding.vLocalShare.setVisibility(View.GONE);
-                        videoCallBinding.vLocalShare.removeAllViews();
-                        localShareTrack = null;
-                    } else {
-                        for (int i = 0; i < remoteShareTrackList.size(); i++) {
-                            StringeeVideoTrack videoTrack = remoteShareTrackList.get(i);
-                            if (videoTrack.getId().equals(stringeeVideoTrack.getId()) || videoTrack.getLocalId().equals(stringeeVideoTrack.getLocalId())) {
-                                remoteShareTrackList.remove(i);
-                                break;
+                runOnUiThread(() -> {
+                    if (!isStringeeCall && isVideoCall) {
+                        if (!stringeeVideoTrack.isLocal()) {
+                            FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                            childParams.gravity = Gravity.CENTER;
+                            for (int i = 0; i < remoteShareTrackList.size(); i++) {
+                                StringeeVideoTrack videoTrack = remoteShareTrackList.get(i);
+                                if (videoTrack.getId().equals(stringeeVideoTrack.getId()) || videoTrack.getLocalId().equals(stringeeVideoTrack.getLocalId())) {
+                                    remoteShareTrackList.remove(i);
+                                    break;
+                                }
                             }
-                        }
-                        if (remoteShareTrack != null) {
-                            videoCallBinding.vRemoteShare.removeAllViews();
-                            if (remoteShareTrackList.isEmpty()) {
-                                remoteShareTrack = null;
+                            if (remoteShareTrack != null) {
+                                if (remoteShareTrackList.isEmpty()) {
+                                    remoteShareTrack = null;
+                                    videoCallBinding.vRemote.removeAllViews();
+                                    videoCallBinding.vRemote.addView(callManager.getRemoteView(), childParams);
+                                    callManager.renderRemoteView();
+                                } else {
+                                    remoteShareTrack = remoteShareTrackList.get(0);
+                                    videoCallBinding.vRemote.removeAllViews();
+                                    videoCallBinding.vRemote.addView(remoteShareTrack.getView2(CallActivity.this), childParams);
+                                    remoteShareTrack.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+                                }
                             } else {
-                                remoteShareTrack = remoteShareTrackList.get(0);
-                                FrameLayout.LayoutParams childParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                                childParams.gravity = Gravity.CENTER;
-
-                                videoCallBinding.vRemoteShare.removeAllViews();
-                                videoCallBinding.vRemoteShare.addView(remoteShareTrack.getView2(CallActivity.this), childParams);
-                                remoteShareTrack.renderView2(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+                                videoCallBinding.vRemote.removeAllViews();
+                                videoCallBinding.vRemote.addView(callManager.getRemoteView(), childParams);
+                                callManager.renderRemoteView();
                             }
                         }
                     }
-                    videoCallBinding.vShare.setVisibility(localShareTrack != null || !remoteShareTrackList.isEmpty() ? View.VISIBLE : View.GONE);
-                    videoCallBinding.vRemoteShare.setVisibility(!remoteShareTrackList.isEmpty() ? View.VISIBLE : View.GONE);
-                }
+                });
             }
         });
         if (!isIncomingCall) {

@@ -706,7 +706,7 @@ public class CallManager {
     }
 
     public void stopSharing() {
-        if (!isSharing){
+        if (!isSharing) {
             return;
         }
         if (!(callStatus == CallStatus.STARTED && call2MediaState != null && call2MediaState == StringeeCall2.MediaState.CONNECTED)) {
@@ -743,7 +743,7 @@ public class CallManager {
     }
 
     public void startCapture(MyMediaProjectionService mediaProjectionService, Intent mediaProjectionPermissionResultData) {
-        if (isSharing){
+        if (isSharing) {
             return;
         }
         if (!(callStatus == CallStatus.STARTED && call2MediaState != null && call2MediaState == StringeeCall2.MediaState.CONNECTED)) {
@@ -758,6 +758,11 @@ public class CallManager {
                         @Override
                         public void onSuccess() {
                             isSharing = true;
+                            stringeeCall2.enableVideo(false);
+                            isVideoEnable = false;
+                            if (listener != null) {
+                                listener.onVideoChange(false);
+                            }
                             if (listener != null) {
                                 listener.onSharing(true);
                             }

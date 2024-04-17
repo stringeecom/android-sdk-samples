@@ -38,7 +38,8 @@ public class ClientManager {
 
     private StringeeClient stringeeClient;
     private OnConnectionListener listener;
-    private static final String TOKEN = "PUT_YOUR_TOKEN_HERE";
+//    private static final String TOKEN = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MTMzNDgwMTk2NDIiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoicXVhbmdudDEiLCJleHAiOjE3NDQ4ODQwMTl9.3mwhSalNyIhWfjLMIdKsHDLTCBid8pgmVQzbF7FY3WE";
+        private static final String TOKEN = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MTMzNDgwMzg3NDUiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoicXVhbmdudDIiLCJleHAiOjE3NDQ4ODQwMzh9.qxzSYxI4gZRcp9vP2559PdZ6BBbUK4wekZDFOHqE-gQ";
     public boolean isInCall = false;
     public boolean isPermissionGranted = true;
 
