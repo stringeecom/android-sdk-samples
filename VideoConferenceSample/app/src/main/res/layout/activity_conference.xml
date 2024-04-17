@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".stringee_wrapper.ui.activity.CheckDeviceActivity"
+    tools:ignore="ContentDescription">
+
+    <data>
+
+        <import type="com.stringee.video_conference_sample.R" />
+
+        <import type="android.view.View" />
+
+        <variable
+            name="ConferenceViewModel"
+            type="com.stringee.video_conference_sample.stringee_wrapper.ui.activity.view_model.ConferenceViewModel" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/vp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical" />
+
+            <me.relex.circleindicator.CircleIndicator3
+                android:id="@+id/ci"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="20dp"
+                android:visibility="@{ConferenceViewModel.totalPages>1?View.VISIBLE:View.GONE}"
+                app:ci_height="10dp"
+                app:ci_margin="6dp"
+                app:ci_orientation="vertical"
+                app:ci_width="10dp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/fl_control"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent" />
+
+        <com.stringee.video_conference_sample.stringee_wrapper.ui.custom_view.DraggableFrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="100dp"
+                android:layout_height="150dp"
+                app:cardBackgroundColor="@color/black"
+                app:cardCornerRadius="20dp">
+
+                <FrameLayout
+                    android:id="@+id/fl_local"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@color/black" />
+            </androidx.cardview.widget.CardView>
+        </com.stringee.video_conference_sample.stringee_wrapper.ui.custom_view.DraggableFrameLayout>
+
+        <ImageButton
+            android:id="@+id/imb_switch"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="30dp"
+            android:background="@drawable/bg_btn_ic_selected_selector"
+            android:src="@drawable/ic_switch"
+            android:visibility="@{ConferenceViewModel.isShowControl?View.VISIBLE:View.GONE}" />
+
+        <com.google.android.flexbox.FlexboxLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="20dp"
+            android:visibility="@{ConferenceViewModel.isShowControl?View.VISIBLE:View.GONE}"
+            app:justifyContent="space_evenly">
+
+            <ImageButton
+                android:id="@+id/imb_video"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:background="@{ConferenceViewModel.isVideoOn?@drawable/bg_btn_ic_selected_selector:@drawable/bg_btn_ic_selector}"
+                android:src="@{ConferenceViewModel.isVideoOn?@drawable/ic_cam_on:@drawable/ic_cam_off}" />
+
+            <ImageButton
+                android:id="@+id/imb_mic"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:background="@{ConferenceViewModel.isMicOn?@drawable/bg_btn_ic_selected_selector:@drawable/bg_btn_ic_selector}"
+                android:src="@{ConferenceViewModel.isMicOn?@drawable/ic_mic_on:@drawable/ic_mic_off}" />
+
+            <ImageButton
+                android:id="@+id/imb_share"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:background="@{ConferenceViewModel.isSharing?@drawable/bg_btn_ic_selector:@drawable/bg_btn_ic_selected_selector}"
+                android:src="@{ConferenceViewModel.isSharing?@drawable/ic_share_off:@drawable/ic_share}" />
+
+            <ImageButton
+                android:id="@+id/imb_leave"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_btn_ic_end_selector"
+                android:src="@drawable/ic_end" />
+
+        </com.google.android.flexbox.FlexboxLayout>
+    </RelativeLayout>
+</layout>

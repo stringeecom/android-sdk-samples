@@ -38,7 +38,7 @@ public class MyMediaProjectionService extends Service {
                     try {
                         ServiceCompat.startForeground(this, Constant.MEDIA_SERVICE_ID, notification, type);
                     } catch (Exception e) {
-                        Utils.reportException(CallManager.class, e);
+                        Utils.reportException(MyMediaProjectionService.class, e);
                     }
                     callManager.startCapture(this, intent);
                 }
