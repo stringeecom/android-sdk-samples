@@ -119,19 +119,6 @@ public class ConferenceWrapper implements StringeeRoomListener {
         }
     }
 
-    public void release() {
-        if (mediaProjectionService != null) {
-            mediaProjectionService.stopService();
-        }
-
-        if (audioManager != null) {
-            audioManager.stop();
-            audioManager = null;
-        }
-
-        isLeaving = false;
-    }
-
     public void enableVideo(boolean enable) {
         if (localVideoTrack != null) {
             localVideoTrack.enableVideo(enable);
@@ -167,13 +154,21 @@ public class ConferenceWrapper implements StringeeRoomListener {
         }
     }
 
-    public void leaveRoom(boolean isLeaveAll) {
+    public void leaveRoom(boolean isLeaveAll, boolean isProactive) {
         if (isLeaving) {
             return;
         }
         isLeaving = true;
-        if (stringeeRoom != null) {
+        if (isProactive) {
             if (localVideoTrack != null) {
+                localVideoTrack.release();
+            }
+            if (localShareTrack != null) {
+                localShareTrack.release();
+            }
+        }
+        if (localVideoTrack != null) {
+            if (stringeeRoom != null) {
                 stringeeRoom.unpublish(localVideoTrack, new StatusListener() {
                     @Override
                     public void onSuccess() {
@@ -187,8 +182,11 @@ public class ConferenceWrapper implements StringeeRoomListener {
                     }
                 });
             }
+//            localVideoTrack.release();
+        }
 
-            if (localShareTrack != null) {
+        if (localShareTrack != null) {
+            if (stringeeRoom != null) {
                 stringeeRoom.unpublish(localShareTrack, new StatusListener() {
                     @Override
                     public void onSuccess() {
@@ -202,6 +200,9 @@ public class ConferenceWrapper implements StringeeRoomListener {
                     }
                 });
             }
+//            localShareTrack.release();
+        }
+        if (stringeeRoom != null && isProactive) {
             stringeeRoom.leave(isLeaveAll, new StatusListener() {
                 @Override
                 public void onSuccess() {
@@ -215,19 +216,20 @@ public class ConferenceWrapper implements StringeeRoomListener {
                 }
             });
         }
-        releaseAllLocalTrack();
+        if (mediaProjectionService != null) {
+            mediaProjectionService.stopService();
+        }
         if (conferenceListener != null) {
             conferenceListener.onLeaveRoom();
         }
-    }
+        StringeeVideo.release(context, stringeeRoom);
 
-    private void releaseAllLocalTrack() {
-        if (localVideoTrack != null) {
-            localVideoTrack.release();
+        if (audioManager != null) {
+            audioManager.stop();
+            audioManager = null;
         }
-        if (localShareTrack != null) {
-            localShareTrack.release();
-        }
+
+        isLeaving = false;
     }
 
     public void stopSharing() {
@@ -398,14 +400,7 @@ public class ConferenceWrapper implements StringeeRoomListener {
         Utils.runOnUiThread(() -> {
             Log.d("Stringee", "onParticipantDisconnected: " + stringeeRoom.getId() + " - " + remoteParticipant.getId());
             if (remoteParticipant.getId().equals(stringeeClient.getUserId())) {
-                if (isLeaving) {
-                    return;
-                }
-                isLeaving = true;
-                releaseAllLocalTrack();
-                if (conferenceListener != null) {
-                    conferenceListener.onLeaveRoom();
-                }
+                leaveRoom(true, false);
             }
         });
     }

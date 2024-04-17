@@ -1,6 +1,7 @@
 package com.stringee.video_conference_sample.stringee_wrapper.common;
 
 import android.content.Context;
+import android.util.Base64;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -15,6 +16,7 @@ import com.stringee.messaging.listeners.CallbackListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +26,6 @@ public class TokenUtils {
     private static final String KEY_SID = "SKE1RdUtUaYxNaQQ4Wr15qF1zUJuQdAaVT";
     private static final String KEY_SECRET = "M3Fkcmswc1hvYllmOGR0VzY5TXhUcXZxWFJ2OHVudVc=";
     private static final int EXPIRE_TIME = 60 * 60 * 24 * 365;
-
 
     public static TokenUtils getInstance() {
         if (instance == null) {
@@ -82,7 +83,6 @@ public class TokenUtils {
         } catch (Exception ex) {
             Utils.reportException(Utils.class, ex);
         }
-
         return null;
     }
 
@@ -112,8 +112,31 @@ public class TokenUtils {
         } catch (Exception ex) {
             Utils.reportException(Utils.class, ex);
         }
-
         return null;
+    }
+
+    public boolean isRoomTokenInvalid(String roomToken) {
+        if (Utils.isStringEmpty(roomToken)) {
+            return true;
+        }
+
+        String roomId = null;
+        try {
+            String[] parts = roomToken.split("[.]");
+            for (int i = 0; i < 2; i++) {
+                String part = parts[i];
+                byte[] partAsBytes = part.getBytes(StandardCharsets.UTF_8);
+                String decodedPart = new String(Base64.decode(partAsBytes, Base64.DEFAULT), StandardCharsets.UTF_8);
+                JSONObject jsonObject = new JSONObject(decodedPart);
+                if (jsonObject.has("roomId")) {
+                    roomId = jsonObject.optString("roomId");
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            Utils.reportException(Utils.class, e);
+        }
+        return Utils.isStringEmpty(roomId);
     }
 
     public void createRoom(Context context, String roomName, CallbackListener<String> listener) {

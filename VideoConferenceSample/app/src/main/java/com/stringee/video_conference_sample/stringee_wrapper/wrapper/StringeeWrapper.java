@@ -7,7 +7,6 @@ import com.stringee.call.StringeeCall;
 import com.stringee.call.StringeeCall2;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StringeeConnectionListener;
-import com.stringee.video.StringeeVideo;
 import com.stringee.video_conference_sample.stringee_wrapper.common.Utils;
 import com.stringee.video_conference_sample.stringee_wrapper.wrapper.listener.ConnectionListener;
 
@@ -119,7 +118,6 @@ public class StringeeWrapper {
         if (conferenceWrapper == null) {
             return;
         }
-        conferenceWrapper.release();
         conferenceWrapper = null;
     }
 
