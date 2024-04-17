@@ -20,11 +20,7 @@ public class Utils {
 
     public static boolean isStringEmpty(@Nullable CharSequence text) {
         if (text != null) {
-            if (text.toString().equalsIgnoreCase("null")) {
-                return true;
-            } else {
-                return text.toString().trim().isEmpty();
-            }
+            return text.toString().trim().isEmpty();
         } else {
             return true;
         }
