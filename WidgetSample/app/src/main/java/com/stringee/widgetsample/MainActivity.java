@@ -1,123 +1,121 @@
 package com.stringee.widgetsample;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.provider.Settings;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.stringee.call.StringeeCall;
-import com.stringee.call.StringeeCall2;
-import com.stringee.common.SocketAddress;
-import com.stringee.exception.StringeeError;
-import com.stringee.listener.StatusListener;
-import com.stringee.widget.CallConfig;
-import com.stringee.widget.StringeeListener;
-import com.stringee.widget.StringeeWidget;
-
-import java.util.List;
+import com.stringee.widgetsample.common.Constant;
+import com.stringee.widgetsample.common.PermissionsUtils;
+import com.stringee.widgetsample.common.PrefUtils;
+import com.stringee.widgetsample.common.Utils;
+import com.stringee.widgetsample.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
-
-    //put your access token here
-    public static String accessToken = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MDEzOTQ5ODgiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwiZXhwIjoxNzAzOTg2OTg4LCJ1c2VySWQiOiJpb3MxIn0.y1UAZNCg4KhmAvCDajvN_lzah3GW6iRR-OkDdTCe_nw";
-    private StringeeWidget stringeeWidget;
-    private String to;
-
-    private EditText etTo;
-    private TextView tvUserId;
+    private MainViewModel mainViewModel;
+    private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        tvUserId = findViewById(R.id.tv_userid);
-        etTo = findViewById(R.id.et_to);
+        setUpUI();
+        setUpViewModel();
 
-        Button btnVoiceCall = findViewById(R.id.btn_voice_call);
-        btnVoiceCall.setOnClickListener(new View.OnClickListener() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
-            public void onClick(View view) {
-                to = etTo.getText().toString().trim();
-                if (to.length() > 0) {
-                    CallConfig config = new CallConfig(stringeeWidget.getClient().getUserId(), to);
-                    stringeeWidget.makeCall(config, new StatusListener() {
-                        @Override
-                        public void onSuccess() {
-
-                        }
-                    });
+            public void handleOnBackPressed() {
+                if (mainViewModel.getMainState().getValue() == MainViewModel.MainState.CONNECTED) {
+                    mainViewModel.logout(MainActivity.this);
+                } else {
+                    moveTaskToBack(true);
                 }
             }
         });
-        Button btnVideoCall = findViewById(R.id.btn_video_call);
-        btnVideoCall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                to = etTo.getText().toString().trim();
-                if (to.length() > 0) {
-                    CallConfig config = new CallConfig(stringeeWidget.getClient().getUserId(), to);
-                    config.setVideoCall(true);
-                    stringeeWidget.makeCall(config, new StatusListener() {
-                        @Override
-                        public void onSuccess() {
-
-                        }
-                    });
-                }
-            }
-        });
-
-
-        initAndConnectStringee(accessToken);
     }
 
-    private void initAndConnectStringee(String token) {
-        stringeeWidget = StringeeWidget.getInstance(this);
-//        List<SocketAddress> socketAddressList= new java.util.ArrayList<>();
-//        socketAddressList.add(new SocketAddress("your host",your_port);
-//        stringeeWidget.setHost(socketAddressList);
-        stringeeWidget.setListener(new StringeeListener() {
-            @Override
-            public void onConnectionConnected() {
-                Log.d("Stringee", "onConnectionConnected");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        tvUserId.setText("Connected as: " + stringeeWidget.getClient().getUserId());
-                    }
-                });
-            }
-
-            @Override
-            public void onConnectionDisconnected() {
-                Log.d("Stringee", "onConnectionDisconnected");
-            }
-
-            @Override
-            public void onConnectionError(StringeeError error) {
-                Log.d("Stringee", "onConnectionError: " + error.getMessage());
-            }
-
-            @Override
-            public void onRequestNewToken() {
-                Log.d("Stringee", "onRequestNewToken");
-            }
-
-            @Override
-            public void onCallStateChange(StringeeCall stringeeCall, StringeeCall.SignalingState signalingState) {
-
-            }
-
-            @Override
-            public void onCallStateChange2(StringeeCall2 stringeeCall, StringeeCall2.SignalingState signalingState) {
-
+    private void setUpViewModel() {
+        mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        mainViewModel.getMsg().observe(this, msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show());
+        mainViewModel.getNeedRequestPermission().observe(this, needRequestPermission -> {
+            if (needRequestPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                PermissionsUtils.getInstance().requestNotificationPermissions(this);
             }
         });
-        stringeeWidget.connect(token);
+        mainViewModel.getMainState().observe(this, mainState -> {
+            if (getCurrentFocus() != null) {
+                if (getSystemService(Context.INPUT_METHOD_SERVICE) != null) {
+                    InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    if (inputMethodManager != null && getCurrentFocus() != null) {
+                        inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.RESULT_UNCHANGED_SHOWN);
+                        getCurrentFocus().clearFocus();
+                    }
+                }
+            }
+        });
+        binding.setMainViewModel(mainViewModel);
+        binding.setLifecycleOwner(this);
+
+        String token = PrefUtils.getInstance(this).getString(Constant.PREF_TOKEN, "");
+        if (!Utils.isStringEmpty(token)) {
+            mainViewModel.getAccessToken().setValue(token);
+            mainViewModel.connect(this);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !PermissionsUtils.getInstance().checkSelfNotificationPermission(this)) {
+            mainViewModel.getNeedRequestPermission().setValue(true);
+        }
+    }
+
+    private void setUpUI() {
+        binding.btnConnect.setOnClickListener(v -> {
+            if (mainViewModel.getMainState().getValue() == MainViewModel.MainState.CONNECTED) {
+                mainViewModel.logout(this);
+            } else {
+                mainViewModel.connect(this);
+            }
+        });
+        binding.btnVoiceCall.setOnClickListener(v -> mainViewModel.makeCall(this, false));
+        binding.btnVideoCall.setOnClickListener(v -> mainViewModel.makeCall(this, true));
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        boolean isGranted = PermissionsUtils.getInstance().verifyPermissions(grantResults);
+        if (requestCode == PermissionsUtils.REQUEST_NOTIFICATION_PERMISSION && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!isGranted) {
+                if (PermissionsUtils.getInstance().shouldRequestNotificationPermissionRationale(this)) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle(R.string.app_name);
+                    builder.setMessage("Permissions must be granted for show incoming call notification");
+                    builder.setPositiveButton("Ok", (dialogInterface, id) -> dialogInterface.cancel());
+                    builder.setNegativeButton("Settings", (dialogInterface, id) -> {
+                        dialogInterface.cancel();
+                        // open app setting
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivity(intent);
+                    });
+                    builder.create().show();
+                }
+            }
+        }
     }
 }
