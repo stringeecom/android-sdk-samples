@@ -8,13 +8,14 @@ material = "1.11.0"
 coreSplashscreen = "1.1.0-rc01"
 annotation = "1.7.1"
 javaJwt = "4.4.0"
-core = "1.13.0-rc01"
+core = "1.13.0"
 constraintlayout = "2.1.4"
 lifecycleLivedataKtx = "2.7.0"
 lifecycleViewmodelKtx = "2.7.0"
 volley = "1.2.1"
 flexbox = "3.0.0"
 circleindicator = "2.1.6"
+stringeeAndroidSdk = "2.1.2"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -32,6 +33,7 @@ lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-view
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
 circleindicator = { group = "me.relex", name = "circleindicator", version.ref = "circleindicator" }
+stringee-android-sdk = { group = "com.stringee.sdk.android", name = "stringee-android-sdk", version.ref = "stringeeAndroidSdk" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
