@@ -23,3 +23,9 @@
 -dontwarn org.webrtc.**
 -keep class org.webrtc.** { *; }
 -keep class com.stringee.** { *; }
+
+-dontwarn org.apache.http.**
+-keep class org.apache.http.** { *; }
+-keep class org.apache.** { *; }
+-keep class android.net.http.AndroidHttpClient.** { *; }
+-dontwarn com.stringee.R$styleable
