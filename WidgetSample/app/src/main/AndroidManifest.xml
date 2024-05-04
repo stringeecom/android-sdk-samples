@@ -78,6 +78,15 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:turnScreenOn="true"
             android:windowSoftInputMode="stateAlwaysHidden" />
+
+        <service android:name="com.stringee.widget.call.receiver.RejectCallService" />
+        <receiver
+            android:name="com.stringee.widget.call.receiver.GSMCallStateReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
