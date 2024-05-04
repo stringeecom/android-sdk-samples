@@ -183,5 +183,6 @@ public class MainViewModel extends ViewModel {
         StringeeWidget.getInstance(context).finalize();
         PrefUtils.getInstance(context).clearData();
         mainState.setValue(MainState.NOT_CONNECTED);
+        connectStatus.setValue("");
     }
 }
