@@ -44,6 +44,7 @@ dependencies {
     implementation libs.core.splashscreen
     implementation libs.flexbox
     implementation libs.volley
+    implementation libs.stringee.android.widget
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
