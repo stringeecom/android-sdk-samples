@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,10 @@ import com.stringee.apptoappcallsample.common.PermissionsUtils;
 import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.apptoappcallsample.databinding.ActivityMainBinding;
 import com.stringee.apptoappcallsample.manager.ClientManager;
+import com.stringee.messaging.Conversation;
+import com.stringee.messaging.listeners.CallbackListener;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, LifecycleObserver {
     private ActivityMainBinding binding;
@@ -48,7 +53,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         boolean isGranted = PermissionsUtils.getInstance().verifyPermissions(grantResults);
         if (requestCode == PermissionsUtils.REQUEST_PERMISSION) {
@@ -58,7 +64,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Builder builder = new Builder(this);
                     builder.setTitle(string.app_name);
                     builder.setMessage("Permissions must be granted for the call");
-                    builder.setPositiveButton("Ok", (dialogInterface, id) -> dialogInterface.cancel());
+                    builder.setPositiveButton("Ok",
+                            (dialogInterface, id) -> dialogInterface.cancel());
                     builder.setNegativeButton("Settings", (dialogInterface, id) -> {
                         dialogInterface.cancel();
                         // open app setting
@@ -75,7 +82,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void initAndConnectStringee() {
-        clientManager.addOnConnectionListener(status -> runOnUiThread(() -> binding.tvStatus.setText(status)));
+        clientManager.addOnConnectionListener(
+                status -> runOnUiThread(() -> binding.tvStatus.setText(status)));
         clientManager.connect();
     }
 
@@ -94,7 +102,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void makeCall(boolean isStringeeCall, boolean isVideoCall) {
-        if (Utils.isStringEmpty(binding.etTo.getText()) || !clientManager.getStringeeClient().isConnected()) {
+        if (Utils.isStringEmpty(binding.etTo.getText()) ||
+                !clientManager.getStringeeClient().isConnected()) {
             return;
         }
         if (!clientManager.isPermissionGranted) {

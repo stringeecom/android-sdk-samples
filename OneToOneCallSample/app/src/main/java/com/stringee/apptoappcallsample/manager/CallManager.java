@@ -366,16 +366,6 @@ public class CallManager {
                 public void onTrackMediaStateChange(String s, StringeeVideoTrack.MediaType mediaType, boolean b) {
 
                 }
-
-                @Override
-                public void onLocalTrackAdded(StringeeCall2 stringeeCall2, StringeeVideoTrack stringeeVideoTrack) {
-
-                }
-
-                @Override
-                public void onRemoteTrackAdded(StringeeCall2 stringeeCall2, StringeeVideoTrack stringeeVideoTrack) {
-
-                }
             });
         }
     }
@@ -623,11 +613,7 @@ public class CallManager {
             release();
             return;
         }
-        if (isStringeeCall) {
-            audioManagerUtils.setSpeakerphoneOn(!isSpeakerOn);
-        } else {
-            audioManagerUtils.setSpeakerphoneOn(!isSpeakerOn);
-        }
+        audioManagerUtils.setSpeakerphoneOn(!isSpeakerOn);
         handleResponse("changeSpeaker", true, null);
         isSpeakerOn = !isSpeakerOn;
         if (listener != null) {
