@@ -12,8 +12,6 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -48,8 +46,6 @@ dependencies {
     implementation libs.volley
     implementation libs.flexbox
     implementation libs.circleindicator
-//    implementation libs.stringee.android.sdk
-    testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
+    implementation libs.stringee.android.sdk
+    implementation libs.android
 }
