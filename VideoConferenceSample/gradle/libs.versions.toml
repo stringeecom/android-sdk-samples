@@ -1,5 +1,6 @@
 [versions]
 agp = "8.3.1"
+android = "137.7151.03"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
@@ -15,9 +16,10 @@ lifecycleViewmodelKtx = "2.7.0"
 volley = "1.2.1"
 flexbox = "3.0.0"
 circleindicator = "2.1.6"
-stringeeAndroidSdk = "2.1.2"
+stringeeAndroidSdk = "2.1.5"
 
 [libraries]
+android = { module = "io.github.webrtc-sdk:android", version.ref = "android" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -37,4 +39,3 @@ stringee-android-sdk = { group = "com.stringee.sdk.android", name = "stringee-an
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
-
