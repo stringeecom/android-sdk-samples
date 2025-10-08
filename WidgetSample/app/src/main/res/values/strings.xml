@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">WidgetSample</string>
+    <string name="connect">Connect</string>
+    <string name="log_out">Logout</string>
+    <string name="voice_call">Voice call</string>
+    <string name="video_call">Video call</string>
+    <string name="to">To</string>
+    <string name="access_token">Access token</string>
+    <string name="start">Start</string>
+    <string name="from">From</string>
 </resources>

@@ -1,1 +1,0 @@
-# Stringee Android SDK Samples
