@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -19,14 +18,11 @@ import com.stringee.apptoappcallsample.common.PermissionsUtils;
 import com.stringee.apptoappcallsample.common.Utils;
 import com.stringee.apptoappcallsample.databinding.ActivityMainBinding;
 import com.stringee.apptoappcallsample.manager.ClientManager;
-import com.stringee.messaging.Conversation;
-import com.stringee.messaging.listeners.CallbackListener;
-
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, LifecycleObserver {
     private ActivityMainBinding binding;
     private ClientManager clientManager;
+    public static final String TOKEN = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void initAndConnectStringee() {
         clientManager.addOnConnectionListener(
                 status -> runOnUiThread(() -> binding.tvStatus.setText(status)));
-        clientManager.connect();
+        clientManager.connect(TOKEN);
     }
 
     @Override
