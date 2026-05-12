@@ -61,7 +61,7 @@ public class CallManager {
     public CallManager(Context context) {
         this.context = context.getApplicationContext();
         this.audioManagerUtils = AudioManagerUtils.getInstance(context);
-        this.audioManagerUtils.setAudioEvents(selectedAudioDevice -> Utils.runOnUiThread(() -> Log.d(Constant.TAG, "onAudioEvents: selectedAudioDevice - " + selectedAudioDevice.name())));
+        this.audioManagerUtils.setAudioEvents((selectedAudioDevice, availableAudioDevices) -> Utils.runOnUiThread(() -> Log.d(Constant.TAG, "onAudioDeviceChanged: selected - " + selectedAudioDevice.name() + ", available - " + availableAudioDevices)));
         this.clientManager = ClientManager.getInstance(context);
     }
 
@@ -234,6 +234,30 @@ public class CallManager {
                 }
             });
         } else {
+            stringeeCall2.setCaptureSessionListener(new StringeeVideoTrack.CaptureSessionListener() {
+                @Override
+                public void onCapturerStarted(StringeeVideoTrack.TrackType trackType) {
+                    Log.d(Constant.TAG, "onCapturerStarted: " + trackType);
+                }
+
+                @Override
+                public void onCapturerStopped(StringeeVideoTrack.TrackType trackType) {
+                    Utils.runOnUiThread(() -> {
+                        Log.d(Constant.TAG, "onCapturerStopped: " + trackType);
+                        if (trackType == StringeeVideoTrack.TrackType.SCREEN && isSharing) {
+                            isSharing = false;
+                            if (mediaProjectionService != null) {
+                                mediaProjectionService.stopService();
+                                mediaProjectionService = null;
+                            }
+                            screenCapture = null;
+                            if (listener != null) {
+                                listener.onSharing(false);
+                            }
+                        }
+                    });
+                }
+            });
             stringeeCall2.setCallListener(new StringeeCall2.StringeeCallListener() {
                 @Override
                 public void onSignalingStateChange(StringeeCall2 stringeeCall2, StringeeCall2.SignalingState signalingState, String reason, int sipCode, String sipReason) {
@@ -310,45 +334,38 @@ public class CallManager {
                 }
 
                 @Override
-                public void onLocalStream(StringeeCall2 stringeeCall2) {
+                public void onLocalTrackAdded(StringeeCall2 stringeeCall2, StringeeVideoTrack stringeeVideoTrack) {
                     Utils.runOnUiThread(() -> {
-                        Log.d(Constant.TAG, "onLocalStream");
-                        if (isVideoCall) {
-                            if (listener != null) {
-                                listener.onReceiveLocalStream();
-                            }
+                        Log.d(Constant.TAG, "onLocalTrackAdded: " + stringeeVideoTrack.getId());
+                        if (stringeeVideoTrack.getTrackType() == StringeeVideoTrack.TrackType.SCREEN) {
+                            return;
+                        }
+                        if (isVideoCall && listener != null) {
+                            listener.onReceiveLocalStream();
                         }
                     });
                 }
 
                 @Override
-                public void onRemoteStream(StringeeCall2 stringeeCall2) {
+                public void onRemoteTrackAdded(StringeeCall2 stringeeCall2, StringeeVideoTrack stringeeVideoTrack) {
                     Utils.runOnUiThread(() -> {
-                        Log.d(Constant.TAG, "onRemoteStream");
-                        if (isVideoCall) {
-                            if (listener != null) {
-                                listener.onReceiveRemoteStream();
-                            }
-                        }
-                    });
-                }
-
-                @Override
-                public void onVideoTrackAdded(StringeeVideoTrack stringeeVideoTrack) {
-                    Utils.runOnUiThread(() -> {
-                        Log.d(Constant.TAG, "onVideoTrackAdded: " + stringeeVideoTrack.getId());
+                        Log.d(Constant.TAG, "onRemoteTrackAdded: " + stringeeVideoTrack.getId());
                         if (stringeeVideoTrack.getTrackType() == StringeeVideoTrack.TrackType.SCREEN) {
                             if (listener != null) {
                                 listener.onVideoTrackAdded(stringeeVideoTrack);
                             }
+                            return;
+                        }
+                        if (isVideoCall && listener != null) {
+                            listener.onReceiveRemoteStream();
                         }
                     });
                 }
 
                 @Override
-                public void onVideoTrackRemoved(StringeeVideoTrack stringeeVideoTrack) {
+                public void onRemoteTrackRemoved(StringeeCall2 stringeeCall2, StringeeVideoTrack stringeeVideoTrack) {
                     Utils.runOnUiThread(() -> {
-                        Log.d(Constant.TAG, "onVideoTrackRemoved: " + stringeeVideoTrack.getId());
+                        Log.d(Constant.TAG, "onRemoteTrackRemoved: " + stringeeVideoTrack.getId());
                         if (stringeeVideoTrack.getTrackType() == StringeeVideoTrack.TrackType.SCREEN) {
                             if (listener != null) {
                                 listener.onVideoTrackRemoved(stringeeVideoTrack);

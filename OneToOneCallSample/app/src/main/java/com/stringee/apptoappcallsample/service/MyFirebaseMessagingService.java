@@ -1,5 +1,7 @@
 package com.stringee.apptoappcallsample.service;
 
+import static com.stringee.apptoappcallsample.activity.MainActivity.TOKEN;
+
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -17,17 +19,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
+
     @Override
     public void onNewToken(@NonNull String token) {
         if (ClientManager.getInstance(this).getStringeeClient() == null) {
-            ClientManager.getInstance(this).connect();
+            ClientManager.getInstance(this).connect(TOKEN);
         }
-        ClientManager.getInstance(this).getStringeeClient().registerPushToken(token, new StatusListener() {
-            @Override
-            public void onSuccess() {
+        ClientManager.getInstance(this).getStringeeClient().registerPushToken(
+                token, new StatusListener() {
+                    @Override
+                    public void onSuccess() {
 
-            }
-        });
+                    }
+                }
+        );
     }
 
     @Override
@@ -42,10 +47,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         JSONObject jsonObject = new JSONObject(data);
                         String callStatus = jsonObject.optString("callStatus");
                         if (callStatus.equals("started")) {
-                            ClientManager.getInstance(this).connect();
+                            ClientManager.getInstance(this).connect(TOKEN);
                         }
-                        if (callStatus.equals("ended") || callStatus.equals("answered") || callStatus.equals("agentEnded")) {
-                            NotificationUtils.getInstance(this).cancelNotification(Constant.INCOMING_CALL_ID);
+                        if (callStatus.equals("ended") || callStatus.equals("answered") ||
+                                callStatus.equals("agentEnded")) {
+                            NotificationUtils.getInstance(this).cancelNotification(
+                                    Constant.INCOMING_CALL_ID);
                             AudioManagerUtils.getInstance(this).stopRinging();
                         }
                     } catch (JSONException e) {

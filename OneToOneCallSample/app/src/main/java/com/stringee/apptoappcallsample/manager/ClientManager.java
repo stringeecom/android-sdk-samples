@@ -38,8 +38,6 @@ public class ClientManager {
 
     private StringeeClient stringeeClient;
     private OnConnectionListener listener;
-//    private static final String TOKEN = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MTMzNDgwMTk2NDIiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoicXVhbmdudDEiLCJleHAiOjE3NDQ4ODQwMTl9.3mwhSalNyIhWfjLMIdKsHDLTCBid8pgmVQzbF7FY3WE";
-        private static final String TOKEN = "eyJjdHkiOiJzdHJpbmdlZS1hcGk7dj0xIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZULTE3MTMzNDgwMzg3NDUiLCJpc3MiOiJTS0UxUmRVdFVhWXhOYVFRNFdyMTVxRjF6VUp1UWRBYVZUIiwidXNlcklkIjoicXVhbmdudDIiLCJleHAiOjE3NDQ4ODQwMzh9.qxzSYxI4gZRcp9vP2559PdZ6BBbUK4wekZDFOHqE-gQ";
     public boolean isInCall = false;
     public boolean isPermissionGranted = true;
 
@@ -51,7 +49,7 @@ public class ClientManager {
         this.listener = listener;
     }
 
-    public void connect() {
+    public void connect(String token) {
         if (stringeeClient == null) {
             stringeeClient = new StringeeClient(context);
 //            Set host
@@ -59,7 +57,7 @@ public class ClientManager {
 //            socketAddressList.add(new SocketAddress("YOUR_IP", YOUR_PORT));
 //            stringeeClient.setHost(socketAddressList);
 
-            stringeeClient.setConnectionListener(new StringeeConnectionListener() {
+            stringeeClient.addConnectionListener(new StringeeConnectionListener() {
                 @Override
                 public void onConnectionConnected(final StringeeClient stringeeClient, boolean isReconnecting) {
                     Utils.runOnUiThread(() -> {
@@ -171,7 +169,7 @@ public class ClientManager {
             });
         }
         if (!stringeeClient.isConnected()) {
-            stringeeClient.connect(TOKEN);
+            stringeeClient.connect(token);
         }
     }
 }

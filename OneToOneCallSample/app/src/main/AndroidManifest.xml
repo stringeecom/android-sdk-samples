@@ -101,6 +101,9 @@
                 <action android:name="com.stringee.action_reject" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".service.MediaDismissReceiver"
+            android:exported="false" />
         <service
             android:name=".service.MyMediaProjectionService"
             android:exported="false"

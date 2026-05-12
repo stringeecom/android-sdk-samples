@@ -48,7 +48,7 @@ public class MyMediaProjectionService extends Service {
     }
 
     public void stopService() {
-        stopForeground(STOP_FOREGROUND_REMOVE);
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         stopSelf();
     }
 

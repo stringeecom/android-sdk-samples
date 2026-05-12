@@ -6,18 +6,17 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Builder;
+import androidx.core.app.Person;
+import androidx.core.graphics.drawable.IconCompat;
 
 import com.stringee.apptoappcallsample.R;
 import com.stringee.apptoappcallsample.activity.CallActivity;
+import com.stringee.apptoappcallsample.service.MediaDismissReceiver;
 import com.stringee.apptoappcallsample.service.RejectCallReceiver;
 
 public class NotificationUtils {
@@ -99,24 +98,27 @@ public class NotificationUtils {
         actionRejectIntent.putExtra(Constant.PARAM_IS_STRINGEE_CALL, isStringeeCall);
         PendingIntent actionRejectPendingIntent = PendingIntent.getBroadcast(context, (int) (System.currentTimeMillis() & 0xfffffff), actionRejectIntent, flag);
 
-        SpannableString answerTitle = new SpannableString("Answer");
-        answerTitle.setSpan(new ForegroundColorSpan(Color.parseColor("#57D24D")), 0, answerTitle.length(), 0);
-
-        Spannable endTitle = new SpannableString("Reject");
-        endTitle.setSpan(new ForegroundColorSpan(Color.parseColor("#F64D64")), 0, endTitle.length(), 0);
+        Person.Builder personBuilder = new Person.Builder();
+        personBuilder.setName(from);
+        personBuilder.setImportant(true);
+        personBuilder.setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher));
+        Person person = personBuilder.build();
 
         Builder notificationBuilder = new Builder(context, channelId);
-        notificationBuilder.setContentTitle("Incoming call");
-        notificationBuilder.setContentText("incoming call from: " + from);
+        notificationBuilder.setStyle(
+                NotificationCompat.CallStyle.forIncomingCall(person, actionRejectPendingIntent, actionAnswerPendingIntent)
+                        .setIsVideo(isVideoCall));
+        notificationBuilder.addPerson(person);
+        notificationBuilder.setContentText("Incoming call from: " + from);
         notificationBuilder.setSmallIcon(R.mipmap.ic_launcher);
         notificationBuilder.setOngoing(true);
         notificationBuilder.setAutoCancel(false);
         notificationBuilder.setVibrate(new long[0]);
-        notificationBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        notificationBuilder.setPriority(NotificationCompat.PRIORITY_MAX);
         notificationBuilder.setCategory(NotificationCompat.CATEGORY_CALL);
-        notificationBuilder.addAction(R.drawable.ic_answer_call, answerTitle, actionAnswerPendingIntent);
-        notificationBuilder.addAction(R.drawable.ic_end_call, endTitle, actionRejectPendingIntent);
-        notificationBuilder.setFullScreenIntent(fullScreenPendingIntent, true);
+        if (canUseFullScreenIntent()) {
+            notificationBuilder.setFullScreenIntent(fullScreenPendingIntent, true);
+        }
         notificationBuilder.setShowWhen(false);
 
         Notification incomingCallNotification = notificationBuilder.build();
@@ -147,6 +149,9 @@ public class NotificationUtils {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, (int) (System.currentTimeMillis() & 0xfffffff), intent, flag);
 
+        Intent dismissIntent = new Intent(context, MediaDismissReceiver.class);
+        PendingIntent dismissPendingIntent = PendingIntent.getBroadcast(context, 0, dismissIntent, flag);
+
         Builder builder = new Builder(context, Constant.MEDIA_CHANNEL_ID);
         builder.setSmallIcon(R.mipmap.icon);
         builder.setSound(null);
@@ -155,6 +160,15 @@ public class NotificationUtils {
         builder.setContentIntent(pendingIntent);
         builder.setOngoing(true);
         builder.setCategory(NotificationCompat.CATEGORY_SERVICE);
+        builder.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE);
+        builder.setDeleteIntent(dismissPendingIntent);
         return builder.build();
+    }
+
+    private boolean canUseFullScreenIntent() {
+        if (VERSION.SDK_INT >= 34) {
+            return nm != null && nm.canUseFullScreenIntent();
+        }
+        return true;
     }
 }
