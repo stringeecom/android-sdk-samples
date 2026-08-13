@@ -1,7 +1,20 @@
-OneToOneCallSample/app/release/
-OneToOneCallSample/.idea/
-**/app/release/
+# Android Studio and local machine files
 **/.idea/
-ConferenceCallSample/.gradle/
-ConferenceCallSample/.idea/
-ConferenceCallSample/local.properties
+**/.gradle/
+**/local.properties
+*.iml
+.DS_Store
+
+# Firebase Android client configuration
+**/google-services.json
+
+# Build and packaged artifacts
+**/build/
+**/app/release/
+**/captures/
+*.apk
+*.aab
+
+# Local signing material
+**/*.jks
+**/*.keystore
