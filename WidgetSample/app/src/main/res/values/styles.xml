@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="StringeeSectionTitle" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">@color/stringee_ink</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="StringeeSubsectionTitle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/stringee_ink</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="StringeeBodyText" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/stringee_text</item>
+    </style>
+
+    <style name="StringeeButtonShape" parent="ShapeAppearance.Material3.Corner.Full" />
+
+    <style name="StringeeCallButtonShape" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="StringeePanelShape" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="StringeeButtonPrimary" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="backgroundTint">@color/stringee_red_strong</item>
+        <item name="shapeAppearance">@style/StringeeButtonShape</item>
+    </style>
+
+    <style name="StringeeButtonSecondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textColor">@color/stringee_red</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="backgroundTint">@color/stringee_surface</item>
+        <item name="shapeAppearance">@style/StringeeButtonShape</item>
+        <item name="strokeColor">@color/stringee_red</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="StringeeButtonVoice" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="backgroundTint">@color/stringee_red_strong</item>
+        <item name="shapeAppearance">@style/StringeeCallButtonShape</item>
+    </style>
+
+    <style name="StringeeButtonVideo" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/stringee_navy</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="backgroundTint">@color/stringee_green</item>
+        <item name="shapeAppearance">@style/StringeeCallButtonShape</item>
+    </style>
+
+    <style name="StringeeTextButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/stringee_red_strong</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="StringeeTextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/stringee_surface</item>
+        <item name="boxStrokeColor">@color/stringee_red</item>
+        <item name="hintTextColor">@color/stringee_muted</item>
+        <item name="shapeAppearance">@style/StringeeCallButtonShape</item>
+    </style>
+</resources>
