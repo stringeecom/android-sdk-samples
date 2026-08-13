@@ -59,12 +59,15 @@ public class MainActivity extends AppCompatActivity {
                 if (getSystemService(Context.INPUT_METHOD_SERVICE) != null) {
                     InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     if (inputMethodManager != null && getCurrentFocus() != null) {
-                        inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.RESULT_UNCHANGED_SHOWN);
+                        inputMethodManager.hideSoftInputFromWindow(
+                                getCurrentFocus().getWindowToken(),
+                                InputMethodManager.HIDE_NOT_ALWAYS);
                         getCurrentFocus().clearFocus();
                     }
                 }
             }
         });
+        mainViewModel.initialize(this);
         binding.setMainViewModel(mainViewModel);
         binding.setLifecycleOwner(this);
     }
@@ -72,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
     private void setUpUI() {
         binding.imbBack.setOnClickListener(v -> mainViewModel.backPress(this));
         binding.btnConnect.setOnClickListener(v -> mainViewModel.connectClient(this));
-        binding.btnCreateRoom.setOnClickListener(v -> mainViewModel.createRoom(this));
         binding.btnConnectRoom.setOnClickListener(v -> mainViewModel.connectRoom(this));
     }
 

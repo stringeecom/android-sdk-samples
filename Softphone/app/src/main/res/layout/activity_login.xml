@@ -24,7 +24,7 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/logo" />
 
-            <android.support.design.widget.TextInputLayout
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
@@ -38,7 +38,7 @@
                     android:inputType="phone"
                     android:textColor="@color/text_input"
                     android:textSize="@dimen/text_size_18" />
-            </android.support.design.widget.TextInputLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <Button
                 android:id="@+id/btn_login"

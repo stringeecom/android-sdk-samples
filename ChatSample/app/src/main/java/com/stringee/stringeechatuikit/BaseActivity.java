@@ -32,6 +32,7 @@ import com.stringee.messaging.listeners.ChangeEventListener;
 import com.stringee.messaging.listeners.LiveChatEventListener;
 import com.stringee.stringeechatuikit.common.Common;
 import com.stringee.stringeechatuikit.common.Constant;
+import com.stringee.stringeechatuikit.common.ConnectionTokenState;
 import com.stringee.stringeechatuikit.common.PrefUtils;
 import com.stringee.stringeechatuikit.common.Utils;
 
@@ -43,12 +44,16 @@ import java.util.List;
 public class BaseActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ProgressDialog prLoading;
-    public final String accessToken = "PUT_YOUR_TOKEN_HERE";
+    public String accessToken = "";
+    private ConnectionTokenState connectionTokenState;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initAndConnectStringee(accessToken);
+        connectionTokenState = new ConnectionTokenState(
+                PrefUtils.getString(Constant.PREF_ACCESS_TOKEN, ""));
+        accessToken = connectionTokenState.getSavedToken();
+        initAndConnectStringee(connectionTokenState.consumeAutoConnectToken());
 
         PermissionsUtils.getInstance().requestPermissions(this, PermissionsUtils.PERMISSIONS_LOCATION, PermissionsUtils.REQUEST_LOCATION);
     }
@@ -79,9 +84,14 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
             // Common.client.setHost(socketAddressList);
             // Common.client.setBaseAPIUrl("YOUR_BASE_API_URL");
             // Common.client.setStringeeXBaseUrl("YOUR_STRINGEE_X_BASE_URL");
-            Common.client.setConnectionListener(new StringeeConnectionListener() {
+            Common.client.addConnectionListener(new StringeeConnectionListener() {
                 @Override
                 public void onConnectionConnected(final StringeeClient client, boolean isReconnecting) {
+                    String successfulToken = connectionTokenState.onConnected();
+                    if (!successfulToken.isEmpty()) {
+                        accessToken = successfulToken;
+                        PrefUtils.putString(Constant.PREF_ACCESS_TOKEN, successfulToken);
+                    }
                     if (!isReconnecting && !PrefUtils.getBoolean(Constant.PREF_REGISTERED_PUSH_TOKEN, false)) {
                         FirebaseMessaging.getInstance().getToken().addOnSuccessListener(deviceToken -> Common.client.registerPushToken(deviceToken, new StatusListener() {
                             @Override
@@ -115,6 +125,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onConnectionError(StringeeClient client, StringeeError error) {
+                    connectionTokenState.onConnectionError();
                     Log.d("Stringee", "onConnectionError: " + error.getMessage());
                 }
 
@@ -134,7 +145,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
 
-            Common.client.setChangeEventListener(new ChangeEventListener() {
+            Common.client.addChangeEventListener(new ChangeEventListener() {
                 @Override
                 public void onChangeEvent(StringeeChange change) {
                     changeEvent(change);
@@ -142,7 +153,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
             });
             Common.isChangeListenerSet = true;
 
-            Common.client.setLiveChatEventListener(new LiveChatEventListener() {
+            Common.client.addLiveChatEventListener(new LiveChatEventListener() {
                 @Override
                 public void onReceiveChatRequest(ChatRequest chatRequest) {
 
@@ -182,14 +193,15 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
         }
-        if (!Utils.isStringEmpty(token)) {
-            Common.client.connect(token);
+        String tokenToConnect = connectionTokenState.beginConnect(token);
+        if (!tokenToConnect.isEmpty()) {
+            Common.client.connect(tokenToConnect);
         }
     }
 
     public static void notifyMessage(final Message message, final BaseActivity context) {
-        if (!(Common.isChatting && Common.currentConvId != null && Common.currentConvId.equals(message.getConversationId())) && message.getMsgType() == Message.MsgType.RECEIVE && !message.getSenderId().equals(Common.client.getUserId())) {
-            String from = message.getSenderId();
+        if (!(Common.isChatting && Common.currentConvId != null && Common.currentConvId.equals(message.getConversationId())) && message.getMsgType() == Message.MsgType.RECEIVE && !Utils.getSenderId(message).equals(Common.client.getUserId())) {
+            String from = Utils.getSenderId(message);
             String senderName = from;
             User user = Common.client.getUser(from);
             if (user != null && user.getName() != null && user.getName().length() > 0) {
@@ -208,7 +220,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                                 notificationText = message.getText();
                                 break;
                             case CREATE_CONVERSATION:
-                                notificationText = context.getString(R.string.create_conversation, message.getSenderName());
+                                notificationText = context.getString(R.string.create_conversation, Utils.getSenderName(message));
                                 break;
                             case LOCATION:
                                 notificationText = context.getString(R.string.location);

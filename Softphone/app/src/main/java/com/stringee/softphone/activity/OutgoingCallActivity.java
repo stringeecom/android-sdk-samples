@@ -21,12 +21,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.Vibrator;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AlertDialog;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -40,6 +40,7 @@ import android.widget.TextView;
 import com.stringee.call.StringeeCall;
 import com.stringee.softphone.R;
 import com.stringee.softphone.common.Common;
+import com.stringee.softphone.common.CallSdkCompat;
 import com.stringee.softphone.common.Constant;
 import com.stringee.softphone.common.DataHandler;
 import com.stringee.softphone.common.DateTimeUtils;
@@ -376,7 +377,7 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                 btnSpeaker.setImageResource(R.drawable.ic_speaker_off);
             }
             if (outgoingCall != null) {
-                outgoingCall.setSpeakerphoneOn(isSpeaker);
+                CallSdkCompat.setSpeakerphoneOn(this, isSpeaker);
             }
         } else if (v.getId() == R.id.btn_end_call) {
             tvStatus.setText(R.string.call_ended);
@@ -460,9 +461,9 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
         }
 
         if (isCallOut) {
-            outgoingCall = new StringeeCall(this, Common.client, PrefUtils.getInstance(this).getString(Constant.PREF_SELECTED_NUMBER, ""), Utils.formatPhone(phone));
+            outgoingCall = new StringeeCall(Common.client, PrefUtils.getInstance(this).getString(Constant.PREF_SELECTED_NUMBER, ""), Utils.formatPhone(phone));
         } else {
-            outgoingCall = new StringeeCall(this, Common.client, PrefUtils.getInstance(this).getString(Constant.PREF_USER_ID, ""), Utils.formatPhone(phone));
+            outgoingCall = new StringeeCall(Common.client, PrefUtils.getInstance(this).getString(Constant.PREF_USER_ID, ""), Utils.formatPhone(phone));
         }
         outgoingCall.setVideoCall(isVideoCall);
         outgoingCall.setCallListener(new StringeeCall.StringeeCallListener() {
@@ -754,7 +755,7 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                                         try {
                                             answerObject.put("type", "answerCameraRequest");
                                             answerObject.put("accept", false);
-                                            outgoingCall.sendCallInfo(answerObject);
+                                            CallSdkCompat.sendCallInfo(outgoingCall, answerObject);
 
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -768,7 +769,7 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                                         try {
                                             answerObject.put("type", "answerCameraRequest");
                                             answerObject.put("accept", true);
-                                            outgoingCall.sendCallInfo(answerObject);
+                                            CallSdkCompat.sendCallInfo(outgoingCall, answerObject);
 
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -823,7 +824,7 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        outgoingCall.makeCall();
+        CallSdkCompat.makeCall(outgoingCall);
     }
 
     private void saveCall() {
@@ -989,7 +990,7 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
             updateCall(mMessage, duration, Constant.MESSAGE_DELIVERED);
         }
         if (outgoingCall != null) {
-            outgoingCall.hangup();
+            CallSdkCompat.hangup(outgoingCall);
             outgoingCall = null;
         }
 
@@ -1076,7 +1077,7 @@ public class OutgoingCallActivity extends MActivity implements SensorEventListen
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                outgoingCall.sendCallInfo(jsonObject);
+                CallSdkCompat.sendCallInfo(outgoingCall, jsonObject);
             }
             outgoingCall.enableVideo(isVideoOn);
         }

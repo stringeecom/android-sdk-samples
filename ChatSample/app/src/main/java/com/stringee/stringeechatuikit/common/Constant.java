@@ -7,4 +7,5 @@ public class Constant {
     public static final String PREF_USER_ID = PREF_BASE + ".username";
     public static final String PREF_PUSH_TOKEN = PREF_BASE + ".push_token";
     public static final String PREF_REGISTERED_PUSH_TOKEN = PREF_BASE + ".registered_push_token";
+    public static final String PREF_ACCESS_TOKEN = PREF_BASE + ".access_token";
 }

@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -28,11 +29,14 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements LifecycleObserver {
     private String to;
-    //put your token here
-    private String token = "YOUR_ACCESS_TOKEN";
+    private static final String PREFS = "video_call_sample";
+    private static final String PREF_TOKEN = "last_connected_token";
+    private ConnectionTokenState connectionTokenState;
 
     private EditText etTo;
+    private EditText etToken;
     private TextView tvUserId;
+    private LinearLayout callPanel;
     private ProgressDialog progressDialog;
     private ActivityResultLauncher<Intent> launcher;
 
@@ -43,17 +47,31 @@ public class MainActivity extends AppCompatActivity implements LifecycleObserver
 
         tvUserId = findViewById(R.id.tv_userid);
         etTo = findViewById(R.id.et_to);
+        etToken = findViewById(R.id.et_token);
+        callPanel = findViewById(R.id.call_panel);
+        connectionTokenState = new ConnectionTokenState(
+                getSharedPreferences(PREFS, MODE_PRIVATE).getString(PREF_TOKEN, ""));
+        etToken.setText(connectionTokenState.getSavedToken());
+        findViewById(R.id.btn_connect).setOnClickListener(view -> connectToken());
 
         Button btnMakeCall = findViewById(R.id.btn_make_call);
         btnMakeCall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                to = etTo.getText().toString().trim();
-                if (to.length() > 0) {
+                to = CallRequestPolicy.normalizeRecipient(etTo.getText().toString());
+                CallRequestPolicy.Error error = CallRequestPolicy.validate(
+                        Common.client != null && Common.client.isConnected(), Common.isInCall, to);
+                if (error == null) {
                     Intent intent = new Intent(MainActivity.this, OutgoingCallActivity.class);
                     intent.putExtra("from", Common.client.getUserId());
                     intent.putExtra("to", to);
                     launcher.launch(intent);
+                } else {
+                    tvUserId.setText(error == CallRequestPolicy.Error.RECIPIENT_REQUIRED
+                            ? "Recipient user ID is required"
+                            : error == CallRequestPolicy.Error.CALL_IN_PROGRESS
+                            ? "A call is already in progress"
+                            : "Connect before making a call");
                 }
             }
         });
@@ -94,20 +112,28 @@ public class MainActivity extends AppCompatActivity implements LifecycleObserver
     public void initAndConnectStringee() {
         if (Common.client == null) {
             Common.client = new StringeeClient(this);
-            Common.client.setConnectionListener(new StringeeConnectionListener() {
+            Common.client.addConnectionListener(new StringeeConnectionListener() {
                 @Override
                 public void onConnectionConnected(final StringeeClient stringeeClient, boolean isReconnecting) {
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
+                        String successfulToken = connectionTokenState.onConnected();
+                        if (!successfulToken.isEmpty()) {
+                            getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                                    .putString(PREF_TOKEN, successfulToken).apply();
+                        }
                         tvUserId.setText("Connected as: " + stringeeClient.getUserId());
+                        callPanel.setVisibility(View.VISIBLE);
                     });
                 }
 
                 @Override
                 public void onConnectionDisconnected(StringeeClient stringeeClient, boolean isReconnecting) {
                     runOnUiThread(() -> {
+                        connectionTokenState.onConnectionError();
                         progressDialog.dismiss();
                         tvUserId.setText("Disconnected");
+                        callPanel.setVisibility(View.GONE);
                     });
                 }
 
@@ -137,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements LifecycleObserver
                 @Override
                 public void onConnectionError(StringeeClient stringeeClient, final StringeeError stringeeError) {
                     runOnUiThread(() -> {
+                        connectionTokenState.onConnectionError();
                         progressDialog.dismiss();
                         tvUserId.setText("Connect error: " + stringeeError.getMessage());
                     });
@@ -158,6 +185,26 @@ public class MainActivity extends AppCompatActivity implements LifecycleObserver
                 }
             });
         }
-        Common.client.connect(token);
+        String savedToken = connectionTokenState.consumeAutoConnectToken();
+        String tokenToConnect = connectionTokenState.beginConnect(savedToken);
+        if (!tokenToConnect.isEmpty()) {
+            Common.client.connect(tokenToConnect);
+        } else {
+            progressDialog.dismiss();
+        }
+    }
+
+    private void connectToken() {
+        String token = etToken.getText().toString().trim();
+        if (token.isEmpty()) {
+            tvUserId.setText("Access token is required");
+            return;
+        }
+        String tokenToConnect = connectionTokenState.beginConnect(token);
+        if (tokenToConnect.isEmpty()) {
+            return;
+        }
+        progressDialog.show();
+        Common.client.connect(tokenToConnect);
     }
 }

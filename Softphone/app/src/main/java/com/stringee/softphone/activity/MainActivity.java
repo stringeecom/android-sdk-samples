@@ -8,14 +8,14 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.ViewPager;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.viewpager.widget.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -29,13 +29,16 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.stringee.StringeeClient;
 import com.stringee.call.StringeeCall;
+import com.stringee.call.StringeeCall2;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.listener.StringeeConnectionListener;
 import com.stringee.softphone.R;
+import com.stringee.softphone.common.CallSdkCompat;
+import com.stringee.softphone.common.AccessTokenRefreshPolicy;
 import com.stringee.softphone.common.Common;
 import com.stringee.softphone.common.Constant;
 import com.stringee.softphone.common.DataHandler;
@@ -94,13 +97,15 @@ public class MainActivity extends MActivity {
         initViewPager();
         initStringee();
 
-        long expiredTime = 1000 * PrefUtils.getInstance(this).getLong(Constant.PREF_EXPIRED_TIME, 0);
+        long expiredTime = PrefUtils.getInstance(this).getLong(Constant.PREF_EXPIRED_TIME, 0);
         long currentTime = System.currentTimeMillis();
-        if (currentTime > expiredTime) {
+        String cachedAccessToken = PrefUtils.getInstance(this)
+                .getString(Constant.PREF_ACCESS_TOKEN, "");
+        if (AccessTokenRefreshPolicy.shouldRefresh(currentTime, expiredTime, cachedAccessToken)) {
             getTokenAndConnect(this);
         } else {
             Common.isConnecting = true;
-            Common.client.connect(PrefUtils.getInstance(this).getString(Constant.PREF_ACCESS_TOKEN, ""));
+            Common.client.connect(cachedAccessToken);
         }
 
         if (isFromPush) {
@@ -272,7 +277,7 @@ public class MainActivity extends MActivity {
 
     private void initStringee() {
         Common.client = new StringeeClient(this);
-        Common.client.setConnectionListener(new StringeeConnectionListener() {
+        Common.client.addConnectionListener(new StringeeConnectionListener() {
             @Override
             public void onConnectionConnected(final StringeeClient stringeeClient, boolean isReconnecting) {
                 Common.isConnecting = false;
@@ -294,13 +299,17 @@ public class MainActivity extends MActivity {
                 });
 
                 if (!PrefUtils.getInstance(MainActivity.this).getBoolean(Constant.PREF_TOKEN_REGISTERED, false)) {
-                    final String refreshedToken = FirebaseInstanceId.getInstance().getToken();
-                    Common.client.registerPushToken(refreshedToken, new StatusListener() {
-                        @Override
-                        public void onSuccess() {
-                            PrefUtils.getInstance(MainActivity.this).putBoolean(Constant.PREF_TOKEN_REGISTERED, true);
-                            PrefUtils.getInstance(MainActivity.this).putString(Constant.PREF_FIREBASE_TOKEN, refreshedToken);
+                    FirebaseMessaging.getInstance().getToken().addOnSuccessListener(refreshedToken -> {
+                        if (refreshedToken == null || refreshedToken.trim().isEmpty()) {
+                            return;
                         }
+                        Common.client.registerPushToken(refreshedToken, new StatusListener() {
+                            @Override
+                            public void onSuccess() {
+                                PrefUtils.getInstance(MainActivity.this).putBoolean(Constant.PREF_TOKEN_REGISTERED, true);
+                                PrefUtils.getInstance(MainActivity.this).putString(Constant.PREF_FIREBASE_TOKEN, refreshedToken);
+                            }
+                        });
                     });
                 }
             }
@@ -327,7 +336,7 @@ public class MainActivity extends MActivity {
                         Common.callMap.put(stringeeCall.getCallId(), stringeeCall);
                         String from = stringeeCall.getFrom();
                         if (Common.isInCall) {
-                            stringeeCall.reject();
+                            CallSdkCompat.reject(stringeeCall);
                             saveCall(from);
                         } else {
                             Intent intent = new Intent(MainActivity.this, IncomingCallActivity.class);
@@ -338,6 +347,11 @@ public class MainActivity extends MActivity {
                         }
                     }
                 });
+            }
+
+            @Override
+            public void onIncomingCall2(StringeeCall2 stringeeCall2) {
+                // This PSTN sample intentionally accepts only StringeeCall sessions.
             }
 
             @Override
@@ -375,8 +389,12 @@ public class MainActivity extends MActivity {
                     int status = response.getInt("status");
                     if (status == 200) {
                         JSONObject dataObject = response.getJSONObject("data");
-                        String token = dataObject.getString("access_token");
+                        String token = AccessTokenRefreshPolicy.normalize(
+                                dataObject.getString("access_token"));
                         long expiredTime = dataObject.getLong("expire_time");
+                        if (token.isEmpty()) {
+                            return;
+                        }
                         PrefUtils.getInstance(context).putString(Constant.PREF_ACCESS_TOKEN, token);
                         PrefUtils.getInstance(context).putLong(Constant.PREF_EXPIRED_TIME, expiredTime);
                         Common.isConnecting = true;
@@ -389,8 +407,12 @@ public class MainActivity extends MActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Common.isConnecting = true;
-                Common.client.connect(PrefUtils.getInstance(context).getString(Constant.PREF_ACCESS_TOKEN, ""));
+                String fallbackToken = AccessTokenRefreshPolicy.fallbackToken(
+                        PrefUtils.getInstance(context).getString(Constant.PREF_ACCESS_TOKEN, ""));
+                if (!fallbackToken.isEmpty()) {
+                    Common.isConnecting = true;
+                    Common.client.connect(fallbackToken);
+                }
             }
         });
         RequestQueue queue = Volley.newRequestQueue(context);

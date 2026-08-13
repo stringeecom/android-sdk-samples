@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.EditText;
 
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
@@ -32,6 +33,16 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_chat);
 
+        EditText tokenInput = findViewById(R.id.et_access_token);
+        tokenInput.setText(PrefUtils.getString(Constant.PREF_ACCESS_TOKEN, ""));
+        findViewById(R.id.btn_connect).setOnClickListener(view -> {
+            String token = tokenInput.getText().toString().trim();
+            if (!token.isEmpty()) {
+                initAndConnectStringee(token);
+            }
+        });
+        renderConnectionState(Common.client != null && Common.client.isConnected());
+
         NavigationDrawerFragment mNavigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
 
         // Set up the drawer.
@@ -48,9 +59,15 @@ public class MainChatActivity extends BaseActivity implements NavigationDrawerFr
                 if (getSupportActionBar() != null) {
                     getSupportActionBar().setTitle(PrefUtils.getString(Constant.PREF_NAME, Common.client.getUserId()));
                 }
+                renderConnectionState(true);
             }
         };
         LocalBroadcastManager.getInstance(this).registerReceiver(connectReceiver, new IntentFilter(Notify.CONNECTION_CONNECTED.getValue()));
+    }
+
+    private void renderConnectionState(boolean connected) {
+        findViewById(R.id.connection_panel).setVisibility(connected ? View.GONE : View.VISIBLE);
+        findViewById(R.id.drawer_layout).setVisibility(connected ? View.VISIBLE : View.GONE);
     }
 
     @Override

@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
+
+if (file('google-services.json').exists()) {
+    apply plugin: 'com.google.gms.google-services'
+}
 android {
     namespace 'com.stringee.apptoappcallsample'
     compileSdk = 36
@@ -53,3 +56,5 @@ dependencies {
     testImplementation 'androidx.test:core:1.7.0'
     testImplementation 'org.robolectric:robolectric:4.16.1'
 }
+
+apply from: rootProject.file('../gradle/coverage.gradle')

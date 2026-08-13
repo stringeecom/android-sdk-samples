@@ -78,7 +78,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <android.support.design.widget.TabLayout
+            <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tabs"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/tabbar_height"
@@ -97,14 +97,14 @@
                 android:layout_above="@id/tabs"
                 android:background="@color/separator" />
 
-            <android.support.v4.view.ViewPager
+            <androidx.viewpager.widget.ViewPager
                 android:id="@+id/v_pager"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_above="@id/v_separator"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-            <android.support.design.widget.FloatingActionButton
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/btn_dial"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

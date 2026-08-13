@@ -72,6 +72,7 @@ public class MediaAdapter extends Adapter<ViewHolder> {
         return null;
     }
 
+    @android.annotation.SuppressLint("RecyclerView")
     @Override
     public void onBindViewHolder(@androidx.annotation.NonNull ViewHolder holder, int position) {
         switch (getItemViewType(position)) {
@@ -151,4 +152,3 @@ public class MediaAdapter extends Adapter<ViewHolder> {
         }
     }
 }
-

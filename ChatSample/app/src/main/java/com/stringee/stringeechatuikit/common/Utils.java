@@ -50,6 +50,22 @@ import java.util.TimeZone;
  */
 public class Utils {
 
+    /** Returns a sender ID from the current messaging model without exposing nullable SDK data. */
+    public static String getSenderId(Message message) {
+        return message == null || message.getSender() == null
+                || message.getSender().getUserId() == null
+                ? "" : message.getSender().getUserId();
+    }
+
+    /** Returns a sender display name, falling back to the Stringee user ID. */
+    public static String getSenderName(Message message) {
+        if (message == null || message.getSender() == null) {
+            return "";
+        }
+        String name = message.getSender().getName();
+        return name == null || name.trim().isEmpty() ? getSenderId(message) : name;
+    }
+
     private static final String JUST_NOW = "Just now";
     private static final String MINUTES = " mins";
     private static final String HOURS = " hrs";
@@ -475,7 +491,7 @@ public class Utils {
         if (message == null) {
             return text;
         }
-        String sender = message.getSenderId();
+        String sender = getSenderId(message);
         for (int i = 0; i < conversation.getParticipants().size(); i++) {
             User user = conversation.getParticipants().get(i);
             if (user.getUserId().equals(sender)) {

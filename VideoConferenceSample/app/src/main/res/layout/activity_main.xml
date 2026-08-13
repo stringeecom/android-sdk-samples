@@ -20,12 +20,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/stringee_background"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/purple_500">
+            android:background="@color/stringee_navy">
 
             <ImageButton
                 android:id="@+id/imb_back"
@@ -52,7 +53,25 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/conference_subtitle"
+                android:textColor="@color/stringee_muted"
+                android:textSize="15sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_stringee_panel"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="20dp">
 
             <TextView
                 android:id="@+id/tv_connect_status"
@@ -62,14 +81,14 @@
                 android:layout_marginBottom="10dp"
                 android:minHeight="50dp"
                 android:text="@{MainViewModel.connectStatus}"
+                android:textColor="@color/stringee_text"
                 android:textSize="24sp"
                 android:visibility="@{MainViewModel.mainState == MainState.CONNECT_ROOM? View.VISIBLE : View.GONE}" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="40dp"
-                android:hint="@string/user_id"
+                android:hint="@string/access_token"
                 android:orientation="horizontal"
                 android:visibility="@{MainViewModel.mainState == MainState.CONNECT_CLIENT? View.VISIBLE : View.GONE}">
 
@@ -79,13 +98,12 @@
                     android:inputType="text"
                     android:maxLines="1"
                     android:scrollHorizontally="true"
-                    android:text="@={MainViewModel.userId}" />
+                    android:text="@={MainViewModel.accessToken}" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="40dp"
                 android:hint="@string/room_token"
                 android:orientation="horizontal"
                 android:visibility="@{MainViewModel.mainState == MainState.CONNECT_ROOM? View.VISIBLE : View.GONE}">
@@ -109,23 +127,22 @@
                     android:id="@+id/btn_connect"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:minHeight="52dp"
                     android:text="@string/connect"
+                    android:theme="@style/ThemeOverlay.Material3.Button"
                     android:visibility="@{MainViewModel.mainState == MainState.CONNECT_CLIENT? View.VISIBLE : View.GONE}" />
-
-                <Button
-                    android:id="@+id/btn_create_room"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/create_room"
-                    android:visibility="@{MainViewModel.mainState == MainState.CONNECT_ROOM? View.VISIBLE : View.GONE}" />
 
                 <Button
                     android:id="@+id/btn_connect_room"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:minHeight="52dp"
                     android:text="@string/connect_room"
+                    android:theme="@style/ThemeOverlay.Material3.Button"
                     android:visibility="@{MainViewModel.mainState == MainState.CONNECT_ROOM? View.VISIBLE : View.GONE}" />
             </com.google.android.flexbox.FlexboxLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
     </LinearLayout>

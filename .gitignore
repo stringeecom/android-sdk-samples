@@ -1,12 +1,22 @@
 # Android Studio and local machine files
 **/.idea/
 **/.gradle/
+**/.kotlin/
 **/local.properties
 *.iml
 .DS_Store
 
 # Firebase Android client configuration
 **/google-services.json
+**/service-account*.json
+**/firebase-adminsdk*.json
+
+# Local environment and API configuration
+**/.env
+**/.env.*
+**/secrets.properties
+**/key.properties
+**/fabric.properties
 
 # Build and packaged artifacts
 **/build/
@@ -18,3 +28,9 @@
 # Local signing material
 **/*.jks
 **/*.keystore
+**/*.p12
+**/*.pem
+**/*.key
+
+# SDK binaries are consumed from Maven; keep local copies out of the public repo
+**/app/libs/*.aar

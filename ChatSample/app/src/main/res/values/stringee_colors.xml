@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="stringee_colorPrimary">#f7941d</color>
-    <color name="stringee_colorPrimaryDark">#f7941d</color>
-    <color name="stringee_colorAccent">#f7941d</color>
+    <color name="stringee_colorPrimary">#FF4954</color>
+    <color name="stringee_colorPrimaryDark">#EE2333</color>
+    <color name="stringee_colorAccent">#FF4954</color>
+    <color name="stringee_navy">#0D112B</color>
+    <color name="stringee_navy_light">#233659</color>
+    <color name="stringee_background">#F8F8F8</color>
+    <color name="stringee_surface">#FFFFFF</color>
+    <color name="stringee_border">#E8EAEE</color>
     <color name="ab_bg_black">#99000000</color>
     <color name="text_dark">#555555</color>
     <color name="separator">#cecece</color>
@@ -25,11 +30,11 @@
     <color name="stringee_share_contact_divider">#FFB6B6B6</color>
     <color name="stringee_lite_gray_color">#666666</color>
     <color name="stringee_sent_msg_bg">#f0f0f0</color>
-    <color name="stringee_receive_msg_bg">#ffdeb7</color>
+    <color name="stringee_receive_msg_bg">#FDEEEE</color>
     <color name="stringee_time_sent">#636363</color>
     <color name="stringee_time_received">#636363</color>
     <color name="stringee_conv_time">#646464</color>
-    <color name="stringee_receive_text">#f7941d</color>
+    <color name="stringee_receive_text">#EE2333</color>
     <color name="stringee_text_hint">#767676</color>
     <color name="stringee_text_normal">#333333</color>
     <color name="stringee_text_subtitle">#646464</color>

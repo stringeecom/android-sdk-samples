@@ -14,13 +14,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.stringee.video_conference_sample.R;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Utils {
     public static <T> void reportException(@NonNull Class<T> clazz, Exception exception) {
