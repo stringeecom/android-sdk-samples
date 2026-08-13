@@ -3,137 +3,433 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:animateLayoutChanges="true"
-    android:fitsSystemWindows="true"
-    tools:context=".MainActivity">
+    tools:context=".activity.MainActivity">
 
     <data>
 
         <import type="android.view.View" />
 
-        <import type="com.stringee.widgetsample.R" />
-
-        <import type="com.stringee.widgetsample.MainViewModel.MainState" />
-
-        <import type="com.stringee.widgetsample.MainActivity" />
+        <import type="com.stringee.widgetsample.manager.MainViewModel.MainState" />
 
         <variable
             name="MainViewModel"
-            type="com.stringee.widgetsample.MainViewModel" />
+            type="com.stringee.widgetsample.manager.MainViewModel" />
     </data>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/bg_stringee_screen"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/purple_500">
+            android:layout_height="72dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="20dp"
+            android:paddingRight="10dp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="10dp"
-                android:singleLine="true"
-                android:text="@string/app_name"
-                android:textColor="@color/white"
-                android:textSize="22sp" />
+            <FrameLayout
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_stringee_brand_icon">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_stringee_phone" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="11dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.12"
+                    android:text="@string/stringee_brand"
+                    android:textColor="@color/stringee_navy"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textColor="@color/stringee_text"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_disconnect"
+                style="@style/StringeeTextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/log_out"
+                android:visibility="@{MainViewModel.mainState == MainState.CONNECTED? View.VISIBLE : View.GONE}" />
         </LinearLayout>
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
 
-            <TextView
-                android:id="@+id/tv_connect_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginBottom="10dp"
-                android:minHeight="50dp"
-                android:text="@{MainViewModel.connectStatus}"
-                android:textSize="24sp" />
-
-            <com.google.android.material.textfield.TextInputLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="40dp"
-                android:hint="@string/access_token"
-                android:orientation="horizontal"
-                android:visibility="@{MainViewModel.mainState == MainState.NOT_CONNECTED? View.VISIBLE : View.GONE}">
+                android:orientation="vertical"
+                android:paddingLeft="20dp"
+                android:paddingTop="14dp"
+                android:paddingRight="20dp"
+                android:paddingBottom="32dp">
 
-                <com.google.android.material.textfield.TextInputEditText
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:scrollHorizontally="true"
-                    android:text="@={MainViewModel.accessToken}" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:background="@drawable/bg_stringee_hero"
+                    android:clipToOutline="true"
+                    android:elevation="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="24dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="40dp"
-                android:hint="@string/from"
-                android:orientation="horizontal">
+                    <FrameLayout
+                        android:layout_width="58dp"
+                        android:layout_height="58dp"
+                        android:background="@drawable/bg_stringee_hero_icon">
 
-                <com.google.android.material.textfield.TextInputEditText
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_stringee_phone" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="18dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/hero_title"
+                            android:textColor="@color/white"
+                            android:textSize="21sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="7dp"
+                            android:lineSpacingMultiplier="1.15"
+                            android:text="@string/hero_description"
+                            android:textColor="#E6FFFFFF"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_connection_status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:scrollHorizontally="true"
-                    android:text="@={MainViewModel.from}" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginTop="22dp"
+                    android:background="@drawable/bg_stringee_status_info"
+                    android:orientation="vertical"
+                    android:paddingLeft="16dp"
+                    android:paddingTop="13dp"
+                    android:paddingRight="16dp"
+                    android:paddingBottom="13dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="40dp"
-                android:hint="@string/to"
-                android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/tv_connect_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@{MainViewModel.connectStatus}"
+                        android:textColor="@color/stringee_blue"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        tools:text="Disconnected" />
+                </LinearLayout>
 
-                <com.google.android.material.textfield.TextInputEditText
+                <LinearLayout
+                    android:id="@+id/layout_incoming_call_access"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:scrollHorizontally="true"
-                    android:text="@={MainViewModel.to}" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_stringee_panel"
+                    android:clipToOutline="true"
+                    android:elevation="2dp"
+                    android:orientation="vertical"
+                    android:padding="22dp">
 
-            <Button
-                android:id="@+id/btn_connect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="@{MainViewModel.mainState != MainState.CONNECTED? R.string.connect : R.string.log_out}" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top"
+                        android:orientation="horizontal">
 
-            <com.google.android.flexbox.FlexboxLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                app:justifyContent="space_evenly">
+                        <FrameLayout
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:background="@drawable/bg_stringee_section_icon">
 
-                <Button
-                    android:id="@+id/btn_voice_call"
-                    android:layout_width="wrap_content"
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_stringee_notification" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/StringeeSubsectionTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/incoming_call_access" />
+
+                            <TextView
+                                android:id="@+id/tv_incoming_call_access"
+                                style="@style/StringeeBodyText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_notification_permission"
+                        style="@style/StringeeButtonSecondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="@string/allow_notifications" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_full_screen_permission"
+                        style="@style/StringeeButtonSecondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/allow_full_screen_calls" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_connection_card"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/voice_call" />
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_stringee_panel"
+                    android:clipToOutline="true"
+                    android:elevation="2dp"
+                    android:orientation="vertical"
+                    android:padding="22dp"
+                    android:visibility="@{MainViewModel.mainState != MainState.CONNECTED? View.VISIBLE : View.GONE}">
 
-                <Button
-                    android:id="@+id/btn_video_call"
-                    android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top"
+                        android:orientation="horizontal">
+
+                        <FrameLayout
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:background="@drawable/bg_stringee_section_icon">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_stringee_key" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/StringeeSubsectionTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/connect_title" />
+
+                            <TextView
+                                style="@style/StringeeBodyText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/connect_description" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/StringeeTextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        android:hint="@string/access_token">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="top|start"
+                            android:inputType="textMultiLine|textNoSuggestions"
+                            android:maxLines="4"
+                            android:minLines="2"
+                            android:text="@={MainViewModel.accessToken}"
+                            android:textColor="@color/stringee_ink" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_connect"
+                        style="@style/StringeeButtonPrimary"
+                        android:layout_width="match_parent"
+                        android:layout_height="54dp"
+                        android:layout_marginTop="18dp"
+                        android:text="@string/connect" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_make_call"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/video_call" />
-            </com.google.android.flexbox.FlexboxLayout>
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_stringee_panel"
+                    android:clipToOutline="true"
+                    android:elevation="2dp"
+                    android:orientation="vertical"
+                    android:padding="22dp"
+                    android:visibility="@{MainViewModel.mainState == MainState.CONNECTED? View.VISIBLE : View.GONE}">
 
-        </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top"
+                        android:orientation="horizontal">
+
+                        <FrameLayout
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:background="@drawable/bg_stringee_section_icon">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_stringee_person" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/StringeeSubsectionTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/call_title" />
+
+                            <TextView
+                                style="@style/StringeeBodyText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/call_description" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/StringeeTextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        android:hint="@string/from">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:text="@={MainViewModel.from}"
+                            android:textColor="@color/stringee_ink" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/StringeeTextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:hint="@string/to">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:text="@={MainViewModel.to}"
+                            android:textColor="@color/stringee_ink" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="@string/call_type"
+                        android:textColor="@color/stringee_ink"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_voice_call"
+                            style="@style/StringeeButtonVoice"
+                            android:layout_width="0dp"
+                            android:layout_height="58dp"
+                            android:layout_weight="1"
+                            android:text="@string/voice_call" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_video_call"
+                            style="@style/StringeeButtonVideo"
+                            android:layout_width="0dp"
+                            android:layout_height="58dp"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:text="@string/video_call" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
     </LinearLayout>
 </layout>

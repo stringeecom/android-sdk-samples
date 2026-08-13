@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.CallActivity">
+    tools:context=".stringee.activity.CallActivity">
 
     <include
         android:id="@+id/v_incoming_call"
@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@id/btn_end"
-            android:background="@color/colorPrimary"
+            android:background="@color/stringee_call_background"
             android:orientation="vertical">
 
             <RelativeLayout
@@ -103,7 +103,8 @@
                         android:layout_height="65dp"
                         android:layout_gravity="center"
                         android:background="@drawable/btn_ic_selected_selector"
-                        android:src="@drawable/ic_mic_on" />
+                        android:src="@drawable/ic_mic_on"
+                        app:backgroundTint="@null" />
                 </FrameLayout>
 
                 <FrameLayout
@@ -117,7 +118,8 @@
                         android:layout_height="65dp"
                         android:layout_gravity="center"
                         android:background="@drawable/btn_ic_selected_selector"
-                        android:src="@drawable/ic_speaker_off" />
+                        android:src="@drawable/ic_speaker_off"
+                        app:backgroundTint="@null" />
                 </FrameLayout>
             </LinearLayout>
         </RelativeLayout>

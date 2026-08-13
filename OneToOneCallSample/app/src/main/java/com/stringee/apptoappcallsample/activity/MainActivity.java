@@ -1,28 +1,28 @@
 package com.stringee.apptoappcallsample.activity;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.View;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog.Builder;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.LifecycleObserver;
+import androidx.core.content.ContextCompat;
 
-import com.stringee.apptoappcallsample.R.id;
-import com.stringee.apptoappcallsample.R.string;
-import com.stringee.apptoappcallsample.common.Constant;
-import com.stringee.apptoappcallsample.common.PermissionsUtils;
-import com.stringee.apptoappcallsample.common.Utils;
+import com.stringee.apptoappcallsample.R;
 import com.stringee.apptoappcallsample.databinding.ActivityMainBinding;
-import com.stringee.apptoappcallsample.manager.ClientManager;
+import com.stringee.apptoappcallsample.stringee.common.CallEngine;
+import com.stringee.apptoappcallsample.stringee.common.CallStatus;
+import com.stringee.apptoappcallsample.stringee.common.ConnectionState;
+import com.stringee.apptoappcallsample.stringee.common.StringeeCallConfig;
+import com.stringee.apptoappcallsample.stringee.listener.StringeeCallListener;
+import com.stringee.apptoappcallsample.stringee.manager.StringeeCallManager;
+import com.stringee.exception.StringeeError;
+import com.stringee.listener.StatusListener;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, LifecycleObserver {
+/** Host screen that connects a token and delegates outgoing calls to the Stringee facade. */
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private ActivityMainBinding binding;
-    private ClientManager clientManager;
-    public static final String TOKEN = "";
+    private StringeeCallManager callManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,87 +30,159 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        callManager = StringeeCallManager.getInstance(this);
+        binding.etToken.setText(callManager.getSavedToken());
+        bindActions();
+        renderConnection(callManager.isConnected() ? ConnectionState.CONNECTED
+                : ConnectionState.DISCONNECTED, callManager.getConnectedUserId());
+        callManager.initialize(new StringeeCallListener() {
+            @Override
+            public void onConnectionStateChanged(ConnectionState state, String userId) {
+                runOnUiThread(() -> renderConnection(state, userId));
+            }
+
+            @Override
+            public void onCallStateChanged(CallStatus state) {
+                runOnUiThread(() -> binding.tvCallStatus.setText(
+                        getString(R.string.call_state, state.getValue())));
+            }
+
+            @Override
+            public void onError(String action, StringeeError error) {
+                runOnUiThread(() -> {
+                    String message = action + ": " + error.getMessage();
+                    binding.tvLastError.setText(getString(R.string.last_error, message));
+                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+                });
+            }
+
+            @Override
+            public void onRequestNewToken() {
+                runOnUiThread(() -> binding.tvLastError.setText(
+                        R.string.token_refresh_required));
+            }
+        });
+        callManager.handleLaunchIntent(getIntent());
+        if (callManager.isConnected()) {
+            renderConnection(ConnectionState.CONNECTED, callManager.getConnectedUserId());
+        }
+    }
+
+    private void bindActions() {
+        binding.btnConnect.setOnClickListener(this);
+        binding.btnDisconnect.setOnClickListener(this);
+        binding.btnNotificationPermission.setOnClickListener(this);
+        binding.btnFullScreenPermission.setOnClickListener(this);
+        binding.btnAppSettings.setOnClickListener(this);
         binding.btnVoiceCall.setOnClickListener(this);
         binding.btnVideoCall.setOnClickListener(this);
         binding.btnVoiceCall2.setOnClickListener(this);
         binding.btnVideoCall2.setOnClickListener(this);
-
-        clientManager = ClientManager.getInstance(this);
-
-        initAndConnectStringee();
-
-        requestPermission();
     }
 
-    private void requestPermission() {
-        if (!PermissionsUtils.getInstance().checkSelfPermission(this)) {
-            PermissionsUtils.getInstance().requestPermissions(this);
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (callManager != null) {
+            callManager.handleLaunchIntent(intent);
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        boolean isGranted = PermissionsUtils.getInstance().verifyPermissions(grantResults);
-        if (requestCode == PermissionsUtils.REQUEST_PERMISSION) {
-            clientManager.isPermissionGranted = isGranted;
-            if (!isGranted) {
-                if (PermissionsUtils.getInstance().shouldRequestPermissionRationale(this)) {
-                    Builder builder = new Builder(this);
-                    builder.setTitle(string.app_name);
-                    builder.setMessage("Permissions must be granted for the call");
-                    builder.setPositiveButton("Ok",
-                            (dialogInterface, id) -> dialogInterface.cancel());
-                    builder.setNegativeButton("Settings", (dialogInterface, id) -> {
-                        dialogInterface.cancel();
-                        // open app setting
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        Uri uri = Uri.fromParts("package", getPackageName(), null);
-                        intent.setData(uri);
-                        startActivity(intent);
-                    });
-                    builder.create().show();
-                }
-            }
-        }
+    protected void onResume() {
+        super.onResume();
+        renderNotificationAccess();
     }
 
-    public void initAndConnectStringee() {
-        clientManager.addOnConnectionListener(
-                status -> runOnUiThread(() -> binding.tvStatus.setText(status)));
-        clientManager.connect(TOKEN);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        renderNotificationAccess();
     }
 
     @Override
     public void onClick(View view) {
-        int vId = view.getId();
-        if (vId == id.btn_voice_call) {
-            makeCall(true, false);
-        } else if (vId == id.btn_video_call) {
-            makeCall(true, true);
-        } else if (vId == id.btn_voice_call2) {
-            makeCall(false, false);
-        } else if (vId == id.btn_video_call2) {
-            makeCall(false, true);
+        int id = view.getId();
+        if (id == R.id.btn_connect) {
+            callManager.connect(binding.etToken.getText().toString());
+        } else if (id == R.id.btn_disconnect) {
+            callManager.disconnect();
+        } else if (id == R.id.btn_notification_permission) {
+            callManager.requestNotificationPermission(this);
+        } else if (id == R.id.btn_full_screen_permission) {
+            callManager.openFullScreenIntentSettings(this);
+        } else if (id == R.id.btn_app_settings) {
+            callManager.openAppSettings(this);
+        } else if (id == R.id.btn_voice_call) {
+            makeCall(CallEngine.STRINGEE_CALL, false);
+        } else if (id == R.id.btn_video_call) {
+            makeCall(CallEngine.STRINGEE_CALL, true);
+        } else if (id == R.id.btn_voice_call2) {
+            makeCall(CallEngine.STRINGEE_CALL2, false);
+        } else if (id == R.id.btn_video_call2) {
+            makeCall(CallEngine.STRINGEE_CALL2, true);
         }
     }
 
-    private void makeCall(boolean isStringeeCall, boolean isVideoCall) {
-        if (Utils.isStringEmpty(binding.etTo.getText()) ||
-                !clientManager.getStringeeClient().isConnected()) {
-            return;
+    private void makeCall(CallEngine engine, boolean videoCall) {
+        StringeeCallConfig config = new StringeeCallConfig(
+                binding.etTo.getText().toString(), engine, videoCall);
+        callManager.makeCall(config, new StatusListener() {
+            @Override
+            public void onSuccess() {
+                runOnUiThread(() -> binding.tvLastError.setText(""));
+            }
+
+            @Override
+            public void onError(StringeeError error) {
+                // The facade also forwards this error through StringeeCallListener.
+            }
+        });
+    }
+
+    private void renderConnection(ConnectionState state, String userId) {
+        boolean connected = state == ConnectionState.CONNECTED;
+        String suffix = connected && userId != null && !userId.isEmpty()
+                ? " (" + userId + ")" : "";
+        binding.tvConnectionStatus.setText(
+                getString(R.string.connection_state, state.name() + suffix));
+        binding.btnConnect.setEnabled(!connected && state != ConnectionState.CONNECTING);
+        binding.btnDisconnect.setEnabled(connected || state == ConnectionState.CONNECTING);
+        binding.btnDisconnect.setVisibility(
+                connected || state == ConnectionState.CONNECTING ? View.VISIBLE : View.GONE);
+        binding.layoutConnectionCard.setVisibility(connected ? View.GONE : View.VISIBLE);
+        binding.layoutMakeCall.setVisibility(connected ? View.VISIBLE : View.GONE);
+        binding.btnVoiceCall.setEnabled(connected);
+        binding.btnVideoCall.setEnabled(connected);
+        binding.btnVoiceCall2.setEnabled(connected);
+        binding.btnVideoCall2.setEnabled(connected);
+        int statusBackground;
+        int statusColor;
+        if (state == ConnectionState.CONNECTED) {
+            statusBackground = R.drawable.bg_stringee_status_success;
+            statusColor = R.color.stringee_green_dark;
+        } else if (state == ConnectionState.ERROR) {
+            statusBackground = R.drawable.bg_stringee_status_error;
+            statusColor = R.color.stringee_error;
+        } else {
+            statusBackground = R.drawable.bg_stringee_status_info;
+            statusColor = R.color.stringee_blue;
         }
-        if (!clientManager.isPermissionGranted) {
-            PermissionsUtils.getInstance().requestPermissions(this);
-            return;
-        }
-        Intent intent = new Intent(this, CallActivity.class);
-        intent.putExtra(Constant.PARAM_TO, binding.etTo.getText().toString().trim());
-        intent.putExtra(Constant.PARAM_IS_VIDEO_CALL, isVideoCall);
-        intent.putExtra(Constant.PARAM_IS_INCOMING_CALL, false);
-        intent.putExtra(Constant.PARAM_IS_STRINGEE_CALL, isStringeeCall);
-        startActivity(intent);
+        binding.layoutConnectionStatus.setBackgroundResource(statusBackground);
+        binding.tvConnectionStatus.setTextColor(ContextCompat.getColor(this, statusColor));
+    }
+
+    private void renderNotificationAccess() {
+        boolean notification = callManager != null && callManager.canPostNotifications();
+        boolean fullScreen = callManager != null && callManager.canUseFullScreenIntent();
+        boolean needsAccess = !notification || !fullScreen;
+        binding.layoutIncomingCallAccess.setVisibility(needsAccess ? View.VISIBLE : View.GONE);
+        binding.tvNotificationStatus.setText(getString(R.string.notification_access_state,
+                notification ? getString(R.string.granted) : getString(R.string.not_granted),
+                fullScreen ? getString(R.string.granted) : getString(R.string.not_granted)));
+        binding.btnNotificationPermission.setVisibility(notification ? View.GONE : View.VISIBLE);
+        binding.btnFullScreenPermission.setVisibility(fullScreen ? View.GONE : View.VISIBLE);
     }
 }

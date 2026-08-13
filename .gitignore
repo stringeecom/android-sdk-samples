@@ -1,5 +1,7 @@
 OneToOneCallSample/app/release/
 OneToOneCallSample/.idea/
+**/app/release/
+**/.idea/
 ConferenceCallSample/.gradle/
 ConferenceCallSample/.idea/
 ConferenceCallSample/local.properties

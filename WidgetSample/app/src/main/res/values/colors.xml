@@ -1,10 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="purple_200">#FFFF8D94</color>
+    <color name="purple_500">#FFFF4954</color>
+    <color name="purple_700">#FFEE2333</color>
+    <color name="teal_200">#FF46DA60</color>
+    <color name="teal_700">#FF159447</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="stringee_red">#FFFF4954</color>
+    <color name="stringee_red_dark">#FFEE2333</color>
+    <color name="stringee_red_strong">#FFEE2333</color>
+    <color name="stringee_green">#FF46DA60</color>
+    <color name="stringee_green_dark">#FF159447</color>
+    <color name="stringee_blue">#FF0FACF3</color>
+    <color name="stringee_navy">#FF0D112B</color>
+    <color name="stringee_navy_light">#FF233659</color>
+    <color name="stringee_ink">#FF37404D</color>
+    <color name="stringee_text">#FF535353</color>
+    <color name="stringee_muted">#FF7A8491</color>
+    <color name="stringee_background">#FFF8F8F8</color>
+    <color name="stringee_surface">#FFFFFFFF</color>
+    <color name="stringee_border">#FFE8EAEE</color>
+    <color name="stringee_input_border">#FFE4E7EC</color>
+    <color name="stringee_error">#FFB3261E</color>
+    <color name="stringee_disabled">#FFD8DCE2</color>
+    <color name="stringee_status_info_background">#FFEAF7FE</color>
+    <color name="stringee_status_info_border">#FFB8E4FA</color>
+    <color name="stringee_status_success_background">#FFEDF9F0</color>
+    <color name="stringee_status_success_border">#FFB7E8C4</color>
+    <color name="stringee_status_error_background">#FFFDEEEE</color>
+    <color name="stringee_status_error_border">#FFF5C0C3</color>
+    <color name="colorPrimary">#FFFF4954</color>
 </resources>
