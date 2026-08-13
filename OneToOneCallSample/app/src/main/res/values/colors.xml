@@ -1,12 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#1A578D</color>
-    <color name="colorPrimaryDark">#205C94</color>
-    <color name="colorAccent">#205C94</color>
-    <color name="greenLight">#11F311</color>
-    <color name="greenDark">#0EC20E</color>
-    <color name="redLight">#D53232</color>
-    <color name="redDark">#952323</color>
-    <color name="greyLight">#ADA9A9</color>
+    <color name="colorPrimary">#FF4954</color>
+    <color name="colorPrimaryDark">#EE2333</color>
+    <color name="colorAccent">#FF4954</color>
+    <color name="greenLight">#46DA60</color>
+    <color name="greenDark">#159447</color>
+    <color name="redLight">#FF4954</color>
+    <color name="redDark">#EE2333</color>
+    <color name="greyLight">#E3E7ED</color>
     <color name="white">#FFFFFF</color>
+    <color name="stringee_ink">#37404D</color>
+    <color name="stringee_text">#535353</color>
+    <color name="stringee_muted">#7A8491</color>
+    <color name="stringee_background">#F8F8F8</color>
+    <color name="stringee_surface">#FFFFFF</color>
+    <color name="stringee_border">#E8EAEE</color>
+    <color name="stringee_input_border">#E4E7EC</color>
+    <color name="stringee_error">#B3261E</color>
+    <color name="stringee_red_strong">#EE2333</color>
+    <color name="stringee_green_dark">#159447</color>
+    <color name="stringee_blue">#0FACF3</color>
+    <color name="stringee_navy">#0D112B</color>
+    <color name="stringee_navy_light">#233659</color>
+    <color name="stringee_call_background">#1A578D</color>
+    <color name="stringee_disabled">#D8DCE2</color>
+    <color name="stringee_status_info_background">#EAF7FE</color>
+    <color name="stringee_status_info_border">#B8E4FA</color>
+    <color name="stringee_status_success_background">#EDF9F0</color>
+    <color name="stringee_status_success_border">#B7E8C4</color>
+    <color name="stringee_status_error_background">#FDEEEE</color>
+    <color name="stringee_status_error_border">#F5C0C3</color>
 </resources>

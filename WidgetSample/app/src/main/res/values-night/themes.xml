@@ -1,7 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.WidgetSample" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <style name="Base.Theme.WidgetSample" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/stringee_red</item>
+        <item name="colorPrimaryVariant">@color/stringee_red_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/stringee_green</item>
+        <item name="colorSecondaryVariant">@color/stringee_green_dark</item>
+        <item name="colorOnSecondary">@color/stringee_ink</item>
+        <item name="colorSurface">@color/stringee_surface</item>
+        <item name="colorOnSurface">@color/stringee_ink</item>
+        <item name="colorOutline">@color/stringee_border</item>
+        <item name="android:colorAccent">@color/stringee_red</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:navigationBarColor">@color/stringee_surface</item>
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowBackground">@color/stringee_background</item>
+        <item name="titleTextColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>

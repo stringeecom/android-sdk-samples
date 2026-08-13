@@ -1,15 +1,20 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services) apply false
+}
+
+if (file('google-services.json').exists()) {
+    apply plugin: 'com.google.gms.google-services'
 }
 
 android {
     namespace 'com.stringee.widgetsample'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.stringee.widgetsample"
         minSdk 24
-        targetSdk 34
+        targetSdk 36
         versionCode 1
         versionName "1.0"
 
@@ -29,8 +34,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    testOptions {
+        unitTests.includeAndroidResources = true
     }
 }
 
@@ -47,7 +56,10 @@ dependencies {
     implementation libs.stringee.android.widget
     implementation libs.stringee.android.sdk
     implementation libs.android
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.messaging
     testImplementation libs.junit
+    testImplementation libs.robolectric
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }

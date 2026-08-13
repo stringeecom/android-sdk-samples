@@ -41,7 +41,6 @@
 
     <!--Notification-->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" /> <!--For show notification in full screen-->
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> <!--For show notification over other app-->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!--Require for android 13 or higher-->
 
     <!--Graphic-->
@@ -51,14 +50,16 @@
 
     <!--Foreground service-->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
 
     <application
         android:allowBackup="false"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:noHistory="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
@@ -76,7 +77,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.CallActivity"
+            android:name=".stringee.activity.CallActivity"
+            android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"
             android:showOnLockScreen="true"
@@ -86,7 +88,7 @@
             android:windowSoftInputMode="stateAlwaysHidden" />
 
         <service
-            android:name=".service.MyFirebaseMessagingService"
+            android:name=".stringee.service.StringeeFirebaseMessagingService"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -95,19 +97,28 @@
         </service>
 
         <receiver
-            android:name=".service.RejectCallReceiver"
+            android:name=".stringee.receiver.CallActionReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.stringee.action_reject" />
+                <action android:name="com.stringee.onetoonecallsample.action.REJECT" />
+                <action android:name="com.stringee.onetoonecallsample.action.HANG_UP" />
             </intent-filter>
         </receiver>
-        <receiver
-            android:name=".service.MediaDismissReceiver"
-            android:exported="false" />
+
         <service
-            android:name=".service.MyMediaProjectionService"
-            android:exported="false"
+            android:name=".stringee.service.IncomingCallService"
             android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall" />
+        <service
+            android:name=".stringee.service.InCallService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall|microphone" />
+        <service
+            android:name=".stringee.service.MediaProjectionCallService"
+            android:enabled="true"
+            android:exported="false"
             android:foregroundServiceType="mediaProjection" />
     </application>
 </manifest>
