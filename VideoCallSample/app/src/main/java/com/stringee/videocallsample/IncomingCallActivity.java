@@ -14,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -59,6 +60,12 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Back is intentionally disabled while an incoming call is ringing or active.
+            }
+        });
 
         //add Flag for show on lockScreen, disable keyguard, keep screen on
         getWindow().addFlags(LayoutParams.FLAG_SHOW_WHEN_LOCKED
@@ -122,10 +129,6 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
         }
 
         startRinging();
-    }
-
-    @Override
-    public void onBackPressed() {
     }
 
     @Override
@@ -252,37 +255,32 @@ public class IncomingCallActivity extends AppCompatActivity implements View.OnCl
             }
 
             @Override
-            public void onLocalStream(final StringeeCall2 stringeeCall2) {
+            public void onLocalTrackAdded(final StringeeCall2 stringeeCall2, StringeeVideoTrack track) {
                 runOnUiThread(() -> {
-                    Log.d("Stringee", "onLocalStream");
+                    Log.d("Stringee", "onLocalTrackAdded");
                     if (stringeeCall2.isVideoCall()) {
                         vLocal.removeAllViews();
-                        vLocal.addView(stringeeCall2.getLocalView());
-                        stringeeCall2.renderLocalView(true);
+                        vLocal.addView(track.getView(IncomingCallActivity.this));
+                        track.renderView(true);
                     }
                 });
             }
 
             @Override
-            public void onRemoteStream(final StringeeCall2 stringeeCall2) {
+            public void onRemoteTrackAdded(final StringeeCall2 stringeeCall2, StringeeVideoTrack track) {
                 runOnUiThread(() -> {
-                    Log.d("Stringee", "onRemoteStream");
+                    Log.d("Stringee", "onRemoteTrackAdded");
                     if (stringeeCall2.isVideoCall()) {
                         vRemote.removeAllViews();
-                        vRemote.addView(stringeeCall2.getRemoteView());
-                        stringeeCall2.renderRemoteView(false);
+                        vRemote.addView(track.getView(IncomingCallActivity.this));
+                        track.renderView(false);
                     }
                 });
             }
 
             @Override
-            public void onVideoTrackAdded(StringeeVideoTrack stringeeVideoTrack) {
-
-            }
-
-            @Override
-            public void onVideoTrackRemoved(StringeeVideoTrack stringeeVideoTrack) {
-
+            public void onRemoteTrackRemoved(StringeeCall2 call, StringeeVideoTrack track) {
+                runOnUiThread(vRemote::removeAllViews);
             }
 
             @Override

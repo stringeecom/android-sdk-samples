@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">VideoCallSample</string>
+    <string name="video_call_title">Stringee video call</string>
+    <string name="video_call_subtitle">Connect, then start a Call2 video call.</string>
+    <string name="access_token">Access token from your server</string>
+    <string name="connect">Connect</string>
+    <string name="disconnected">Connection: disconnected</string>
+    <string name="make_a_call">Make a call</string>
+    <string name="recipient_user_id">Recipient user ID</string>
+    <string name="make_call">Video call</string>
 </resources>

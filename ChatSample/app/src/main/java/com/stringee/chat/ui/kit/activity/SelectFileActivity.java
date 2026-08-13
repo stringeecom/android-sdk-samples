@@ -42,6 +42,7 @@ public class SelectFileActivity extends BaseActivity implements CallBack {
     }
 
     @Override
+    @android.annotation.SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
         level--;
         if (count > 1) {

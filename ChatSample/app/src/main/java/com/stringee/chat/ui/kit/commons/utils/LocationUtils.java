@@ -73,7 +73,7 @@ public class LocationUtils {
 
         String location = getLocationFromMessage(message);
 
-        final String staticMapUrl = "http://maps.googleapis.com/maps/api/staticmap?center=" + location
+        final String staticMapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=" + location
                 + "&zoom=17&size=400x400&maptype=roadmap&format=png&visual_refresh=true&markers=" + location + "&key=" + context.getString(R.string.map_api_key);
 
         return staticMapUrl;

@@ -3,12 +3,13 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    namespace 'com.stringee.videocallsample'
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.stringee.videocallsample"
-        minSdk 16
-        targetSdk 32
+        minSdk 24
+        targetSdk 36
         versionCode 1
         versionName "1.0"
 
@@ -22,15 +23,24 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
 dependencies {
 
-    implementation 'androidx.appcompat:appcompat:1.4.2'
-    implementation 'com.google.android.material:material:1.6.1'
-    implementation 'com.stringee.sdk.android:stringee-android-sdk:1.9.1'
-    implementation 'com.android.volley:volley:1.2.0'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
+    implementation 'androidx.core:core:1.18.0'
+    implementation 'com.google.android.material:material:1.14.0'
+    implementation 'com.stringee.sdk.android:stringee-android-sdk:2.1.13'
+    implementation 'io.github.webrtc-sdk:android:144.7559.09'
+    implementation 'com.android.volley:volley:1.2.1'
+    testImplementation 'junit:junit:4.13.2'
 }
+
+ext.coverageCoreIncludes = [
+        '**/CallRequestPolicy*.class',
+        '**/ConnectionTokenState*.class'
+]
+apply from: rootProject.file('../gradle/coverage.gradle')

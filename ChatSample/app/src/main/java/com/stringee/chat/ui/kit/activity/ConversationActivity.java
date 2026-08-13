@@ -198,6 +198,7 @@ public class ConversationActivity extends BaseActivity {
     }
 
     @Override
+    @android.annotation.SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
         if (chatFragment != null && chatFragment.keyboardController != null) {
             if (chatFragment.keyboardController.isStickerShow()) {

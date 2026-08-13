@@ -42,7 +42,7 @@ public class StringeeWrapper {
         Utils.runOnUiThread(() -> {
             if (stringeeClient == null) {
                 stringeeClient = new StringeeClient(context);
-                stringeeClient.setConnectionListener(new StringeeConnectionListener() {
+                stringeeClient.addConnectionListener(new StringeeConnectionListener() {
                     @Override
                     public void onConnectionConnected(StringeeClient stringeeClient, boolean b) {
                         if (connectionListener != null) {

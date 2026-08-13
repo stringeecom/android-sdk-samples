@@ -1,0 +1,115 @@
+import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = '0.8.13'
+}
+
+def generatedCoverageExcludes = [
+        '**/R.class',
+        '**/R$*.class',
+        '**/BuildConfig.*',
+        '**/Manifest*.*',
+        '**/BR.*',
+        '**/DataBinderMapperImpl*.*',
+        '**/DataBindingTriggerClass*.*',
+        '**/databinding/**',
+        '**/*Binding*.*',
+        '**/*Test*.*'
+]
+
+// Android framework entry points and SDK wrappers are verified by Robolectric/integration/device
+// tests. The 75% unit-test gate intentionally targets deterministic application policy code.
+def coreCoverageExcludes = generatedCoverageExcludes + [
+        '**/activity/**',
+        '**/service/**',
+        '**/receiver/**',
+        '**/listener/**',
+        '**/*Application*.*',
+        '**/common/custom_view/**',
+        '**/common/CallAudioManager*.*',
+        '**/common/CallNotificationManager*.*',
+        '**/common/CallPermissions*.*',
+        '**/manager/CallSession*.*',
+        '**/manager/StringeeCallManager*.*',
+        '**/StringeeCallManager*.*',
+        '**/manager/WidgetCallCoordinator*.*',
+        '**/manager/MainViewModel*.*'
+]
+
+def allCoverageIncludes = ['**/*.class']
+def coreCoverageIncludes = project.ext.has('coverageCoreIncludes')
+        ? project.ext.coverageCoreIncludes
+        : allCoverageIncludes
+
+def coverageClasses = { includes, excludes ->
+    files(
+            fileTree(
+                    dir: "$buildDir/intermediates/javac/debug/compileDebugJavaWithJavac/classes",
+                    includes: includes,
+                    excludes: excludes
+            ),
+            fileTree(
+                    dir: "$buildDir/tmp/kotlin-classes/debug",
+                    includes: includes,
+                    excludes: excludes
+            )
+    )
+}
+def coverageSources = files('src/main/java', 'src/main/kotlin')
+def coverageExecutionData = files(
+        "$buildDir/jacoco/testDebugUnitTest.exec",
+        "$buildDir/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+)
+
+tasks.withType(Test).configureEach {
+    jacoco.includeNoLocationClasses = true
+    jacoco.excludes = ['jdk.internal.*']
+}
+
+tasks.register('jacocoDebugFullReport', JacocoReport) {
+    dependsOn 'testDebugUnitTest'
+    classDirectories.setFrom(coverageClasses(allCoverageIncludes, generatedCoverageExcludes))
+    sourceDirectories.setFrom(coverageSources)
+    executionData.setFrom(coverageExecutionData)
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
+tasks.register('jacocoDebugCoreReport', JacocoReport) {
+    dependsOn 'testDebugUnitTest'
+    classDirectories.setFrom(coverageClasses(coreCoverageIncludes, coreCoverageExcludes))
+    sourceDirectories.setFrom(coverageSources)
+    executionData.setFrom(coverageExecutionData)
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
+tasks.register('jacocoDebugCoverageVerification', JacocoCoverageVerification) {
+    dependsOn 'testDebugUnitTest'
+    classDirectories.setFrom(coverageClasses(coreCoverageIncludes, coreCoverageExcludes))
+    sourceDirectories.setFrom(coverageSources)
+    executionData.setFrom(coverageExecutionData)
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.75
+            }
+        }
+    }
+}
+
+tasks.named('check').configure {
+    dependsOn 'jacocoDebugCoverageVerification'
+}

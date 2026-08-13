@@ -42,7 +42,7 @@
                     android:background="@null"
                     android:gravity="center"
                     android:src="@drawable/input_attach"
-                    android:tint="#a6a6a6" />
+                    app:tint="#a6a6a6" />
 
                 <FrameLayout
                     android:layout_width="wrap_content"
@@ -54,7 +54,7 @@
                         android:layout_height="48dp"
                         android:background="@null"
                         android:src="@drawable/ic_send"
-                        android:tint="@color/stringee_colorPrimary"
+                        app:tint="@color/stringee_colorPrimary"
                         android:visibility="gone" />
 
                     <ImageButton
@@ -63,7 +63,7 @@
                         android:layout_height="48dp"
                         android:background="@null"
                         android:src="@drawable/input_mic"
-                        android:tint="#a6a6a6" />
+                        app:tint="#a6a6a6" />
                 </FrameLayout>
 
             </LinearLayout>

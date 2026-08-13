@@ -138,6 +138,7 @@ public class LiveChatActivity extends BaseActivity {
     }
 
     @Override
+    @android.annotation.SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
         if (vSubmit.getVisibility() == View.VISIBLE) {
             getSupportActionBar().setTitle(string.live_chat);

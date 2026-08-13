@@ -180,6 +180,7 @@ public class ChooseGalleryFolderActivity extends AppCompatActivity {
     }
 
     @Override
+    @android.annotation.SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
         setResult(Activity.RESULT_CANCELED);
         super.onBackPressed();

@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'com.stringee.video_conference_sample'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.stringee.video_conference_sample"
         minSdk 24
-        targetSdk 34
+        targetSdk 36
         versionCode 1
         versionName "1.0"
     }
@@ -27,8 +27,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
@@ -38,14 +38,19 @@ dependencies {
     implementation libs.material
     implementation libs.core.splashscreen
     implementation libs.annotation
-    implementation libs.java.jwt
     implementation libs.core
     implementation libs.constraintlayout
     implementation libs.lifecycle.livedata.ktx
     implementation libs.lifecycle.viewmodel.ktx
-    implementation libs.volley
     implementation libs.flexbox
     implementation libs.circleindicator
     implementation libs.stringee.android.sdk
     implementation libs.android
+    testImplementation libs.junit
 }
+
+ext.coverageCoreIncludes = [
+        '**/ConferenceInputPolicy*.class',
+        '**/ConnectionTokenState*.class'
+]
+apply from: rootProject.file('../gradle/coverage.gradle')

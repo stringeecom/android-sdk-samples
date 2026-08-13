@@ -23,6 +23,7 @@ import com.stringee.chat.ui.kit.adapter.ConversationAdapter.ConversationViewHold
 import com.stringee.chat.ui.kit.commons.utils.AlphaNumberColorUtil;
 import com.stringee.listener.StatusListener;
 import com.stringee.messaging.Conversation;
+import com.stringee.messaging.Message;
 import com.stringee.messaging.User;
 import com.stringee.messaging.listeners.CallbackListener;
 import com.stringee.stringeechatuikit.R;
@@ -60,7 +61,12 @@ public class ConversationAdapter extends Adapter<ConversationViewHolder> {
     public void onBindViewHolder(@NonNull ConversationViewHolder holder, int position) {
         final Conversation conversation = conversationList.get(position);
         String text = conversation.getText();
-        switch (conversation.getLastMsgType()) {
+        Message lastMessage = conversation.getLastMessage();
+        if (lastMessage == null || lastMessage.getType() == null) {
+            holder.subTitleTextView.setText(text);
+            return;
+        }
+        switch (lastMessage.getType()) {
             case TEXT:
                 holder.subTitleTextView.setTextColor(ContextCompat.getColor(context, R.color.stringee_conv_time));
                 text = conversation.getText();

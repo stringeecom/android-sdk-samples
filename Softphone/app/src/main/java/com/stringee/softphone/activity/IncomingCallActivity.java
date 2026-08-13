@@ -25,10 +25,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.Vibrator;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -42,6 +42,7 @@ import android.widget.TextView;
 import com.stringee.call.StringeeCall;
 import com.stringee.softphone.R;
 import com.stringee.softphone.common.Common;
+import com.stringee.softphone.common.CallSdkCompat;
 import com.stringee.softphone.common.Constant;
 import com.stringee.softphone.common.DataHandler;
 import com.stringee.softphone.common.DateTimeUtils;
@@ -233,7 +234,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         btnReject.setOnClickListener(this);
 
         View vVideo = findViewById(R.id.v_video);
-        if (incomingCall.isPhoneToAppCall()) {
+        if (CallSdkCompat.isPhoneToApp(incomingCall)) {
             vVideo.setVisibility(View.GONE);
         }
 
@@ -589,7 +590,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                                         try {
                                             answerObject.put("type", "answerCameraRequest");
                                             answerObject.put("accept", false);
-                                            incomingCall.sendCallInfo(answerObject);
+                                            CallSdkCompat.sendCallInfo(incomingCall, answerObject);
 
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -603,7 +604,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                                         try {
                                             answerObject.put("type", "answerCameraRequest");
                                             answerObject.put("accept", true);
-                                            incomingCall.sendCallInfo(answerObject);
+                                            CallSdkCompat.sendCallInfo(incomingCall, answerObject);
 
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -651,9 +652,6 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
             }
         });
 
-        if (incomingCall != null) {
-            incomingCall.initAnswer(this, Common.client);
-        }
     }
 
     @Override
@@ -673,7 +671,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                 vSpeaker.setVisibility(View.VISIBLE);
                 vEnd.setVisibility(View.GONE);
                 btnEndCall.setVisibility(View.VISIBLE);
-                incomingCall.answer();
+                CallSdkCompat.answer(incomingCall);
             }
         } else if (v.getId() == R.id.btn_reject) {
             tvState.setText(R.string.call_ended);
@@ -693,7 +691,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                 btnSpeaker.setImageResource(R.drawable.ic_speaker_off);
             }
             if (incomingCall != null) {
-                incomingCall.setSpeakerphoneOn(isSpeaker);
+                CallSdkCompat.setSpeakerphoneOn(this, isSpeaker);
             }
         } else if (v.getId() == R.id.btn_mute) {
             isMute = !isMute;
@@ -819,7 +817,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         }
 
         if (incomingCall != null) {
-            incomingCall.hangup();
+            CallSdkCompat.hangup(incomingCall);
             incomingCall = null;
         }
 
@@ -851,7 +849,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
         Date date = new Date();
         String strTime = format.format(date);
         int type = Constant.TYPE_INCOMING_CALL;
-        if (incomingCall != null && incomingCall.isPhoneToAppCall()) {
+        if (CallSdkCompat.isPhoneToApp(incomingCall)) {
             type = Constant.TYPE_CALL_PHONE_TO_APP;
         }
         mMessage = new Message(Common.userId, 0, "00:00", strTime, type,
@@ -987,7 +985,7 @@ public class IncomingCallActivity extends MActivity implements View.OnClickListe
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                incomingCall.sendCallInfo(jsonObject);
+                CallSdkCompat.sendCallInfo(incomingCall, jsonObject);
             }
             incomingCall.enableVideo(isVideoOn);
         }

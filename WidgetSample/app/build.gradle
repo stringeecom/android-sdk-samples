@@ -63,3 +63,5 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }
+
+apply from: rootProject.file('../gradle/coverage.gradle')

@@ -35,7 +35,7 @@
         android:textColor="@color/black"
         android:textSize="@dimen/text_size_20" />
 
-    <android.support.design.widget.TextInputLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="80dp"
@@ -51,7 +51,7 @@
             android:inputType="numberDecimal"
             android:textColor="@color/text_input"
             android:textSize="@dimen/text_size_18" />
-    </android.support.design.widget.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:id="@+id/tv_info"

@@ -131,7 +131,7 @@ public class MessageAdapter extends Adapter {
         return new MessageHolder(view);
     }
 
-    @SuppressLint("NewApi")
+    @SuppressLint({"NewApi", "RecyclerView"})
     @Override
     public void onBindViewHolder(@androidx.annotation.NonNull RecyclerView.ViewHolder holder, int position) {
         int itemViewType = getItemViewType(position);
@@ -149,9 +149,9 @@ public class MessageAdapter extends Adapter {
             MessageHolder2 messageHolder = (MessageHolder2) holder;
             String text = "";
             if (message.getType() == Message.Type.CREATE_CONVERSATION) {
-                String creator = message.getSenderName();
+                String creator = Utils.getSenderName(message);
                 if (Utils.isStringEmpty(creator)) {
-                    creator = message.getSenderId();
+                    creator = Utils.getSenderId(message);
                 }
                 if (conversation.isGroup()) {
                     text = mContext.getString(R.string.create_conversation, creator);
@@ -680,7 +680,7 @@ public class MessageAdapter extends Adapter {
                     boolean isShowAva = true;
                     if (position < messageList.size() - 1) {
                         Message nextMessage = messageList.get(position + 1);
-                        isShowAva = !message.getSenderId().equals(nextMessage.getSenderId());
+                        isShowAva = !Utils.getSenderId(message).equals(Utils.getSenderId(nextMessage));
                     }
                     if (isShowAva) {
                         messageHolder.alphabeticTextView.setVisibility(View.VISIBLE);
@@ -842,7 +842,7 @@ public class MessageAdapter extends Adapter {
     public void displayImage(Message message, TextView alphabeticTextView) {
         if (alphabeticTextView != null) {
             alphabeticTextView.setVisibility(View.VISIBLE);
-            String sender = message.getSenderId();
+            String sender = Utils.getSenderId(message);
             char firstLetter = 0;
             firstLetter = sender.charAt(0);
             alphabeticTextView.setText(String.valueOf(firstLetter));

@@ -79,7 +79,7 @@ import com.stringee.chat.ui.kit.view.CusRelativeLayout;
 import com.stringee.exception.StringeeError;
 import com.stringee.listener.StatusListener;
 import com.stringee.messaging.Conversation;
-import com.stringee.messaging.Conversation.ChannelType;
+import com.stringee.messaging.ChannelType;
 import com.stringee.messaging.Message;
 import com.stringee.messaging.Message.MsgType;
 import com.stringee.messaging.User;
@@ -168,7 +168,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         messagesRecyclerView = view.findViewById(id.messagesRecyclerView);
         linearLayoutManager = new LinearLayoutManager(getActivity());
         messagesRecyclerView.setLayoutManager(linearLayoutManager);
-        messagesRecyclerView.setHasFixedSize(true);
+        messagesRecyclerView.setHasFixedSize(false);
 
         messagesRecyclerView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -1083,6 +1083,7 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
     }
 
     @Override
+    @android.annotation.SuppressLint("GestureBackNavigation")
     public void onButtonAttachClick() {
         ((ConversationActivity) getActivity()).hideKeyboard(attachButton);
         if (Utils.hasMarshmallow() && !PermissionsUtils.getInstance().checkSelfForStoragePermission(getActivity())) {
@@ -1258,7 +1259,11 @@ public class ChatFragment extends Fragment implements ChatUIListener, ICusKeyboa
         for (Map.Entry<String, Message> entry : msgs.entrySet()) {
             messages.add(entry.getValue());
         }
-        conversation.deleteMessages(Common.client, messages, new StatusListener() {
+        JSONArray messageIds = new JSONArray();
+        for (Message message : messages) {
+            messageIds.put(message.getId());
+        }
+        conversation.deleteMessages(Common.client, messageIds, new StatusListener() {
             @Override
             public void onSuccess() {
                 if (getActivity() == null) {

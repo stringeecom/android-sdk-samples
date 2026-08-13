@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#ffffff</color>
-    <color name="colorPrimaryDark">#333333</color>
-    <color name="colorAccent">#ef2734</color>
-    <color name="statusBar">#ef2734</color>
+    <color name="colorPrimaryDark">#0D112B</color>
+    <color name="colorAccent">#FF4954</color>
+    <color name="statusBar">#EE2333</color>
     <color name="title">#333333</color>
-    <color name="background">#fafafa</color>
+    <color name="background">#f8f8f8</color>
     <color name="text_hint">#767676</color>
     <color name="text_input">#333333</color>
-    <color name="button">#ef2734</color>
-    <color name="button_pressed">#e00a18</color>
+    <color name="button">#FF4954</color>
+    <color name="button_pressed">#EE2333</color>
     <color name="text_normal">#333333</color>
     <color name="text_sub">#888888</color>
     <color name="separator">#e4e4e4</color>
@@ -18,7 +18,7 @@
     <color name="text_time">#bababa</color>
     <color name="item_selected">#eaeaea</color>
     <color name="white">#ffffff</color>
-    <color name="call_status_bar">#007ce2</color>
+    <color name="call_status_bar">#233659</color>
     <color name="orange">#ff9b31</color>
     <color name="black">#000000</color>
 </resources>

@@ -1,20 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.stringee.softphone">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
 
     <application
@@ -27,6 +32,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".activity.SplashActivity"
+            android:exported="true"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
@@ -38,15 +44,18 @@
 
         <activity
             android:name=".activity.LoginActivity"
+            android:exported="false"
             android:theme="@style/AppTheme.Main.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".activity.EnterCodeActivity"
+            android:exported="false"
             android:theme="@style/AppTheme.Main.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".activity.MainActivity"
+            android:exported="false"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
@@ -55,46 +64,46 @@
 
         <activity
             android:name=".activity.OutgoingCallActivity"
+            android:exported="false"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.Call.NoActionBar" />
         <activity
             android:name=".activity.ContactDetailActivity"
+            android:exported="false"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activity.CallUserInfoActivity"
+            android:exported="false"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activity.IncomingCallActivity"
+            android:exported="false"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:showOnLockScreen="true"
+            android:turnScreenOn="true"
             android:theme="@style/AppTheme.Call.NoActionBar" />
 
-        <service android:name=".service.MyFirebaseMessagingService">
+        <service
+            android:name=".service.MyFirebaseMessagingService"
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
-        <service android:name=".service.MyFirebaseInstanceIDService">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </service>
-
-        <receiver android:name=".receiver.ConnectionChangeReceiver">
+        <receiver
+            android:name=".receiver.ConnectionChangeReceiver"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
             </intent-filter>
         </receiver>
-        <meta-data
-            android:name="io.fabric.ApiKey"
-            android:value="f497593520d32535b46991c66450a41c32d86fc7" />
     </application>
 
 </manifest>
