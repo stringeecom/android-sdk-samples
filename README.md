@@ -25,9 +25,9 @@ Android sample applications for integrating Stringee voice, video, conference, w
 
 The samples use:
 
-- Stringee Android SDK `2.1.13`
-- WebRTC SDK `144.7559.09`
-- Stringee Android Widget `1.1.6` in `WidgetSample`
+- Stringee Android SDK `2.1.15`
+- WebRTC SDK `150.7871.01`
+- Stringee Android Widget `1.1.7` in `WidgetSample`
 
 ## Project structure
 
@@ -116,6 +116,12 @@ Run unit tests and Android lint:
 ```bash
 ./gradlew testDebugUnitTest lintDebug
 ```
+
+Release builds use R8 full mode and resource shrinking. Stringee SDK `2.1.15`
+ships the targeted Stringee, WebRTC, and JNI consumer rules required by R8, so
+the sample apps do not keep the complete `com.stringee.**` or `org.webrtc.**`
+packages. If you copy an integration into another application, test its minified
+release variant before publishing.
 
 ## Notes for call samples
 

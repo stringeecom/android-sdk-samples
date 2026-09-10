@@ -19,13 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
--dontwarn org.webrtc.**
--keep class org.webrtc.** { *; }
--keep class com.stringee.** { *; }
+# Stringee SDK 2.1.15 supplies targeted Stringee, WebRTC, and JNI consumer rules.
 -dontwarn com.google.android.gms.internal.zzbeb
 -dontwarn com.google.android.gms.internal.zzbec
--dontwarn org.apache.http.**
--keep class org.apache.http.** { *; }
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** w(...);

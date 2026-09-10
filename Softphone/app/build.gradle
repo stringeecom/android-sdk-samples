@@ -19,7 +19,8 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -53,8 +54,8 @@ dependencies {
     implementation 'com.android.volley:volley:1.2.1'
     implementation platform('com.google.firebase:firebase-bom:34.17.0')
     implementation 'com.google.firebase:firebase-messaging'
-    implementation 'com.stringee.sdk.android:stringee-android-sdk:2.1.13'
-    implementation 'io.github.webrtc-sdk:android:144.7559.09'
+    implementation 'com.stringee.sdk.android:stringee-android-sdk:2.1.15'
+    implementation 'io.github.webrtc-sdk:android:150.7871.01'
     testImplementation 'junit:junit:4.13.2'
 }
 

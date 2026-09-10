@@ -19,8 +19,9 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     packagingOptions {
@@ -58,8 +59,8 @@ dependencies {
         transitive = true
     }
     implementation 'com.github.MikeOrtiz:TouchImageView:3.6'
-    implementation 'com.stringee.sdk.android:stringee-android-sdk:2.1.13'
-    implementation 'io.github.webrtc-sdk:android:144.7559.09'
+    implementation 'com.stringee.sdk.android:stringee-android-sdk:2.1.15'
+    implementation 'io.github.webrtc-sdk:android:150.7871.01'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     testImplementation 'junit:junit:4.13.2'
