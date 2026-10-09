@@ -34,3 +34,6 @@
 
 # SDK binaries are consumed from Maven; keep local copies out of the public repo
 **/app/libs/*.aar
+
+# Serena MCP (local config + memories)
+.serena/

@@ -20,4 +20,4 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# Stringee SDK 2.1.15 supplies targeted Stringee, WebRTC, and JNI consumer rules.
+# Stringee SDK 2.1.18 supplies targeted Stringee, WebRTC, and JNI consumer rules.

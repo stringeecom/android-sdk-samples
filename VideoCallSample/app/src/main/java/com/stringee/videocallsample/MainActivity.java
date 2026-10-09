@@ -176,6 +176,14 @@ public class MainActivity extends AppCompatActivity implements LifecycleObserver
                 }
 
                 @Override
+                public void onTokenWillExpire(StringeeClient stringeeClient, long exp, int expireInSeconds) {
+                    // Fetch a new token for the same user from your server, then renew it on the
+                    // open connection: stringeeClient.updateToken(newToken, statusListener).
+                    // Without renewal the server disconnects at expiry and onRequestNewToken is called.
+                    Log.d("Stringee", "Token expires in " + expireInSeconds + "s. Renew it here");
+                }
+
+                @Override
                 public void onCustomMessage(String from, JSONObject msg) {
                 }
 

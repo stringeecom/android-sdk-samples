@@ -25,7 +25,7 @@ Android sample applications for integrating Stringee voice, video, conference, w
 
 The samples use:
 
-- Stringee Android SDK `2.1.15`
+- Stringee Android SDK `2.1.18`
 - WebRTC SDK `150.7871.01`
 - Stringee Android Widget `1.1.7` in `WidgetSample`
 
@@ -66,6 +66,12 @@ You can open that directory in Android Studio or build it with its Gradle wrappe
 Generate a Stringee access token on your application server, then enter it in the sample application.
 
 Do not store your Stringee secret or generate production access tokens inside an Android application. See the [Stringee authentication documentation](https://developer.stringee.com/docs/client-authentication) for details.
+
+Servers that support token expiration close the connection when the token expires. About 60
+seconds before that, `StringeeConnectionListener.onTokenWillExpire` is called: fetch a new token
+from your server and renew it with `StringeeClient.updateToken(newToken, listener)`. If it is not
+renewed, `onRequestNewToken` is called and the app must connect again with a new token. `Softphone`
+renews the token automatically; the other samples log the event and mark where to renew.
 
 ### 3. Configure Firebase for incoming calls
 
@@ -117,7 +123,7 @@ Run unit tests and Android lint:
 ./gradlew testDebugUnitTest lintDebug
 ```
 
-Release builds use R8 full mode and resource shrinking. Stringee SDK `2.1.15`
+Release builds use R8 full mode and resource shrinking. Stringee SDK `2.1.18`
 ships the targeted Stringee, WebRTC, and JNI consumer rules required by R8, so
 the sample apps do not keep the complete `com.stringee.**` or `org.webrtc.**`
 packages. If you copy an integration into another application, test its minified

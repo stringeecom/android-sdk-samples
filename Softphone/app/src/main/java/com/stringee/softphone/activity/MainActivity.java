@@ -365,6 +365,12 @@ public class MainActivity extends MActivity {
             }
 
             @Override
+            public void onTokenWillExpire(StringeeClient stringeeClient, long exp, int expireInSeconds) {
+                // Renew on the open connection so calls and chat are not interrupted.
+                getTokenAndRenew(MainActivity.this);
+            }
+
+            @Override
             public void onCustomMessage(String s, JSONObject jsonObject) {
 
             }
@@ -377,6 +383,17 @@ public class MainActivity extends MActivity {
     }
 
     public static void getTokenAndConnect(final Context context) {
+        requestAccessToken(context, false);
+    }
+
+    /**
+     * Fetches a new access token and renews it on the open connection without reconnecting.
+     */
+    public static void getTokenAndRenew(final Context context) {
+        requestAccessToken(context, true);
+    }
+
+    private static void requestAccessToken(final Context context, final boolean renew) {
         String url = Constant.URL_BASE + Constant.URL_GET_ACCESS_TOKEN;
         Map<String, String> params = new HashMap();
         params.put("token", PrefUtils.getInstance(context).getString(Constant.PREF_TOKEN, ""));
@@ -397,6 +414,23 @@ public class MainActivity extends MActivity {
                         }
                         PrefUtils.getInstance(context).putString(Constant.PREF_ACCESS_TOKEN, token);
                         PrefUtils.getInstance(context).putLong(Constant.PREF_EXPIRED_TIME, expiredTime);
+                        if (renew) {
+                            Common.client.updateToken(token, new StatusListener() {
+                                @Override
+                                public void onSuccess() {
+                                    android.util.Log.d("Stringee", "Access token renewed");
+                                }
+
+                                @Override
+                                public void onError(StringeeError error) {
+                                    // The server disconnects at expiry, then onRequestNewToken
+                                    // connects again with a new token.
+                                    android.util.Log.d("Stringee", "Access token renewal failed: "
+                                            + error.getCode() + " " + error.getMessage());
+                                }
+                            });
+                            return;
+                        }
                         Common.isConnecting = true;
                         Common.client.connect(token);
                     }
@@ -407,6 +441,10 @@ public class MainActivity extends MActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                if (renew) {
+                    // Keep the current connection; onRequestNewToken handles the expiry.
+                    return;
+                }
                 String fallbackToken = AccessTokenRefreshPolicy.fallbackToken(
                         PrefUtils.getInstance(context).getString(Constant.PREF_ACCESS_TOKEN, ""));
                 if (!fallbackToken.isEmpty()) {

@@ -135,6 +135,14 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 @Override
+                public void onTokenWillExpire(StringeeClient client, long exp, int expireInSeconds) {
+                    // Fetch a new token for the same user from your server, then renew it on the
+                    // open connection: client.updateToken(newToken, statusListener).
+                    // Without renewal the server disconnects at expiry and onRequestNewToken is called.
+                    Log.d("Stringee", "onTokenWillExpire: expires in " + expireInSeconds + "s");
+                }
+
+                @Override
                 public void onCustomMessage(String from, JSONObject msg) {
 
                 }

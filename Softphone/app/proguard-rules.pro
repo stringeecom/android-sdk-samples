@@ -25,7 +25,7 @@
 #-renamesourcefileattribute SourceFile
 -dontwarn com.google.android.gms.internal.zzbeb
 -dontwarn com.google.android.gms.internal.zzbec
-# Stringee SDK 2.1.15 supplies targeted Stringee, WebRTC, and JNI consumer rules.
+# Stringee SDK 2.1.18 supplies targeted Stringee, WebRTC, and JNI consumer rules.
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** w(...);

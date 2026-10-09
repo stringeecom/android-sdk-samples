@@ -14,7 +14,7 @@ lifecycleLivedataKtx = "2.11.0"
 lifecycleViewmodelKtx = "2.11.0"
 flexbox = "3.0.0"
 circleindicator = "2.1.6"
-stringeeAndroidSdk = "2.1.15"
+stringeeAndroidSdk = "2.1.18"
 
 [libraries]
 android = { module = "io.github.webrtc-sdk:android", version.ref = "android" }

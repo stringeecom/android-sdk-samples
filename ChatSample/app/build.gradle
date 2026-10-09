@@ -59,7 +59,7 @@ dependencies {
         transitive = true
     }
     implementation 'com.github.MikeOrtiz:TouchImageView:3.6'
-    implementation 'com.stringee.sdk.android:stringee-android-sdk:2.1.15'
+    implementation 'com.stringee.sdk.android:stringee-android-sdk:2.1.18'
     implementation 'io.github.webrtc-sdk:android:150.7871.01'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'

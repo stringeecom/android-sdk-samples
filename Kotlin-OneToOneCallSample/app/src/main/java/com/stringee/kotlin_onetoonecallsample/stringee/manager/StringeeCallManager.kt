@@ -201,6 +201,13 @@ class StringeeCallManager private constructor(context: Context) : CallSession.Ow
                 })
             }
 
+            override fun onTokenWillExpire(stringeeClient: StringeeClient?, exp: Long, expireInSeconds: Int) {
+                // Fetch a new token for the same user from your server, then renew it on the
+                // open connection: stringeeClient.updateToken(newToken, statusListener).
+                // Without renewal the server disconnects at expiry and onRequestNewToken is called.
+                Log.d(CallConstants.TAG, "onTokenWillExpire: expires in ${expireInSeconds}s")
+            }
+
             override fun onCustomMessage(from: String?, message: JSONObject?) {
                 Log.d(CallConstants.TAG, "onCustomMessage from " + from)
             }

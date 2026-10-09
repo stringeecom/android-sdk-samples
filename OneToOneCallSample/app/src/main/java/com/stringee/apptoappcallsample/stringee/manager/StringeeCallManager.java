@@ -207,6 +207,14 @@ public final class StringeeCallManager implements CallSession.Owner {
             }
 
             @Override
+            public void onTokenWillExpire(StringeeClient stringeeClient, long exp, int expireInSeconds) {
+                // Fetch a new token for the same user from your server, then renew it on the
+                // open connection: stringeeClient.updateToken(newToken, statusListener).
+                // Without renewal the server disconnects at expiry and onRequestNewToken is called.
+                Log.d(CallConstants.TAG, "onTokenWillExpire: expires in " + expireInSeconds + "s");
+            }
+
+            @Override
             public void onCustomMessage(String from, JSONObject message) {
                 Log.d(CallConstants.TAG, "onCustomMessage from " + from);
             }

@@ -19,7 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
-# Stringee SDK 2.1.15 supplies targeted Stringee, WebRTC, and JNI consumer rules.
+# Stringee SDK 2.1.18 supplies targeted Stringee, WebRTC, and JNI consumer rules.
 -dontwarn com.google.android.gms.internal.zzbeb
 -dontwarn com.google.android.gms.internal.zzbec
 -assumenosideeffects class android.util.Log {
